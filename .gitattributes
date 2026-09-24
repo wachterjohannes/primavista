@@ -1,0 +1,4 @@
+bundle/assets/dist/** linguist-generated=true
+demo/composer.lock linguist-generated=true
+pnpm-lock.yaml linguist-generated=true
+* text=auto eol=lf

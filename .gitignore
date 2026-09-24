@@ -1,0 +1,25 @@
+node_modules/
+dist/
+!bundle/assets/dist/
+*.tsbuildinfo
+.DS_Store
+
+# Symfony demo
+demo/var/
+demo/vendor/
+demo/public/assets/
+demo/.env.local
+demo/.env.*.local
+demo/public/bundles/
+demo/assets/build/
+pages/dist/
+
+# Composer bundle
+bundle/vendor/
+bundle/composer.lock
+.phpunit.cache/
+.php-cs-fixer.cache
+
+# Playwright
+test-results/
+playwright-report/

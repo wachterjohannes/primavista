@@ -1,0 +1,66 @@
+# Decisions
+
+Decisions from the kickoff interview on 2026-09-24. See `RESEARCH.md` for the background and `docs/interviews/2026-09-24-kickoff.md` for the conversation.
+
+## Decided
+
+1. **Trigger and goal.** The main trigger is the CKEditor 5 license, which gets stricter with every release and keeps breaking Sulu. Bundle size is the second pain. The goal is a prototype that shows whether a replacement is feasible.
+2. **Core: Lexical.** Smaller than ProseMirror (about 20 KB core vs. about 100 KB), MIT, official table package. Collaboration is not needed, so ProseMirror's main advantage does not count. The core stays encapsulated so the base can be swapped if Lexical falls short.
+3. **Storage: HTML in, HTML out.** Sulu stores HTML strings and that stays. Lexical's JSON is an internal detail and is never persisted.
+4. **No frontend style fidelity.** The editor does not need to look like the website. The Sulu preview covers that. Theming stays on the CKEditor level: CSS variables, nothing more.
+5. **Prototype scope.** Bold, italic, headings, lists, tables, and a plugin system through which Sulu hooks in its own link and media plugins. The plugin system is the key deliverable, not the feature list.
+6. **License: MIT.** Fully open, no license key, no open core.
+7. **Order.** Symfony UX bundle first, the React binding in parallel. Demo target: one Symfony app that renders the Stimulus variant and the React component (as used in Sulu Admin) on the same page, one below the other.
+
+## Implementation decisions (2026-09-24, first prototype)
+
+8. **Repo layout.** pnpm monorepo: `packages/core`, `packages/react`, `bundle` (Composer, Symfony UX conventions), `demo` (Symfony app), `e2e` (Playwright). No `packages/sulu`: the `fieldRegistry.add()` call belongs into Sulu.
+9. **Core owns the UI.** The toolbar is vanilla DOM inside the core. React is a mount wrapper with `value`, `onChange`, `onBlur`. No `@lexical/react`, so there is exactly one UI layer for both bindings.
+10. **Plugin interface.** `{ name, nodes?, theme?, register?(context), toolbar? }`. Bold, lists, headings, links and tables are plugins themselves. Toolbar state callbacks run inside `editor.read()`.
+11. **Self-contained Stimulus controller.** `bundle/assets/dist/controller.js` bundles core and Lexical, only Stimulus stays external, and the file is committed. Zero build steps with AssetMapper and no dependency on published npm packages.
+12. **Lexical re-exports.** The core re-exports `lexical`, `@lexical/link` and `@lexical/utils` as namespaces and the controller passes the module in `primavista:pre-connect` as `detail.core`. Custom plugins in the UX path need the same Lexical instance. Cost: 335 KB to 383 KB minified (128 KB gzip). Re-exporting every Lexical package (419 KB) was rejected, as was no re-export at all, which would make plugins impossible without a bundler.
+13. **Clean HTML export.** Own exporters for text nodes and tables: no wrapper spans, no inline styles, no editor classes, no `dir="ltr"`, no `value` on `li`. A table cell with one paragraph exports as bare cell content. Empty document exports as `""`. Links get no implicit `rel="noreferrer"`.
+14. **Merged cells stay merged.** `registerTableCellUnmergeTransform` is not registered, otherwise `colspan` and `rowspan` are lost on import.
+15. **Hidden textarea loses `required`.** Browsers refuse to validate hidden controls. Server-side constraints keep working.
+
+## Sulu parity (2026-09-24, second iteration)
+
+16. **Internal links as a `LinkNode` subclass.** `InternalLinkNode` extends Lexical's `LinkNode` and adds `provider` and `validationState`. That reuses `$toggleLink` for wrapping, splitting and unwrapping, and only the export differs: `<sulu-link href provider target title sulu-validation-state>`. Tag and attribute names are static fields, so another CMS can rename them.
+17. **Dialogs belong to the host.** Both link plugins expose `openDialog(state)` with `apply`, `remove` and `cancel`. Sulu renders its own `LinkTypeOverlay` and `ExternalLinkTypeOverlay`, the Symfony UX demo uses the built-in toolbar form. The editor never ships a resource picker.
+18. **Balloon instead of toolbar editing.** Like Sulu's `LinkBalloonView`: a floating panel under the link with preview (external only), edit and unlink. The toolbar link buttons are disabled while the selection touches a link, so create and edit never collide.
+19. **Alignment as inline style.** Exported as `style="text-align: …"`, the format Sulu content already contains from CKEditor.
+20. **Toolbar menus.** A third toolbar item type for the provider dropdown. Buttons and selects stay as they were.
+21. **`enter_mode: br` as helper functions.** `stripParagraphs` and `wrapParagraphs` copy Sulu's algorithm verbatim so stored content stays byte-compatible. Applied by the adapter, not the core.
+22. **The Sulu adapter lives in `docs/sulu`.** A reference file written against Sulu 3.0's `TextEditorProps`, `linkTypeRegistry` and overlays. It goes into Sulu's repository, not into an npm package, because it imports Sulu internals.
+23. **Translation through a hook, not through label options.** `translate(key, fallback)` on the editor options with stable keys (`toolbar.bold`, `link.url`). One hook covers every plugin and the adapter maps it to Sulu's `translate()`. Per-plugin label objects were rejected because every host would repeat them.
+24. **Custom elements are marked inline on import.** Lexical's HTML importer treats unknown tags as blocks and drops the whitespace before them. `$loadHtml` sets `display: inline` on `<sulu-link>` before parsing.
+
+## Repository and Sulu verification (2026-09-24, third iteration)
+
+25. **Themes are CSS variables scoped by a class.** `theme: 'sulu'` adds `pv-theme-sulu`, `themes/sulu.css` overrides the `--pv-*` variables. No JavaScript theme objects beyond Lexical's class map, which moved to `themeClasses`.
+26. **CKEditor markup is opt-in.** `html: { tableWrapper, tableHeadSection, emptyParagraph }` reproduces `figure.table`, `thead` and `&nbsp;`. `suluPreset()` bundles them with the theme. The default output stays plain.
+27. **Headings outside `levels` are demoted.** A node transform turns them into paragraphs, matching CKEditor's schema behaviour. Off with `demoteUnlisted: false`.
+28. **CommonJS next to ESM.** Sulu's Jest cannot load ESM without a transform, so both packages ship `index.cjs`. React 17 is supported because Sulu Admin runs on it.
+29. **The adapter is verified inside Sulu.** The reference adapter and its test were run in a local Sulu 3.0 checkout: Jest, `flow focus-check`, ESLint. Sulu needs three config changes for that (Jest transform list, Flow `[untyped]`, package dependencies), documented in `docs/sulu-integration.md`.
+
+## Rejected
+
+- **ProseMirror or Tiptap as the base.** Larger bundle, and Tiptap adds a commercial layer Primavista wants to avoid.
+- **Own document model.** Not realistic for a prototype, contenteditable edge cases cost years.
+- **JSON as source of truth with a PHP renderer.** More power, more work, and Sulu does not need it.
+- **iframe or Shadow DOM isolation for true WYSIWYG.** Explicitly unimportant for Sulu.
+- **Collaboration.** Not needed.
+- **`@lexical/react` for the React binding.** Would duplicate the toolbar and state handling.
+- **Web Component as the core.** Shadow DOM would isolate host CSS, which Sulu does not want, and complicates form integration.
+- **A standalone `InternalLinkNode` element class.** Would need its own wrap, split and unwrap logic. Subclassing `LinkNode` gets that from Lexical.
+- **Editing links from the toolbar button.** Sulu users know the balloon, and a button that both creates and edits hides which one it does.
+
+## Open
+
+- GitHub organization and final name. The `primavista` GitHub account is taken, npm and Packagist are free. Name may still change. Not a concern while the project runs locally.
+- Sanitizing: browser, server via `symfony/html-sanitizer`, or both.
+- Media upload and mention hooks: own event system or existing conventions.
+- Bundle size of the controller. The table plugin is the largest single part of Lexical in the build.
+- A manual click-through inside a running Sulu Admin. The automated Sulu checks passed, the browser session inside Sulu is still to do.
+- Publishing to npm and Packagist.
+- Publishing: npm scope `@primavista` and Packagist vendor `primavista` are free, the GitHub account is not.
