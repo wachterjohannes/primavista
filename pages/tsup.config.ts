@@ -37,6 +37,7 @@ export default defineConfig({
     writeFileSync('dist/assets/primavista.css', readFileSync(join(coreDist, 'primavista.css'), 'utf8') + '\n' + themes);
     for (const file of readdirSync('public')) copyFileSync(join('public', file), join('dist', file));
     copyFileSync('../docs/assets/logo.svg', 'dist/assets/logo.svg');
+    copyFileSync('../docs/assets/favicon.svg', 'dist/assets/favicon.svg');
     writeFileSync('dist/.nojekyll', '');
   },
 });

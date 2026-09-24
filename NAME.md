@@ -8,6 +8,8 @@ The name is also a small wink at the ecosystem. In the PHP world you compose wit
 
 So the goal is simple: open the page and start playing. A prima vista.
 
+The logo is a single dark shape on a warm coral tile, and it reads three ways depending on how you look at it. First it's a P. Look again and it's a half note with its stem turned down, the way you'd find it on the lower half of a staff. And the flat slab at the foot turns the stem into a text cursor, an I-beam whose top serif happens to be the note head. The letter, the note and the caret are one stroke, because in a good editor reading the score and writing it are the same act.
+
 Tagline ideas:
 
 "What you see is what you play."

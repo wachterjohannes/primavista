@@ -5,7 +5,7 @@
   --site-muted: #52606d;
   --site-card: #ffffff;
   --site-border: #e4e7eb;
-  --site-accent: #2f6fed;
+  --site-accent: #c7431b;
   font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   line-height: 1.55;
   color: var(--site-fg);
@@ -18,7 +18,7 @@ html[data-theme="dark"] {
   --site-muted: #9ca3af;
   --site-card: #111827;
   --site-border: #1f2937;
-  --site-accent: #60a5fa;
+  --site-accent: #ff8a62;
   color-scheme: dark;
 }
 

@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128">
+  <!-- Favicon cut of logo.svg: tighter tile, bigger mark, heavier strokes. -->
+  <rect width="128" height="128" rx="24" fill="#ff6a3d"/>
+  <g fill="#1c1b3a" transform="translate(64 64) scale(1.14) translate(-64 -64)">
+    <rect x="41.3" y="51" width="16.7" height="49"/>
+    <rect x="29.5" y="92" width="40" height="15" rx="7.5"/>
+    <path fill-rule="evenodd" transform="rotate(-24 70 45)" d="M70 24a30 21 0 1 1 0 42a30 21 0 1 1 0-42zM70 37a14 7.5 0 1 0 0 15a14 7.5 0 1 0 0-15z"/>
+  </g>
+</svg>
