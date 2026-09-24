@@ -38,6 +38,7 @@ Sulu, and many Symfony projects with it, ship CKEditor 5. Its license got strict
 - **Clean HTML.** No wrapper spans, no inline styles, no editor classes. `p`, `h1` to `h6`, `strong`, `em`, `u`, `s`, `code`, `sub`, `sup`, `a`, lists, tables, `br`. Alignment as `style="text-align"`, text parts in another language as `<span lang>`.
 - **CMS links.** Internal links are stored as `<internal-link href="id?query#anchor" provider="page">`, with a dialog hook so the host shows its own resource picker. External links carry target, title and rel. A balloon under the link offers preview, edit and unlink.
 - **Sulu drop-in.** `composer require primavista/sulu-bundle` and one import in the admin build replace CKEditor, Sulu itself stays untouched. `@primavista/sulu` keeps every Sulu detail out of the core: `suluPlugins()` builds Sulu's toolbar from a text editor config (Sulu 3.0 params and the 3.1 configs), `<sulu-link>` replaces `<internal-link>`, `suluPreset()` writes CKEditor-compatible markup (`figure.table`, `thead`, `&nbsp;`), the Sulu theme matches the admin, `stripParagraphs` and `wrapParagraphs` cover `enter_mode: br`. Clicked through in a running Sulu Admin, see the [screencast](docs/sulu-integration.md#screencast) and [docs/sulu-integration.md](docs/sulu-integration.md).
+- **Typing shortcuts and counts.** `autoformat()` turns `## `, `- `, `1. `, `**bold**` and friends into formatting while typing, limited to what the toolbar offers. `wordCount()` shows words and characters below the content with an optional soft limit.
 - **Themes.** All colors and spacings are CSS variables. `themes/dark.css` and the Sulu theme in `@primavista/sulu` ship, a theme is a handful of overrides.
 - **Zero build in Symfony.** The Stimulus controller is one self-contained file served by AssetMapper. `composer require`, done.
 - **Translatable.** One `translate(key, fallback)` hook covers the toolbar and every form.
@@ -94,7 +95,7 @@ editor.setHtml('<h1>Replaced</h1>');
 editor.destroy();
 ```
 
-`createEditor` takes a `plugins` array. Without it, `defaultPlugins()` is used: history, formatting (bold, italic, underline, strikethrough, subscript, superscript, code), headings, lists, links, alignment, tables (with merge and split). For a CMS add `internalLinks({ providers })`, for multilingual text `language({ languages })`.
+`createEditor` takes a `plugins` array. Without it, `defaultPlugins()` is used: history, formatting (bold, italic, underline, strikethrough, subscript, superscript, code), headings, lists, links, alignment, tables (with merge and split) and autoformat. For a CMS add `internalLinks({ providers })`, for multilingual text `language({ languages })`, for a status bar with counts `wordCount()`.
 
 ## Plugins
 
@@ -123,6 +124,38 @@ export const highlight: PrimavistaPlugin = {
 ```
 
 `isActive`, `isDisabled`, `isHidden` and `getValue` run inside `editor.read()`, so the `$` helpers work. Toolbar items are buttons, native selects or menus. `register(context)` runs once after mount and returns a cleanup function. `context.toolbar.openPanel()` shows a second toolbar row, `context.balloon.show()` a floating panel under an element in the content.
+
+`context.plugins` lists every plugin of the editor, so a plugin can adapt to the others.
+
+### Autoformat
+
+`autoformat()` converts Markdown while typing: `## ` at the start of a paragraph makes a heading, `- ` or `* ` a bullet list, `1. ` a numbered list, `**bold**`, `*italic*`, `***both***`, `~~strike~~` and `` `code` `` the inline formats. It only produces what the other plugins offer: `headings({ levels: ['h2', 'h3'] })` leaves `# ` as text, `lists({ types: ['ol'] })` leaves `- `, `formatting({ formats: ['bold'] })` leaves `*italic*`. Undo turns a conversion back into the typed characters. Loaded or pasted HTML is never touched.
+
+```ts
+autoformat();                   // part of defaultPlugins()
+autoformat({ blocks: false });  // inline formats only
+autoformat({ inline: false });  // headings and lists only
+```
+
+It is on in `defaultPlugins()` and off in `suluPlugins()`, where `autoformat: true` switches it on. Links, quotes and code blocks have no shortcut.
+
+### Word count
+
+`wordCount()` adds a status bar below the content with the number of words and characters. It lives outside the editable element and never reaches the HTML.
+
+```ts
+wordCount({
+  mode: 'both',                  // 'words', 'characters' or 'both'
+  limit: 300,                    // soft limit, marks the bar, never blocks typing
+  limitBy: 'words',              // defaults to characters in 'characters' mode, words otherwise
+  onChange: ({ words, characters, overLimit }) => {},
+});
+
+getWordCount(editor);            // { words, characters }, with or without the plugin
+countText('Some plain text');    // the same rules on a string
+```
+
+Characters include spaces but not the breaks between blocks, an emoji is one character. Every Chinese or Japanese ideograph and kana counts as one word, the way word processors count. Over the limit the bar gets `pv-word-count--over` and a polite live region announces it once, the counts themselves are not announced on every keystroke. Labels translate through `wordCount.words`, `wordCount.characters` and `wordCount.overLimit`.
 
 With a bundler, import from `lexical` directly. In the Symfony UX build the core re-exports `lexical`, `lexicalLink` and `lexicalUtils`, because the controller ships its own copy of Lexical.
 
@@ -186,14 +219,14 @@ Activate it with `theme: 'brand'`. `@primavista/sulu/sulu.css` reproduces Sulu A
 
 ## Translations
 
-`createEditor(host, { translate: (key, fallback) => t(key) ?? fallback })` translates toolbar labels (`toolbar.<id>`, `toolbar.<id>.<option>`) and the link forms (`link.url`, `link.target`, `link.add`, …). The React component takes the same `translate` prop. The full key set with English and German strings is in [docs/sulu/translations](docs/sulu/translations).
+`createEditor(host, { translate: (key, fallback) => t(key) ?? fallback })` translates toolbar labels (`toolbar.<id>`, `toolbar.<id>.<option>`), the link forms (`link.url`, `link.target`, `link.add`, …) and the word count (`wordCount.words`, `wordCount.characters`, `wordCount.overLimit`). The React component takes the same `translate` prop. The full key set with English and German strings is in [docs/sulu/translations](docs/sulu/translations).
 
 ## Sizes
 
 | File | Minified | Gzip |
 |---|---|---|
-| `bundles/ux-bundle/assets/dist/controller.js` (core, Lexical, tables, links) | 402 KB | 133 KB |
-| `packages/core/dist/index.js` (Lexical external) | 72 KB | |
+| `bundles/ux-bundle/assets/dist/controller.js` (core, Lexical, tables, links, Markdown shortcuts) | 441 KB | 142 KB |
+| `packages/core/dist/index.js` (Lexical external) | 86 KB | |
 | `packages/sulu/dist/index.js` | 3 KB | |
 
 ## Documentation

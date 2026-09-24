@@ -1,6 +1,7 @@
 import { $getSelection, $isRangeSelection, FORMAT_TEXT_COMMAND, type TextFormatType } from 'lexical';
 import { icons } from '../icons';
 import type { PrimavistaPlugin, ToolbarButton } from '../types';
+import { declareAllowed } from './allowed';
 
 export type InlineFormat = Extract<
   TextFormatType,
@@ -26,7 +27,7 @@ const LABELS: Record<InlineFormat, { label: string; shortcut?: string; icon: str
 /** Inline text formats. Keyboard shortcuts come with Lexical's rich text setup. */
 export function formatting(options: FormattingOptions = {}): PrimavistaPlugin {
   const formats = options.formats ?? DEFAULT_FORMATS;
-  return {
+  const plugin: PrimavistaPlugin = {
     name: 'formatting',
     toolbar: formats.map((format): ToolbarButton => {
       const meta = LABELS[format];
@@ -44,4 +45,5 @@ export function formatting(options: FormattingOptions = {}): PrimavistaPlugin {
       };
     }),
   };
+  return declareAllowed(plugin, { formats });
 }

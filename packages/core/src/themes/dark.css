@@ -20,6 +20,10 @@
   --pv-selection-bg: rgba(96, 165, 250, 0.3);
 }
 
+.pv-editor.pv-theme-dark .pv-word-count {
+  --pv-word-count-over: #f87171;
+}
+
 .pv-editor.pv-theme-dark .pv-menu,
 .pv-editor.pv-theme-dark .pv-balloon {
   box-shadow: 0 6px 20px rgba(0, 0, 0, 0.5);

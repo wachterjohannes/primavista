@@ -447,6 +447,33 @@
   text-underline-offset: 3px;
 }
 
+/* Word count */
+
+.pv-word-count {
+  --pv-word-count-over: #b42318;
+
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 4px 14px;
+  padding: 3px 10px;
+  background: var(--pv-toolbar-bg);
+  color: var(--pv-toolbar-fg);
+  border-top: 1px solid var(--pv-border);
+  border-radius: 0 0 var(--pv-radius) var(--pv-radius);
+  font-size: 0.75rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.pv-word-count--over {
+  color: var(--pv-word-count-over);
+}
+
+/* Stays rendered while empty, screen readers ignore live regions that appear with their text. */
+.pv-word-count-alert {
+  font-weight: 600;
+}
+
 /* Alignment */
 
 .pv-content [style*="text-align: center"] { text-align: center; }

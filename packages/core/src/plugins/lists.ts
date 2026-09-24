@@ -12,6 +12,7 @@ import { $getNearestNodeOfType } from '@lexical/utils';
 import { $getSelection, $isRangeSelection } from 'lexical';
 import { icons } from '../icons';
 import type { PrimavistaPlugin, ToolbarButton } from '../types';
+import { declareAllowed } from './allowed';
 
 export type ListTag = 'ul' | 'ol';
 
@@ -47,12 +48,13 @@ export function lists(options: ListsOptions = {}): PrimavistaPlugin {
       },
     },
   };
-  return {
+  const plugin: PrimavistaPlugin = {
     name: 'lists',
     nodes: [ListNode, ListItemNode],
     register: ({ editor }) => registerList(editor),
     toolbar: types.map((type) => buttons[type]),
   };
+  return declareAllowed(plugin, { lists: types });
 }
 
 function $getSelectedListType(): ListType | null {

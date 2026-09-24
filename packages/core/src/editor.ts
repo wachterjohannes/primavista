@@ -152,7 +152,7 @@ export function createEditor(container: HTMLElement, options: EditorOptions = {}
 
   const pluginCleanups: Array<() => void> = [];
   for (const plugin of plugins) {
-    const cleanup = plugin.register?.({ editor: lexical, translate, container: element, contentElement, toolbar, balloon });
+    const cleanup = plugin.register?.({ editor: lexical, translate, container: element, contentElement, toolbar, balloon, plugins });
     if (cleanup) pluginCleanups.push(cleanup);
   }
   toolbar.refresh();

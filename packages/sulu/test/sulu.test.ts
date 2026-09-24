@@ -124,6 +124,12 @@ describe('sulu plugins', () => {
     expect(ids(editor)).toEqual(['undo', 'redo', 'bold', 'italic', 'link', 'internal-link']);
   });
 
+  it('adds autoformat only on request', () => {
+    expect(suluPlugins({ providers }).map((p) => p.name)).not.toContain('autoformat');
+    expect(suluPlugins({ providers, autoformat: true }).map((p) => p.name).at(-1)).toBe('autoformat');
+    expect(suluPlugins({ providers, autoformat: { inline: false } }).map((p) => p.name).at(-1)).toBe('autoformat');
+  });
+
   it('adds the language menu for the lang attribute with the given languages', () => {
     const config = { ...SULU_DEFAULT_CONFIG, tags: ['ol', 'strong'], attributes: ['lang'] };
     const { editor } = mount({

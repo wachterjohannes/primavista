@@ -55,5 +55,8 @@
     "sulu_admin.primavista.link.cancel": "Cancel",
     "sulu_admin.text_editor": "Text editor",
     "sulu_admin.primavista.toolbar.language": "Language",
-    "sulu_admin.primavista.toolbar.language.remove": "Remove language"
+    "sulu_admin.primavista.toolbar.language.remove": "Remove language",
+    "sulu_admin.primavista.wordCount.words": "Words",
+    "sulu_admin.primavista.wordCount.characters": "Characters",
+    "sulu_admin.primavista.wordCount.overLimit": "Over the limit"
 }

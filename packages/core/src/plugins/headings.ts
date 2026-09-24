@@ -3,6 +3,7 @@ import { $setBlocksType } from '@lexical/selection';
 import { $findMatchingParent } from '@lexical/utils';
 import { $createParagraphNode, $getSelection, $isElementNode, $isRangeSelection, $isRootOrShadowRoot } from 'lexical';
 import type { PrimavistaPlugin } from '../types';
+import { declareAllowed } from './allowed';
 
 export interface HeadingsOptions {
   levels?: ReadonlyArray<HeadingTagType>;
@@ -20,7 +21,7 @@ const DEFAULT_LEVELS: ReadonlyArray<HeadingTagType> = ['h1', 'h2', 'h3', 'h4'];
 export function headings(options: HeadingsOptions = {}): PrimavistaPlugin {
   const levels = options.levels ?? DEFAULT_LEVELS;
   const demote = options.demoteUnlisted ?? true;
-  return {
+  const plugin: PrimavistaPlugin = {
     name: 'headings',
     nodes: [HeadingNode],
     register: ({ editor }) =>
@@ -62,6 +63,7 @@ export function headings(options: HeadingsOptions = {}): PrimavistaPlugin {
       },
     ],
   };
+  return declareAllowed(plugin, { headings: levels });
 }
 
 function $getSelectedHeading(): HeadingNode | null {

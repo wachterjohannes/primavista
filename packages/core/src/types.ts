@@ -105,6 +105,8 @@ export interface PluginContext {
   contentElement: HTMLElement;
   toolbar: ToolbarApi;
   balloon: BalloonApi;
+  /** Every plugin of this editor in registration order, including this one. */
+  plugins: ReadonlyArray<PrimavistaPlugin>;
 }
 
 /**
