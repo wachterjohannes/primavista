@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Primavista: a WYSIWYG editor for Symfony UX, React and Sulu</title>
+  <meta name="description" content="One framework-free editor core on Lexical, a Symfony UX bundle and a React component. HTML in, HTML out. MIT.">
+  <link rel="icon" href="assets/logo.svg">
+  <link rel="stylesheet" href="assets/primavista.css">
+  <link rel="stylesheet" href="site.css">
+</head>
+<body>
+  <header class="hero">
+    <img class="hero-logo" src="assets/logo.svg" alt="" width="72" height="72">
+    <div>
+      <h1>Primavista</h1>
+      <p class="lead">One editor core. A Symfony UX bundle for Twig forms, a React component for Sulu Admin. HTML in, HTML out. MIT.</p>
+      <p class="links">
+        <a href="https://github.com/wachterjohannes/primavista">GitHub</a>
+        <a href="https://github.com/wachterjohannes/primavista/blob/main/docs/sulu-integration.md">Sulu integration</a>
+        <a href="https://github.com/wachterjohannes/primavista#symfony-ux">Symfony UX</a>
+      </p>
+    </div>
+  </header>
+
+  <main>
+    <section>
+      <div class="section-head">
+        <h2>The core, no framework</h2>
+        <label class="theme-switch">Theme
+          <select id="vanilla-theme">
+            <option value="default">Default</option>
+            <option value="sulu">Sulu</option>
+            <option value="dark">Dark</option>
+          </select>
+        </label>
+      </div>
+      <p class="hint">Mounted with <code>createEditor(host, { plugins, theme })</code>. Click a link for the balloon, drag across cells to merge them, use the chain menu for internal links.</p>
+      <div id="vanilla-editor"></div>
+      <details open>
+        <summary>HTML the editor emits</summary>
+        <pre id="vanilla-output"></pre>
+      </details>
+    </section>
+
+    <section>
+      <div class="section-head">
+        <h2>The React binding, as Sulu Admin uses it</h2>
+      </div>
+      <p class="hint">A controlled component with <code>value</code>, <code>onChange</code> and <code>onBlur</code>, the Sulu theme, CKEditor-compatible markup through <code>suluPreset()</code>, and the host's own dialog for internal links.</p>
+      <div id="react-editor" data-initial-html="&lt;h2&gt;Primavista in React&lt;/h2&gt;&lt;p&gt;Same core, &lt;strong&gt;same toolbar&lt;/strong&gt;, controlled by React state.&lt;/p&gt;&lt;p&gt;Internal link: &lt;sulu-link href=&quot;uuid-about&quot; provider=&quot;page&quot; target=&quot;_self&quot; title=&quot;About us&quot;&gt;About us&lt;/sulu-link&gt;&lt;/p&gt;"></div>
+    </section>
+
+    <section class="cards">
+      <article>
+        <h3>Symfony UX</h3>
+        <p><code>composer require primavista/ux-bundle</code>, then <code>PrimavistaType</code> in a form. The Stimulus controller is one file served by AssetMapper, no build step.</p>
+      </article>
+      <article>
+        <h3>Sulu</h3>
+        <p>A reference adapter replaces CKEditor 5 in Sulu Admin, verified against Sulu's Jest, Flow, ESLint and webpack build. Internal links, validation states and <code>enter_mode</code> included.</p>
+      </article>
+      <article>
+        <h3>Plugins</h3>
+        <p>Bold, lists, tables and links are plugins. A plugin is nodes, toolbar items and a register hook. Hosts add their own through the same interface.</p>
+      </article>
+    </section>
+  </main>
+
+  <footer>
+    <p>MIT licensed. Built on <a href="https://lexical.dev">Lexical</a>. <a href="https://github.com/wachterjohannes/primavista">Source on GitHub</a>.</p>
+  </footer>
+
+  <script type="module" src="assets/vanilla.js"></script>
+  <script type="module" src="assets/react-island.js"></script>
+</body>
+</html>

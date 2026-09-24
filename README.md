@@ -1,0 +1,204 @@
+<p align="center">
+  <img src="docs/assets/logo.svg" width="112" height="112" alt="Primavista logo">
+</p>
+
+<h1 align="center">Primavista</h1>
+
+<p align="center">
+  A WYSIWYG editor with one framework-free core and two bindings: a Symfony UX bundle for Twig forms and a React component for Sulu Admin.<br>
+  HTML in, HTML out. MIT licensed. Built on <a href="https://lexical.dev">Lexical</a>.
+</p>
+
+<p align="center">
+  <a href="https://github.com/wachterjohannes/primavista/actions/workflows/ci.yml"><img src="https://github.com/wachterjohannes/primavista/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="MIT license"></a>
+  <img src="https://img.shields.io/badge/core-Lexical%200.51-6d28d9.svg" alt="Lexical 0.51">
+  <img src="https://img.shields.io/badge/Symfony%20UX-AssetMapper%20ready-000.svg" alt="Symfony UX">
+</p>
+
+<p align="center">
+  <a href="https://johanneswachter.dev/primavista/"><strong>Live demo</strong></a>
+</p>
+
+<p align="center">
+  <img src="docs/assets/screenshot.png" width="880" alt="The demo page: the Symfony UX form field on top, the React component with the Sulu theme below">
+</p>
+
+*Prima vista*: playing a piece of music at first sight. Open the page and start playing. The name story is in [NAME.md](NAME.md).
+
+## Why
+
+Sulu, and many Symfony projects with it, ship CKEditor 5. Its license got stricter with every release and the bundle grew to half a megabyte. Primavista is the replacement: a small core on Lexical, no license key, plain semantic HTML, and a plugin interface that a CMS can hang its own link and media pickers on. The research behind that decision is in [RESEARCH.md](RESEARCH.md), the decisions in [DECISIONS.md](DECISIONS.md).
+
+## Features
+
+- **Everything is a plugin.** Bold, headings, lists, links, tables and alignment are plugins. Hosts add their own through the same interface.
+- **Two bindings, one UI.** The core owns the toolbar. React and Stimulus only mount it, so both look and behave the same.
+- **Clean HTML.** No wrapper spans, no inline styles, no editor classes. `p`, `h1` to `h6`, `strong`, `em`, `u`, `s`, `code`, `sub`, `sup`, `a`, lists, tables, `br`. Alignment as `style="text-align"`.
+- **CMS links.** Internal links are stored as `<sulu-link href="id?query#anchor" provider="page">`, with a dialog hook so the host shows its own resource picker. External links carry target, title and rel. A balloon under the link offers preview, edit and unlink.
+- **Sulu drop-in.** `suluPreset()` writes CKEditor-compatible markup (`figure.table`, `thead`, `&nbsp;`), the Sulu theme matches the admin, `stripParagraphs` and `wrapParagraphs` cover `enter_mode: br`. The reference adapter passes Sulu's Jest, Flow, ESLint and webpack build. See [docs/sulu-integration.md](docs/sulu-integration.md).
+- **Themes.** All colors and spacings are CSS variables. `themes/sulu.css` and `themes/dark.css` ship, a theme is a handful of overrides.
+- **Zero build in Symfony.** The Stimulus controller is one self-contained file served by AssetMapper. `composer require`, done.
+- **Translatable.** One `translate(key, fallback)` hook covers the toolbar and every form.
+
+## Packages
+
+| Path | Package | What it is |
+|---|---|---|
+| [`packages/core`](packages/core) | `@primavista/core` | Editor, toolbar, HTML import and export, plugin API. No framework. |
+| [`packages/react`](packages/react) | `@primavista/react` | `<Editor value onChange onBlur />`, a thin mount wrapper. React 17 to 19. |
+| [`bundle`](bundle) | `primavista/ux-bundle` | Symfony bundle: `PrimavistaType` form type plus a Stimulus controller. |
+| [`demo`](demo) | | Symfony app that renders both bindings on one page. Target of the browser tests. |
+| [`pages`](pages) | | Static demo published to [GitHub Pages](https://johanneswachter.dev/primavista/). |
+| [`e2e`](e2e) | | Playwright suite against the demo. |
+| [`docs`](docs) | | Research, decisions, Sulu requirements and the Sulu adapter. |
+
+## Quick start
+
+Requirements: Node 20+, pnpm 10, PHP 8.4, Composer.
+
+```sh
+pnpm install
+pnpm build                      # core, react, bundle controller, demo island
+pnpm test                       # Vitest: core and react
+(cd bundle && composer install && composer test && composer phpstan)
+(cd demo && composer install)
+pnpm e2e:install                # downloads Chromium once
+pnpm e2e                        # starts php -S on 127.0.0.1:8799 and runs Playwright
+```
+
+The static demo that GitHub Pages serves builds with `pnpm build:pages` into `pages/dist`. To look at the Symfony demo by hand:
+
+```sh
+php -S 127.0.0.1:8799 -t demo/public demo/public/router.php
+```
+
+## Using the core
+
+```ts
+import { createEditor } from '@primavista/core';
+import '@primavista/core/primavista.css';
+
+const editor = createEditor(document.querySelector('#host'), {
+  initialHtml: '<p>Hello</p>',
+  placeholder: 'Write…',
+  theme: 'dark',                 // optional, needs themes/dark.css
+});
+editor.on('change', (html) => console.log(html));
+editor.getHtml();
+editor.setHtml('<h1>Replaced</h1>');
+editor.destroy();
+```
+
+`createEditor` takes a `plugins` array. Without it, `defaultPlugins()` is used: history, formatting (bold, italic, underline, strikethrough, subscript, superscript, code), headings, lists, links, alignment, tables (with merge and split). For a CMS add `internalLinks({ providers })`.
+
+## Plugins
+
+A plugin declares Lexical nodes, theme classes, toolbar items and a `register` hook:
+
+```ts
+import { lexical, type PrimavistaPlugin } from '@primavista/core';
+
+const { $getSelection, $isRangeSelection, FORMAT_TEXT_COMMAND } = lexical;
+
+export const highlight: PrimavistaPlugin = {
+  name: 'highlight',
+  toolbar: [
+    {
+      id: 'highlight',
+      label: 'Highlight',
+      icon: '<svg …>',
+      isActive: () => {
+        const selection = $getSelection();
+        return $isRangeSelection(selection) && selection.hasFormat('highlight');
+      },
+      onClick: (editor) => editor.dispatchCommand(FORMAT_TEXT_COMMAND, 'highlight'),
+    },
+  ],
+};
+```
+
+`isActive`, `isDisabled`, `isHidden` and `getValue` run inside `editor.read()`, so the `$` helpers work. Toolbar items are buttons, native selects or menus. `register(context)` runs once after mount and returns a cleanup function. `context.toolbar.openPanel()` shows a second toolbar row, `context.balloon.show()` a floating panel under an element in the content.
+
+With a bundler, import from `lexical` directly. In the Symfony UX build the core re-exports `lexical`, `lexicalLink` and `lexicalUtils`, because the controller ships its own copy of Lexical.
+
+## Link dialogs
+
+Both link plugins ask the host for a dialog instead of forcing their own UI:
+
+```ts
+links({ openDialog: (state) => myLinkModal(state) });          // state.apply({ url, target, title, rel, text })
+internalLinks({
+  providers: [{ key: 'page', label: 'Page' }, { key: 'media', label: 'Media' }],
+  openDialog: (state) => myResourcePicker(state),               // state.apply({ href, query, anchor, target, title, text })
+});
+```
+
+`state` carries the current values, `mode` (`create` or `edit`), the selected text and `collapsed`. With a collapsed selection `apply` inserts `text` (or the URL) as link text. Without `openDialog` a compact form appears in the toolbar. The demo's React island shows a host dialog.
+
+## React
+
+```tsx
+import { Editor, suluPreset } from '@primavista/react';
+import '@primavista/core/primavista.css';
+import '@primavista/core/themes/sulu.css';
+
+<Editor value={html} onChange={setHtml} onBlur={markTouched} placeholder="Write…" {...suluPreset()} />
+```
+
+The props match what Sulu's `fieldRegistry.add()` expects. `plugins`, `theme`, `html` and `translate` are read once on mount. Pass a `key` to remount with another set.
+
+## Symfony UX
+
+```sh
+composer require primavista/ux-bundle
+```
+
+```php
+use Primavista\UxBundle\Form\PrimavistaType;
+
+$builder->add('body', PrimavistaType::class, [
+    'placeholder' => 'Start writing…',
+    'theme' => 'dark',
+    'sanitize_html' => true,
+]);
+```
+
+The field renders a textarea with the Stimulus controller `primavista--ux-bundle--editor`. The controller mounts the editor next to it and keeps the textarea value in sync, so the form posts plain HTML. Apps hook in through `primavista:pre-connect` (add plugins, the event carries the core module) and `primavista:connect` (the editor instance). Details in the [bundle README](bundle/README.md).
+
+## Themes
+
+Every color and spacing is a custom property on `.pv-editor`. A theme is a stylesheet that scopes overrides to `.pv-editor.pv-theme-<name>`:
+
+```css
+.pv-editor.pv-theme-brand {
+  --pv-accent: #e11d48;
+  --pv-toolbar-bg: #fff1f2;
+}
+```
+
+Activate it with `theme: 'brand'`. `themes/sulu.css` reproduces Sulu Admin, `themes/dark.css` is a dark variant.
+
+## Translations
+
+`createEditor(host, { translate: (key, fallback) => t(key) ?? fallback })` translates toolbar labels (`toolbar.<id>`, `toolbar.<id>.<option>`) and the link forms (`link.url`, `link.target`, `link.add`, …). The React component takes the same `translate` prop. The full key set with English and German strings is in [docs/sulu/translations](docs/sulu/translations).
+
+## Sizes
+
+| File | Minified | Gzip |
+|---|---|---|
+| `bundle/assets/dist/controller.js` (core, Lexical, tables, links) | 402 KB | 133 KB |
+| `packages/core/dist/index.js` (Lexical external) | 72 KB | |
+
+## Documentation
+
+- [docs/sulu-integration.md](docs/sulu-integration.md): replacing CKEditor 5 in Sulu Admin, step by step.
+- [docs/sulu-requirements.md](docs/sulu-requirements.md): what Sulu uses from CKEditor, read from the source.
+- [docs/sulu/PrimavistaTextEditor.js](docs/sulu/PrimavistaTextEditor.js): the reference adapter, with its [Jest test](docs/sulu/tests/PrimavistaTextEditor.test.js).
+- [RESEARCH.md](RESEARCH.md): the editor landscape and the Symfony UX conventions.
+- [DECISIONS.md](DECISIONS.md): what was decided, what was rejected, what is open.
+- [CONTRIBUTING.md](CONTRIBUTING.md): setup and ground rules.
+
+## License
+
+[MIT](LICENSE)

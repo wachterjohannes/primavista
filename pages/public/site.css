@@ -1,0 +1,240 @@
+:root {
+  color-scheme: light;
+  --site-bg: #f7f8fa;
+  --site-fg: #1f2933;
+  --site-muted: #52606d;
+  --site-card: #ffffff;
+  --site-border: #e4e7eb;
+  --site-accent: #2f6fed;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  line-height: 1.55;
+  color: var(--site-fg);
+  background: var(--site-bg);
+}
+
+html[data-theme="dark"] {
+  --site-bg: #0b1220;
+  --site-fg: #e5e7eb;
+  --site-muted: #9ca3af;
+  --site-card: #111827;
+  --site-border: #1f2937;
+  --site-accent: #60a5fa;
+  color-scheme: dark;
+}
+
+body {
+  margin: 0;
+  color: var(--site-fg);
+  background: var(--site-bg);
+}
+
+a {
+  color: var(--site-accent);
+}
+
+.hero {
+  display: flex;
+  gap: 1.5rem;
+  align-items: center;
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 3rem 1rem 1.5rem;
+}
+
+.hero h1 {
+  margin: 0;
+  font-size: 2.25rem;
+  letter-spacing: -0.02em;
+}
+
+.hero .lead {
+  margin: 0.25rem 0 0.5rem;
+  color: var(--site-muted);
+  font-size: 1.1rem;
+}
+
+.hero .links a {
+  margin-right: 1rem;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.hero-logo {
+  flex: 0 0 auto;
+  border-radius: 16px;
+}
+
+main {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 0 1rem 4rem;
+}
+
+section {
+  margin-bottom: 2.5rem;
+  padding: 1.5rem;
+  background: var(--site-card);
+  border: 1px solid var(--site-border);
+  border-radius: 10px;
+}
+
+.section-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+section h2 {
+  margin: 0;
+  font-size: 1.25rem;
+}
+
+.hint {
+  margin: 0.5rem 0 1rem;
+  color: var(--site-muted);
+}
+
+.theme-switch {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 600;
+}
+
+.theme-switch select,
+.modal select,
+.modal input {
+  padding: 0.35rem 0.5rem;
+  border: 1px solid var(--site-border);
+  border-radius: 6px;
+  background: var(--site-card);
+  color: inherit;
+  font: inherit;
+}
+
+details {
+  margin-top: 1rem;
+}
+
+summary {
+  cursor: pointer;
+  color: var(--site-muted);
+  font-weight: 600;
+}
+
+pre {
+  margin: 0.5rem 0 0;
+  padding: 0.75rem;
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--site-fg) 6%, var(--site-card));
+  font-size: 0.85rem;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+code {
+  padding: 0.1em 0.3em;
+  border-radius: 3px;
+  background: color-mix(in srgb, var(--site-fg) 8%, transparent);
+  font-size: 0.9em;
+}
+
+.cards {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  background: transparent;
+  border: 0;
+  padding: 0;
+}
+
+.cards article {
+  padding: 1.25rem;
+  background: var(--site-card);
+  border: 1px solid var(--site-border);
+  border-radius: 10px;
+}
+
+.cards h3 {
+  margin: 0 0 0.5rem;
+}
+
+.cards p {
+  margin: 0;
+  color: var(--site-muted);
+}
+
+footer {
+  padding: 2rem 1rem;
+  color: var(--site-muted);
+  text-align: center;
+}
+
+/* React island helpers, shared with the demo app */
+
+.stack > * + * {
+  margin-top: 1rem;
+}
+
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+button {
+  padding: 0.5rem 0.9rem;
+  border: 1px solid var(--site-border);
+  border-radius: 6px;
+  background: var(--site-card);
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
+button.primary {
+  background: var(--site-accent);
+  border-color: var(--site-accent);
+  color: #fff;
+}
+
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: grid;
+  place-items: center;
+  background: rgba(15, 23, 42, 0.45);
+}
+
+.modal {
+  width: min(420px, 90vw);
+  padding: 1.25rem;
+  background: var(--site-card);
+  border-radius: 8px;
+  box-shadow: 0 20px 50px rgba(15, 23, 42, 0.35);
+}
+
+.modal h3 {
+  margin: 0 0 1rem;
+}
+
+.modal label {
+  display: block;
+  margin-bottom: 0.75rem;
+  font-weight: 600;
+}
+
+.modal select,
+.modal input {
+  display: block;
+  width: 100%;
+  margin-top: 0.25rem;
+}
+
+.pv-content .pv-highlight {
+  background: #fff1a8;
+}
