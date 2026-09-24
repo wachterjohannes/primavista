@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "f53bdcad9e32a80150d6ea8945625bf6",
+    "content-hash": "bd99491c72e1a019dc9412029400b692",
     "packages": [
         {
             "name": "composer/semver",
@@ -270,8 +270,8 @@
             "version": "dev-main",
             "dist": {
                 "type": "path",
-                "url": "../bundle",
-                "reference": "d972037c0281b5ec80b4ae45fbf4b5fafeafc7c1"
+                "url": "../bundles/ux-bundle",
+                "reference": "bc13dff015b31169492f2321cf4597e12e3f0e5a"
             },
             "require": {
                 "php": ">=8.2",
@@ -312,8 +312,14 @@
             "license": [
                 "MIT"
             ],
+            "authors": [
+                {
+                    "name": "Johannes Wachter",
+                    "email": "johannes@sulu.io"
+                }
+            ],
             "description": "Primavista WYSIWYG editor for Symfony forms, built on Symfony UX and Stimulus. HTML in, HTML out.",
-            "homepage": "https://github.com/primavista",
+            "homepage": "https://github.com/wachterjohannes/primavista",
             "keywords": [
                 "editor",
                 "form",
@@ -322,6 +328,10 @@
                 "symfony-ux",
                 "wysiwyg"
             ],
+            "support": {
+                "issues": "https://github.com/wachterjohannes/primavista/issues",
+                "source": "https://github.com/wachterjohannes/primavista"
+            },
             "transport-options": {
                 "symlink": true,
                 "relative": true

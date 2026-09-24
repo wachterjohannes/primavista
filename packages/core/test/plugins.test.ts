@@ -1,4 +1,4 @@
-import { $getRoot } from 'lexical';
+import { $getRoot, $isTextNode } from 'lexical';
 import { $createTableSelection, $isTableNode } from '@lexical/table';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import {
@@ -6,7 +6,10 @@ import {
   formatting,
   history,
   internalLinks,
+  language,
   links,
+  lists,
+  $setLanguage,
   type InternalLinkDialogState,
   type PrimavistaEditor,
 } from '../src';
@@ -122,6 +125,68 @@ describe('internal links', () => {
     expect(editor.getHtml()).toBe(
       '<p><a href="https://x.example">ext</a> and <internal-link href="1" provider="page">int</internal-link></p>',
     );
+  });
+});
+
+describe('language', () => {
+  const plugins = () => [history(), formatting(), links(), language({ languages: [{ code: 'de', label: 'Deutsch' }, { code: 'fr', label: 'Français' }] })];
+
+  function pick(editor: PrimavistaEditor, value: string): void {
+    button(editor, 'language').click();
+    editor.toolbar.element.querySelector<HTMLButtonElement>(`.pv-menu [data-pv-option="${value}"]`)!.click();
+  }
+
+  it('round-trips span lang markup and keeps it inside links', () => {
+    const html = '<p>Say <span lang="fr">bonjour</span> and <a href="https://x.example"><span lang="de">hallo</span></a>.</p>';
+    const { editor } = setup({ initialHtml: html, plugins: plugins() });
+    expect(editor.getHtml()).toBe(html);
+    expect(editor.contentElement.querySelector('span[lang="fr"]')?.classList.contains('pv-language')).toBe(true);
+  });
+
+  it('offers the languages plus remove and is disabled on a collapsed selection outside a span', () => {
+    const { editor } = setup({ initialHtml: '<p>Hello world</p>', plugins: plugins() });
+    typeText(editor, '');
+    expect(button(editor, 'language').disabled).toBe(true);
+    selectAll(editor);
+    expect(button(editor, 'language').disabled).toBe(false);
+    button(editor, 'language').click();
+    const entries = Array.from(editor.toolbar.element.querySelectorAll<HTMLButtonElement>('.pv-menu-item'));
+    expect(entries.map((e) => e.textContent)).toEqual(['Deutsch', 'Français', 'Remove language']);
+  });
+
+  it('wraps the selection, merges neighbours and removes again', () => {
+    const { editor } = setup({ initialHtml: '<p>Hello <strong>big</strong> world</p>', plugins: plugins() });
+    selectAll(editor);
+    pick(editor, 'de');
+    expect(editor.getHtml()).toBe('<p><span lang="de">Hello <strong>big</strong> world</span></p>');
+    expect(button(editor, 'language').getAttribute('aria-pressed')).toBe('true');
+    pick(editor, 'fr');
+    expect(editor.getHtml()).toBe('<p><span lang="fr">Hello <strong>big</strong> world</span></p>');
+    pick(editor, 'remove');
+    expect(editor.getHtml()).toBe('<p>Hello <strong>big</strong> world</p>');
+  });
+
+  it('changes only the selected part of a span', () => {
+    const { editor } = setup({ initialHtml: '<p><span lang="de">eins zwei drei</span></p>', plugins: plugins() });
+    editor.lexical.update(
+      () => {
+        const text = $getRoot().getFirstDescendant();
+        if (!text || !$isTextNode(text)) throw new Error('no text');
+        const selection = text.select(5, 9);
+        expect(selection.getTextContent()).toBe('zwei');
+      },
+      { discrete: true },
+    );
+    editor.lexical.update(() => $setLanguage('fr'), { discrete: true });
+    expect(editor.getHtml()).toBe('<p><span lang="de">eins </span><span lang="fr">zwei</span><span lang="de"> drei</span></p>');
+    editor.lexical.update(() => $setLanguage(null), { discrete: true });
+    expect(editor.getHtml()).toBe('<p><span lang="de">eins </span>zwei<span lang="de"> drei</span></p>');
+  });
+
+  it('offers only the configured list types', () => {
+    const { editor } = setup({ plugins: [history(), lists({ types: ['ol'] })] });
+    expect(editor.toolbar.element.querySelector('[data-pv-item="bullet-list"]')).toBeNull();
+    expect(editor.toolbar.element.querySelector('[data-pv-item="numbered-list"]')).not.toBeNull();
   });
 });
 

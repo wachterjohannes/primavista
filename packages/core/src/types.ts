@@ -50,6 +50,8 @@ export interface ToolbarMenu {
   icon?: string;
   group?: string;
   options: ToolbarMenuOption[];
+  /** Pressed state of the menu button, for example while the selection sits in what the menu controls. */
+  isActive?: () => boolean;
   isDisabled?: () => boolean;
   isHidden?: () => boolean;
   onSelect: (value: string, editor: LexicalEditor, context: ToolbarItemContext) => void;

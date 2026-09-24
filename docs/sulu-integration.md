@@ -1,8 +1,8 @@
 # Replacing CKEditor 5 in Sulu Admin
 
-How Primavista becomes the `text_editor` adapter of Sulu 3. The feature list it has to cover is in `sulu-requirements.md`. Sulu-specific code (the `<sulu-link>` plugin, Sulu's toolbar, the CKEditor-compatible preset, the theme and the `enter_mode` helpers) is the package `@primavista/sulu`, the core stays free of it. The reference adapter is `sulu/PrimavistaTextEditor.js`, its Jest test `sulu/tests/PrimavistaTextEditor.test.js`, the translation keys are in `sulu/translations`.
+How Primavista becomes the `text_editor` adapter of Sulu 3, through the bundle `primavista/sulu-bundle` in `bundles/sulu-bundle`. The feature list it has to cover is in `sulu-requirements.md`. Sulu itself is not changed.
 
-Verified on 2026-09-24 in a Sulu 3.0.9 skeleton with the adapter wired in: Sulu's Jest suite for `containers/TextEditor` (21 tests), `flow focus-check`, ESLint with Sulu's rules, the admin webpack build, and the click-through below in the browser.
+Verified on 2026-09-24 in a Sulu 3.0.9 skeleton with the bundle installed: the adapter's Jest test inside a Sulu checkout, the admin webpack build, and the click-through below in the browser. The adapter also passes its test against Sulu's pull request 9091 (text editor configs, targeted at 3.1).
 
 ## Screencast
 
@@ -25,57 +25,46 @@ The stored value after the video:
 
 The same markup CKEditor wrote. On the website `MarkupBundle` turns the `<sulu-link>` into `<a href="/">` as before.
 
-## 1. The change in sulu/sulu
+## The pieces
 
-All paths below `src/Sulu/Bundle/AdminBundle/Resources/js` unless noted. This is the content of the pull request against Sulu.
+| Package | Role |
+|---|---|
+| `@primavista/core` | The editor. Knows nothing about Sulu. |
+| `@primavista/react` | The React component Sulu Admin mounts. |
+| `@primavista/sulu` | `suluPlugins()`, `<sulu-link>`, the CKEditor-compatible preset, the Sulu theme, `enter_mode` and value helpers. |
+| `primavista/sulu-bundle` | The Symfony bundle: translations plus the admin JavaScript that registers the adapter and switches the field. |
 
-1. `package.json`: add `"@primavista/react": "^0.1.0"`, `"@primavista/sulu": "^0.1.0"` and `"lexical": "^0.51.0"` to `dependencies`. The CKEditor packages can go once step 8 is done.
-2. Copy `docs/sulu/PrimavistaTextEditor.js` to `containers/TextEditor/adapters/PrimavistaTextEditor.js` and `docs/sulu/tests/PrimavistaTextEditor.test.js` to `containers/TextEditor/tests/adapters/`.
-3. `index.js`: import the adapter and register it in `registerTextEditors()` with `textEditorRegistry.add('primavista', PrimavistaTextEditor)`. The registry throws on duplicate keys, so the CKEditor entry stays until it is removed for good.
-4. `containers/Form/fields/TextEditor.js`: change `adapter="ckeditor5"` to `adapter="primavista"`.
-5. `Resources/translations/admin.en.json` and `admin.de.json`: add the keys from `docs/sulu/translations`. They cover the toolbar, the link forms and the `sulu_admin.text_editor` label of the content area.
-6. Repository root `package.json`, Jest `transformIgnorePatterns`: prepend `lexical|@lexical|@preact|` to the allow list. Lexical ships ESM only and Jest has to transform it.
-7. Repository root `.flowconfig`, `[untyped]` section: add `.*/node_modules/lexical/.*`, `.*/node_modules/@lexical/.*` and `.*/node_modules/@primavista/.*`. Lexical's `.js.flow` files use syntax Flow cannot parse.
-8. Later: delete `containers/CKEditor5` once nothing imports it. Projects that used `pluginRegistry` or `configRegistry` move their extensions to Primavista plugins (see below).
+## 1. Installing the bundle in a Sulu project
 
-Check with Sulu's own tooling from the repository root:
+Step by step, this is how the screencast project was built. The bundle README in `bundles/sulu-bundle` has the same steps in short.
 
-```sh
-npm install
-npx jest src/Sulu/Bundle/AdminBundle/Resources/js/containers/TextEditor
-npx flow focus-check src/Sulu/Bundle/AdminBundle/Resources/js/containers/TextEditor/adapters/PrimavistaTextEditor.js
-npx eslint src/Sulu/Bundle/AdminBundle/Resources/js/containers/TextEditor
-```
-
-Nothing changes on the PHP side. The stored HTML is the same: paragraphs, headings, inline formats, lists, tables in `<figure class="table">` with `<thead>`, `<a>` for external links and `<sulu-link>` for internal ones, `&nbsp;` in empty paragraphs. Existing content opens in Primavista unchanged.
-
-## 2. Using it in a Sulu project today
-
-Until the pull request is merged and the packages are on npm, a project pulls in a patched `sulu/sulu` and installs Primavista from tarballs. This is exactly how the screencast project was built.
-
-**sulu/sulu with the adapter.** Point Composer at a checkout or fork that contains the changes from section 1, with an inline alias for the version the skeleton expects:
+**Composer.** Until the bundle is on Packagist, point at the repository:
 
 ```json
 {
     "repositories": [
-        { "type": "path", "url": "../sulu", "options": { "symlink": true } }
-    ],
-    "require": {
-        "sulu/sulu": "dev-primavista as 3.0.9"
-    }
+        { "type": "path", "url": "../primavista/bundles/sulu-bundle" }
+    ]
 }
 ```
 
-`composer update sulu/sulu -W` (the flag allows dependency changes). A `vcs` repository pointing at a fork works the same way. Sulu's webpack config resolves modules with `symlinks: false`, so a symlinked `vendor/sulu/sulu` builds fine.
+```sh
+composer require primavista/sulu-bundle:@dev
+```
 
-**Primavista packages.** Build and pack them in this repository:
+```php
+// config/bundles.php
+Primavista\SuluBundle\PrimavistaSuluBundle::class => ['all' => true],
+```
+
+**Primavista packages.** Until they are on npm, build and pack them in this repository:
 
 ```sh
 pnpm install && pnpm build
 pnpm --filter @primavista/core --filter @primavista/react --filter @primavista/sulu exec pnpm pack --pack-destination /path/to/project/primavista
 ```
 
-Reference the tarballs in the project's `assets/admin/package.json`. The `@primavista/react` and `@primavista/sulu` dependencies of `sulu-admin-bundle` resolve to the same copies, npm dedupes them:
+**Admin build.** In the project's `assets/admin/package.json`:
 
 ```json
 {
@@ -83,16 +72,21 @@ Reference the tarballs in the project's `assets/admin/package.json`. The `@prima
         "@primavista/core": "file:../../primavista/primavista-core-0.1.0.tgz",
         "@primavista/react": "file:../../primavista/primavista-react-0.1.0.tgz",
         "@primavista/sulu": "file:../../primavista/primavista-sulu-0.1.0.tgz",
-        "lexical": "^0.51.0"
+        "lexical": "^0.51.0",
+        "sulu-primavista-bundle": "file:../../vendor/primavista/sulu-bundle/assets/admin"
     }
 }
 ```
 
-Tarballs instead of `file:` links to the package directories: a link would pull the packages' own `node_modules` into the build and risk a second React.
+Tarballs instead of `file:` links to the package directories: a link would pull the packages' own `node_modules` into the build and risk a second React. The bundle's package is named `sulu-primavista-bundle` on purpose, Sulu's webpack config only transpiles `node_modules/sulu-*-bundle`.
 
-**Translations.** Copy the keys from `docs/sulu/translations/admin.*.json` into the project's `translations/admin.en.json` and `admin.de.json` (or wait for them to arrive with `sulu/sulu`).
+In `assets/admin/app.js`:
 
-**Build the admin.**
+```js
+import 'sulu-primavista-bundle';
+```
+
+Then:
 
 ```sh
 cd assets/admin
@@ -103,17 +97,27 @@ npm run build
 
 `npm run build` writes to `public/build/admin`. Sulu's `sulu:admin:update-build` is not an option here, it downloads a prebuilt bundle without the adapter.
 
-`--install-links` makes npm copy the `file:` bundles from `vendor/sulu/sulu` into `node_modules` instead of linking them. Linked bundles do not build, npm leaves their dependencies (`classnames` and friends) out. `--legacy-peer-deps` is needed once the skeleton's lockfile is gone, because `mobx-react` 5 declares React 16 as peer. A change in `vendor/sulu/sulu` is invisible until the copy is refreshed: `rm -rf node_modules/sulu-admin-bundle && npm install --install-links --legacy-peer-deps`.
+`--install-links` makes npm copy the `file:` bundles into `node_modules` instead of linking them. Linked bundles do not build, npm leaves their dependencies (`classnames` and friends) out. `--legacy-peer-deps` is needed once the skeleton's lockfile is gone, because `mobx-react` 5 declares React 16 as peer. A change in the bundle or the tarballs is invisible until the copy is refreshed: `rm -rf node_modules/sulu-primavista-bundle node_modules/@primavista && npm install --install-links --legacy-peer-deps`.
 
-**Content templates.** Nothing to change. Every `text_editor` property now renders Primavista. `formats` and `enter_mode` keep their meaning.
+**Content templates.** Nothing to change. Every `text_editor` property now renders Primavista. `formats` and `enter_mode` keep their meaning, and with Sulu 3.1 the `config` param does too.
 
-**After a Primavista change.** `pnpm build`, pack again, then in the project `rm -rf assets/admin/node_modules/@primavista assets/admin/package-lock.json && npm install && npm run build`. After an adapter change in the Sulu checkout, refresh the copy as described above and run `npm run build`.
+**Nothing on the PHP side.** The stored HTML is the same: paragraphs, headings, inline formats, lists, tables in `<figure class="table">` with `<thead>`, `<a>` for external links and `<sulu-link>` for internal ones, `&nbsp;` in empty paragraphs. Existing content opens in Primavista unchanged.
+
+## 2. What the bundle does inside Sulu
+
+- Everything happens in an update config hook under `sulu_admin`, because Sulu fills its registries from that hook once the admin config has loaded, not on import. The bundle's hook is appended to the same list and runs right after Sulu's.
+- `textEditorRegistry.add('primavista', PrimavistaTextEditor)`: a second adapter next to `ckeditor5`.
+- The `text_editor` entry of `fieldRegistry` is replaced by a copy of Sulu's field that passes `adapter="primavista"`. Sulu's field hard-codes `ckeditor5` and the registry refuses a second registration, so the bundle drops the entry first. This is the one place where it reaches into Sulu internals. A `sulu_admin.text_editor.adapter` setting in Sulu would make it unnecessary.
+- The adapter builds its plugins with `suluPlugins()` from a text editor config. Sulu 3.1 (pull request 9091) passes the resolved config as a prop. On Sulu 3.0 the adapter derives it from the deprecated `formats` and `enter_mode` params with `suluConfigFromLegacyOptions()`, the same rules Sulu 3.1 applies.
+- Link dialogs: `internalLinks` asks for a dialog, the adapter renders Sulu's `LinkTypeOverlay` for the provider (`linkTypeRegistry.getOverlay(key)`) and calls `apply` on confirm. External links go through `ExternalLinkTypeOverlay`, `mailto:` subject and body included.
+- Translations: every toolbar and form string goes through Sulu's `translate()` with the `sulu_admin.primavista.` prefix. The bundle ships English and German.
+- Languages: with `attributes: {lang: true}` in a Sulu 3.1 config the toolbar gets a language menu. Its entries are the system's localizations from `localizationStore`.
 
 ## 3. Checklist in the browser
 
 Open a page with a `text_editor` field and walk through what the screencast does:
 
-- The editor carries `pv-editor pv-theme-sulu`, the toolbar shows undo, redo, bold, italic, underline, strikethrough, sub, sup, code, the heading select (`h2` to `h6` by default), lists, external link, internal link, alignment and insert table. Inside a table the row, column, merge, split and delete tools appear.
+- The editor carries `pv-editor pv-theme-sulu`, the toolbar shows undo, redo, the heading select (`h2` to `h6` by default), bold, italic, underline, strikethrough, sub, sup, code, lists, external link, internal link, alignment and insert table. Inside a table the row, column, merge, split and delete tools appear.
 - The internal link button opens a menu with one entry per link type from `linkTypeRegistry` (pages, media, articles, plus project types). Picking one opens Sulu's `LinkTypeOverlay` with the chooser. After confirming, the link shows as `pv-internal-link` and the balloon reads `Pages: <uuid>`.
 - The external link button opens Sulu's `ExternalLinkTypeOverlay`. The balloon offers preview, edit and unlink. Both link buttons are disabled while the caret is inside a link.
 - Tab moves between table cells.
@@ -129,9 +133,12 @@ Open a page with a `text_editor` field and walk through what the screencast does
 | `onBlur`, `onFocus` | same props, `onFocus` receives the contenteditable as target |
 | `disabled` | `Editor disabled`, toggles read-only mode and the toolbar |
 | `locale` | passed to the link overlays only |
-| `options.formats` | `suluPlugins({ formats })`, default `h2` to `h6`. Headings outside the list are demoted to paragraphs on load, as CKEditor did. |
+| `config` (Sulu 3.1) | `suluPlugins({ config })`: `tags` and `attributes` switch plugins on, `enterMode` drives the value mapping |
+| `options.formats` (Sulu 3.0) | replaces the heading tags of the default config, default `h2` to `h6`. Headings outside the list are demoted to paragraphs on load, as CKEditor did. |
 | `options.enter_mode = br` | `suluValueToHtml` and `htmlToSuluValue` from `@primavista/sulu`, same algorithm as Sulu's `utils.js` |
 | CKEditor markup | `suluPreset()` from `@primavista/sulu`: `figure.table`, `thead`, `&nbsp;`, theme `sulu` |
+
+Tag keys map to plugins as in Sulu 3.1: `h1` to `h6` to the heading select, `strong`, `i`, `u`, `s`, `sub`, `sup`, `code` to the inline formats, `ul` and `ol` to the list buttons, `a` to both link plugins, `table` to tables. Attribute `align` adds alignment, `lang` the language menu.
 
 ## Links
 
@@ -148,13 +155,9 @@ Both toolbar buttons are disabled while the selection touches a link. Editing an
 
 `suluPreset()` sets `theme: 'sulu'`, which adds `pv-theme-sulu` to the editor. `@primavista/sulu/sulu.css` carries Sulu's colors and font from `ckeditor5.scss` and the Application palette: silver toolbar, Shakespeare accent, Open Sans 12px, 3px radius, blue links, red removed and gold unpublished markers. Override any `--pv-*` variable in Sulu's SCSS to adjust.
 
-## Translations
-
-The editor takes a `translate(key, fallback)` hook. The adapter maps every key with `suluTranslationKey()` to `sulu_admin.primavista.<key>` and falls back to the English default when Sulu has no translation. `docs/sulu/translations/admin.en.json` and `admin.de.json` hold the full key set plus `sulu_admin.text_editor`, the accessible label of the content area.
-
 ## Project extensions
 
-Where a project used `pluginRegistry.add(MyCkPlugin)` it now appends a Primavista plugin to the list `suluPlugins()` returns:
+Where a project used `ckeditorPluginRegistry.add(MyCkPlugin)` it now appends a Primavista plugin to the list `suluPlugins()` returns. The bundle exports the adapter, so a project can subclass it or fork `assets/admin` and register its own list:
 
 ```js
 plugins.push({
@@ -165,11 +168,27 @@ plugins.push({
 });
 ```
 
-Toolbar order follows plugin order. `configRegistry` has no equivalent, because the toolbar is built from plugins instead of a config object. Removing a button means leaving the plugin out or passing fewer `formats`, `levels` or `alignments`.
+Toolbar order follows plugin order. `ckeditorConfigRegistry` has no equivalent, because the toolbar is built from plugins instead of a config object. Removing a button means a narrower config, or leaving the plugin out.
+
+## Running the adapter's Jest test
+
+The test in `bundles/sulu-bundle/assets/admin/tests` is written for Sulu's test setup. Inside a Sulu checkout:
+
+```sh
+cp -R /path/to/primavista/bundles/sulu-bundle/assets/admin tests/js/primavista
+cp -R /path/to/primavista/packages/{core,react,sulu} node_modules/@primavista/   # dist folders of the built packages
+npx jest tests/js/primavista
+```
+
+Sulu's Jest needs `lexical|@lexical|@preact|` in `transformIgnorePatterns`, because Lexical ships ESM only.
+
+## What Sulu could offer
+
+Two small additions would make the bundle plain: a setting that names the `text_editor` adapter, so the field does not have to be replaced, and the text editor configs of pull request 9091, which the adapter already reads.
 
 ## Recording the screencast
 
-`e2e/sulu-screencast.mjs` drives a running Sulu Admin with Playwright and records the flow above. It needs a project set up as in section 2 and the uuid of a page with a `text_editor` field named `article`. The field is emptied before recording starts.
+`e2e/sulu-screencast.mjs` drives a running Sulu Admin with Playwright and records the flow above. It needs a project set up as in section 1 and the uuid of a page with a `text_editor` field named `article`. The field is emptied before recording starts.
 
 ```sh
 SULU_URL=http://127.0.0.1:8899 SULU_PAGE=<uuid> pnpm screencast:sulu
@@ -184,4 +203,4 @@ ffmpeg -ss 22 -i e2e/output/sulu-screencast.webm -frames:v 1 docs/assets/sulu-sc
 
 - Custom overlays keep working since the adapter reads `linkTypeRegistry.getOverlay(key)`.
 - Merging cells needs a drag or shift-click selection across cells, as in CKEditor.
-- The packages are not on npm yet. Until then section 2 applies.
+- The packages are not on npm and the bundle is not on Packagist yet. Until then the tarball and path repository steps of section 1 apply.

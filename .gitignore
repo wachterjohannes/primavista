@@ -1,6 +1,6 @@
 node_modules/
 dist/
-!bundle/assets/dist/
+!bundles/ux-bundle/assets/dist/
 *.tsbuildinfo
 .DS_Store
 
@@ -15,8 +15,8 @@ demo/assets/build/
 pages/dist/
 
 # Composer bundle
-bundle/vendor/
-bundle/composer.lock
+bundles/ux-bundle/vendor/
+bundles/ux-bundle/composer.lock
 .phpunit.cache/
 .php-cs-fixer.cache
 
@@ -24,3 +24,7 @@ bundle/composer.lock
 test-results/
 playwright-report/
 e2e/output/
+# Sulu bundle
+bundles/sulu-bundle/vendor/
+bundles/sulu-bundle/composer.lock
+bundles/sulu-bundle/assets/admin/node_modules/

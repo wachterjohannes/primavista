@@ -4,7 +4,10 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import {
   htmlToSuluValue,
   stripParagraphs,
+  SULU_DEFAULT_CONFIG,
   SULU_DEFAULT_FORMATS,
+  SULU_MINI_CONFIG,
+  suluConfigFromLegacyOptions,
   suluLinks,
   suluPlugins,
   suluPreset,
@@ -32,6 +35,10 @@ afterEach(() => {
   active?.container.remove();
   active = null;
 });
+
+function ids(editor: PrimavistaEditor): string[] {
+  return Array.from(editor.toolbar.element.querySelectorAll('[data-pv-item]')).map((el) => el.getAttribute('data-pv-item') ?? '');
+}
 
 function selectAll(editor: PrimavistaEditor): void {
   editor.lexical.update(
@@ -78,12 +85,12 @@ describe('sulu links', () => {
 });
 
 describe('sulu plugins', () => {
-  it('builds the toolbar of the CKEditor configuration in order', () => {
+  it('builds the toolbar of the default config in the order of the CKEditor toolbar', () => {
     const { editor } = mount({ plugins: suluPlugins({ providers }) });
-    const ids = Array.from(editor.toolbar.element.querySelectorAll('[data-pv-item]')).map((el) => el.getAttribute('data-pv-item'));
-    expect(ids).toEqual([
+    expect(ids(editor)).toEqual([
       'undo',
       'redo',
+      'block-type',
       'bold',
       'italic',
       'underline',
@@ -91,7 +98,6 @@ describe('sulu plugins', () => {
       'subscript',
       'superscript',
       'code',
-      'block-type',
       'bullet-list',
       'numbered-list',
       'link',
@@ -113,8 +119,38 @@ describe('sulu plugins', () => {
     expect(levels).toEqual(['paragraph', ...SULU_DEFAULT_FORMATS]);
   });
 
-  it('takes the formats option and demotes other headings', () => {
-    const { editor } = mount({ initialHtml: '<h3>Three</h3>', plugins: suluPlugins({ providers, formats: ['h1', 'h2'] }) });
+  it('switches plugins on and off per tag and attribute', () => {
+    const { editor } = mount({ plugins: suluPlugins({ providers, config: SULU_MINI_CONFIG }) });
+    expect(ids(editor)).toEqual(['undo', 'redo', 'bold', 'italic', 'link', 'internal-link']);
+  });
+
+  it('adds the language menu for the lang attribute with the given languages', () => {
+    const config = { ...SULU_DEFAULT_CONFIG, tags: ['ol', 'strong'], attributes: ['lang'] };
+    const { editor } = mount({
+      initialHtml: '<p>Hallo</p>',
+      plugins: suluPlugins({ providers, config, languages: [{ code: 'de-AT', label: 'Deutsch (Österreich)' }] }),
+    });
+    expect(ids(editor)).toEqual(['undo', 'redo', 'bold', 'numbered-list', 'language']);
+    selectAll(editor);
+    editor.toolbar.element.querySelector<HTMLButtonElement>('[data-pv-item="language"]')!.click();
+    const entries = Array.from(editor.toolbar.element.querySelectorAll<HTMLButtonElement>('.pv-menu-item')).map((e) => e.textContent);
+    expect(entries).toEqual(['Deutsch (Österreich)', 'Remove language']);
+    editor.toolbar.element.querySelector<HTMLButtonElement>('.pv-menu [data-pv-option="de-AT"]')!.click();
+    expect(editor.getHtml()).toBe('<p><span lang="de-AT">Hallo</span></p>');
+  });
+
+  it('maps the legacy formats and enter_mode params to a config', () => {
+    expect(suluConfigFromLegacyOptions({})).toEqual(SULU_DEFAULT_CONFIG);
+    expect(suluConfigFromLegacyOptions({ formats: ['h1', 'h2', 'table'], enterMode: 'br' })).toEqual({
+      enterMode: 'br',
+      attributes: ['align'],
+      tags: ['strong', 'i', 'u', 's', 'sub', 'sup', 'ul', 'ol', 'a', 'table', 'code', 'h1', 'h2'],
+    });
+    expect(suluConfigFromLegacyOptions({ formats: [] }).tags).toEqual(SULU_DEFAULT_CONFIG.tags);
+    const { editor } = mount({
+      initialHtml: '<h3>Three</h3>',
+      plugins: suluPlugins({ providers, config: suluConfigFromLegacyOptions({ formats: ['h1', 'h2'] }) }),
+    });
     const levels = Array.from(editor.toolbar.element.querySelectorAll<HTMLOptionElement>('[data-pv-item="block-type"] option')).map((o) => o.value);
     expect(levels).toEqual(['paragraph', 'h1', 'h2']);
     expect(editor.getHtml()).toBe('<p>Three</p>');

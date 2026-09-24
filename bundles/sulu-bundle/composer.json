@@ -1,0 +1,59 @@
+{
+    "name": "primavista/sulu-bundle",
+    "description": "Primavista as the text editor of Sulu Admin. Replaces CKEditor 5 without changing Sulu.",
+    "type": "symfony-bundle",
+    "license": "MIT",
+    "keywords": [
+        "sulu",
+        "wysiwyg",
+        "editor",
+        "ckeditor",
+        "lexical"
+    ],
+    "homepage": "https://github.com/wachterjohannes/primavista",
+    "require": {
+        "php": ">=8.2",
+        "symfony/config": "^6.4|^7.0|^8.0",
+        "symfony/dependency-injection": "^6.4|^7.0|^8.0",
+        "symfony/http-kernel": "^6.4|^7.0|^8.0"
+    },
+    "require-dev": {
+        "phpstan/phpstan": "^2.1",
+        "phpunit/phpunit": "^11.5|^12.0"
+    },
+    "conflict": {
+        "sulu/sulu": "<3.0"
+    },
+    "suggest": {
+        "sulu/sulu": "The bundle registers Primavista as the text_editor adapter of Sulu Admin 3.x"
+    },
+    "autoload": {
+        "psr-4": {
+            "Primavista\\SuluBundle\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Primavista\\SuluBundle\\Tests\\": "tests/"
+        }
+    },
+    "scripts": {
+        "test": "phpunit",
+        "phpstan": "phpstan analyse"
+    },
+    "config": {
+        "sort-packages": true
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true,
+    "authors": [
+        {
+            "name": "Johannes Wachter",
+            "email": "johannes@sulu.io"
+        }
+    ],
+    "support": {
+        "issues": "https://github.com/wachterjohannes/primavista/issues",
+        "source": "https://github.com/wachterjohannes/primavista"
+    }
+}

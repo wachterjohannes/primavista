@@ -21,7 +21,8 @@ pnpm e2e
 - `packages/core`: the editor. Every feature is a plugin in `src/plugins`. HTML import and export live in `src/html.ts`.
 - `packages/react`: the mount wrapper.
 - `packages/sulu`: the Sulu flavour. Sulu-specific markup, preset, theme and helpers live here, never in the core.
-- `bundle`: the Symfony bundle. `assets/dist` is built output and is committed, run `pnpm build` after touching `assets/src` or the core.
+- `bundles/ux-bundle`: the Symfony UX bundle. `assets/dist` is built output and is committed, run `pnpm build` after touching `assets/src` or the core.
+- `bundles/sulu-bundle`: the Sulu bundle. PHP registers the translations, `assets/admin` holds the adapter and the registration a Sulu project imports into its admin build.
 - `demo`: the Symfony app the browser tests run against.
 - `pages`: the static demo and the rendered documentation for GitHub Pages, built with `pnpm build:pages`. It reuses the demo's React island and renders the Markdown files listed in `pages/build-docs.mjs`.
 - `docs`: research, decisions and the Sulu integration notes.

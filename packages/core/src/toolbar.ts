@@ -195,7 +195,7 @@ export function createToolbar(
           }
           continue;
         }
-        if (item.type !== 'select' && item.type !== 'menu' && item.isActive) {
+        if (item.type !== 'select' && item.isActive) {
           const active = item.isActive();
           element.setAttribute('aria-pressed', String(active));
           element.classList.toggle('pv-button--active', active);

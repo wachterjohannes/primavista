@@ -14,10 +14,10 @@ Decisions from the kickoff interview on 2026-09-24. See `RESEARCH.md` for the ba
 
 ## Implementation decisions (2026-09-24, first prototype)
 
-8. **Repo layout.** pnpm monorepo: `packages/core`, `packages/react`, `bundle` (Composer, Symfony UX conventions), `demo` (Symfony app), `e2e` (Playwright). `packages/sulu` came later (see 30), the `fieldRegistry.add()` call still belongs into Sulu.
+8. **Repo layout.** pnpm monorepo: `packages/core`, `packages/react`, `bundles/ux-bundle` (Composer, Symfony UX conventions), `demo` (Symfony app), `e2e` (Playwright). `packages/sulu` came later (see 30), the `fieldRegistry.add()` call still belongs into Sulu.
 9. **Core owns the UI.** The toolbar is vanilla DOM inside the core. React is a mount wrapper with `value`, `onChange`, `onBlur`. No `@lexical/react`, so there is exactly one UI layer for both bindings.
 10. **Plugin interface.** `{ name, nodes?, theme?, register?(context), toolbar? }`. Bold, lists, headings, links and tables are plugins themselves. Toolbar state callbacks run inside `editor.read()`.
-11. **Self-contained Stimulus controller.** `bundle/assets/dist/controller.js` bundles core and Lexical, only Stimulus stays external, and the file is committed. Zero build steps with AssetMapper and no dependency on published npm packages.
+11. **Self-contained Stimulus controller.** `bundles/ux-bundle/assets/dist/controller.js` bundles core and Lexical, only Stimulus stays external, and the file is committed. Zero build steps with AssetMapper and no dependency on published npm packages.
 12. **Lexical re-exports.** The core re-exports `lexical`, `@lexical/link` and `@lexical/utils` as namespaces and the controller passes the module in `primavista:pre-connect` as `detail.core`. Custom plugins in the UX path need the same Lexical instance. Cost: 335 KB to 383 KB minified (128 KB gzip). Re-exporting every Lexical package (419 KB) was rejected, as was no re-export at all, which would make plugins impossible without a bundler.
 13. **Clean HTML export.** Own exporters for text nodes and tables: no wrapper spans, no inline styles, no editor classes, no `dir="ltr"`, no `value` on `li`. A table cell with one paragraph exports as bare cell content. Empty document exports as `""`. Links get no implicit `rel="noreferrer"`.
 14. **Merged cells stay merged.** `registerTableCellUnmergeTransform` is not registered, otherwise `colspan` and `rowspan` are lost on import.
@@ -46,6 +46,12 @@ Decisions from the kickoff interview on 2026-09-24. See `RESEARCH.md` for the ba
 ## Package split (2026-09-24, fourth iteration)
 
 30. **Sulu specifics live in `@primavista/sulu`.** The core knows nothing about Sulu: `internalLinks` writes `<internal-link>` with a `validation-state` attribute, the themes folder holds only `dark.css`, there is no preset and no `enter_mode` code. `@primavista/sulu` configures the same plugin as `suluLinks()` for `<sulu-link>`, adds `suluPlugins()` (Sulu's toolbar in Sulu's order), `suluPreset()`, `sulu.css`, the `enter_mode` helpers, the empty value mapping and `suluTranslationKey()`. The adapter inside Sulu imports from `@primavista/react` and `@primavista/sulu`. Rejected: keeping Sulu defaults in the core (every host would inherit Sulu's element names), and moving `internalLinks` entirely into the Sulu package (Symfony UX apps need CMS links too, the Symfony demo uses the generic form).
+
+## Sulu bundle and language (2026-09-24, fifth iteration)
+
+31. **A bundle instead of a pull request against Sulu.** `bundles/sulu-bundle` (`primavista/sulu-bundle`) registers the adapter in `textEditorRegistry` and replaces the `text_editor` entry of `fieldRegistry` with a copy of Sulu's field that names the `primavista` adapter. Sulu's field hard-codes `ckeditor5` and the registries refuse duplicate keys, so this one internal write is unavoidable until Sulu offers an adapter setting. The PHP side only ships translations. Both bundles live under `bundles/`.
+32. **The plugin list follows Sulu's text editor config.** `suluPlugins({ config })` takes `{ tags, attributes, enterMode }` as sulu/sulu#9091 defines it for 3.1 and switches plugins on per tag and attribute. On Sulu 3.0 the adapter derives the config from the deprecated `formats` and `enter_mode` params with the same rules as Sulu's `resolveTextEditorConfig`. One code path for both versions.
+33. **Language as an inline node.** `language()` wraps text in `LanguageNode`, exported as `<span lang="…">`, the markup CKEditor's TextPartLanguage writes (minus `dir`). Sulu 3.1 enables it with `attributes: {lang: true}`, the adapter feeds the system's localizations into the menu. Text formats could not carry the attribute, so it is an element node like the link.
 
 ## Rejected
 

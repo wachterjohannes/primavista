@@ -4,6 +4,7 @@ import {
   headings,
   history,
   internalLinks,
+  language,
   links,
   lists,
   tables,
@@ -12,9 +13,12 @@ import {
   type InlineFormat,
   type InternalLinkDialogState,
   type InternalLinksOptions,
+  type Language,
   type LinkDialogState,
+  type ListTag,
   type PrimavistaPlugin,
 } from '@primavista/core';
+import type { SuluEnterMode } from './enterMode';
 
 export {
   htmlToSuluValue,
@@ -32,20 +36,70 @@ export const SULU_LINK_TAG = 'sulu-link';
 export const SULU_VALIDATION_ATTRIBUTE = 'sulu-validation-state';
 /** Sulu's CKEditor setup wrote `_self` on every new link. */
 export const SULU_DEFAULT_TARGET = '_self';
-/** Heading levels the select offers when a template sets no `formats`. `h1` is opt-in. */
-export const SULU_DEFAULT_FORMATS: ReadonlyArray<HeadingLevel> = ['h2', 'h3', 'h4', 'h5', 'h6'];
-/** Inline formats of Sulu's CKEditor toolbar, in order. */
-export const SULU_INLINE_FORMATS: ReadonlyArray<InlineFormat> = [
-  'bold',
-  'italic',
-  'underline',
-  'strikethrough',
-  'subscript',
-  'superscript',
-  'code',
-];
 /** Prefix of the translation keys in Sulu's `admin.*.json`. */
 export const SULU_TRANSLATION_PREFIX = 'sulu_admin.primavista.';
+
+/**
+ * A text editor config as Sulu 3.1 defines it under
+ * `sulu_admin.text_editor.configs`: the elements the editor may produce,
+ * the attributes it may write, and the enter mode. Nothing in it is specific
+ * to an editor implementation, which is why Primavista can be driven by it.
+ */
+export interface SuluTextEditorConfig {
+  tags: ReadonlyArray<string>;
+  attributes: ReadonlyArray<string>;
+  enterMode: SuluEnterMode;
+}
+
+const HEADING_TAGS: ReadonlyArray<HeadingLevel> = ['h1', 'h2', 'h3', 'h4', 'h5', 'h6'];
+
+/** Sulu's shipped `default` config: the toolbar Sulu had before configs existed. */
+export const SULU_DEFAULT_CONFIG: SuluTextEditorConfig = {
+  enterMode: 'p',
+  tags: ['h2', 'h3', 'h4', 'h5', 'h6', 'strong', 'i', 'u', 's', 'sub', 'sup', 'ul', 'ol', 'a', 'table', 'code'],
+  attributes: ['align'],
+};
+
+/** Sulu's shipped `mini` config: inline markup only, paragraphs as line breaks. */
+export const SULU_MINI_CONFIG: SuluTextEditorConfig = {
+  enterMode: 'br',
+  tags: ['a', 'strong', 'i'],
+  attributes: [],
+};
+
+/** Heading levels the select offered before configs, `h1` was opt-in through `formats`. */
+export const SULU_DEFAULT_FORMATS: ReadonlyArray<HeadingLevel> = ['h2', 'h3', 'h4', 'h5', 'h6'];
+
+/** Inline format per tag key of a Sulu config. Italic is `i`, the element CKEditor produced. */
+const INLINE_FORMATS: ReadonlyArray<[string, InlineFormat]> = [
+  ['strong', 'bold'],
+  ['i', 'italic'],
+  ['u', 'underline'],
+  ['s', 'strikethrough'],
+  ['sub', 'subscript'],
+  ['sup', 'superscript'],
+  ['code', 'code'],
+];
+
+/**
+ * The config a Sulu 3.0 property resolves to. The deprecated `formats`
+ * param replaces the heading tags of the default config, `enter_mode`
+ * overrides the enter mode. Same rules as Sulu 3.1's `resolveTextEditorConfig`.
+ */
+export function suluConfigFromLegacyOptions(options: {
+  formats?: ReadonlyArray<string> | null;
+  enterMode?: SuluEnterMode | null;
+}): SuluTextEditorConfig {
+  const base = SULU_DEFAULT_CONFIG;
+  const formats = options.formats?.filter(isHeadingLevel);
+  return {
+    enterMode: options.enterMode ?? base.enterMode,
+    attributes: base.attributes,
+    tags: formats === undefined || options.formats?.length === 0
+      ? base.tags
+      : [...base.tags.filter((tag) => !isHeadingLevel(tag)), ...formats],
+  };
+}
 
 export type SuluLinksOptions = Omit<InternalLinksOptions, 'tag' | 'validationAttribute'>;
 
@@ -64,10 +118,12 @@ export function suluLinks(options: SuluLinksOptions): PrimavistaPlugin {
 }
 
 export interface SuluPluginsOptions {
+  /** The property's text editor config. Defaults to Sulu's `default` config. */
+  config?: SuluTextEditorConfig;
   /** One entry per link type from Sulu's `linkTypeRegistry`, without `external`. */
   providers: InternalLinksOptions['providers'];
-  /** The template's `formats` option. Unknown entries are ignored, none means `SULU_DEFAULT_FORMATS`. */
-  formats?: ReadonlyArray<string> | null;
+  /** Languages the `lang` menu offers, for example the system's localizations. */
+  languages?: ReadonlyArray<Language>;
   /** Sulu's `LinkTypeOverlay` for the provider. Without it the toolbar shows a plain form. */
   openInternalLinkDialog?: (state: InternalLinkDialogState) => void;
   /** Sulu's `ExternalLinkTypeOverlay`. Without it the toolbar shows a plain form. */
@@ -77,27 +133,40 @@ export interface SuluPluginsOptions {
 }
 
 /**
- * The plugin list of Sulu's `text_editor` field: the toolbar of Sulu's
- * CKEditor configuration, in the same order, with Sulu's link plugins.
+ * The plugin list of Sulu's `text_editor` field for a config. Every tag and
+ * attribute of the config switches on the plugin that produces it, in the
+ * order of Sulu's CKEditor toolbar: heading, inline formats, lists, links,
+ * alignment, language, table.
  */
 export function suluPlugins(options: SuluPluginsOptions): PrimavistaPlugin[] {
-  const levels = (options.formats ?? []).filter(isHeadingLevel);
-  const external: Parameters<typeof links>[0] = { defaultTarget: SULU_DEFAULT_TARGET };
-  if (options.openExternalLinkDialog) external.openDialog = options.openExternalLinkDialog;
-  const internal: SuluLinksOptions = { providers: options.providers };
-  if (options.openInternalLinkDialog) internal.openDialog = options.openInternalLinkDialog;
-  if (options.describeInternalLink) internal.describe = options.describeInternalLink;
+  const config = options.config ?? SULU_DEFAULT_CONFIG;
+  const tags = new Set(config.tags);
+  const attributes = new Set(config.attributes);
+  const plugins: PrimavistaPlugin[] = [history()];
 
-  return [
-    history(),
-    formatting({ formats: SULU_INLINE_FORMATS }),
-    headings({ levels: levels.length > 0 ? levels : SULU_DEFAULT_FORMATS }),
-    lists(),
-    links(external),
-    suluLinks(internal),
-    alignment(),
-    tables(),
-  ];
+  const levels = HEADING_TAGS.filter((tag) => tags.has(tag));
+  if (levels.length > 0) plugins.push(headings({ levels }));
+
+  const formats = INLINE_FORMATS.filter(([tag]) => tags.has(tag)).map(([, format]) => format);
+  if (formats.length > 0) plugins.push(formatting({ formats }));
+
+  const listTypes: ListTag[] = (['ul', 'ol'] as const).filter((tag) => tags.has(tag));
+  if (listTypes.length > 0) plugins.push(lists({ types: listTypes }));
+
+  if (tags.has('a')) {
+    const external: Parameters<typeof links>[0] = { defaultTarget: SULU_DEFAULT_TARGET };
+    if (options.openExternalLinkDialog) external.openDialog = options.openExternalLinkDialog;
+    const internal: SuluLinksOptions = { providers: options.providers };
+    if (options.openInternalLinkDialog) internal.openDialog = options.openInternalLinkDialog;
+    if (options.describeInternalLink) internal.describe = options.describeInternalLink;
+    plugins.push(links(external), suluLinks(internal));
+  }
+
+  if (attributes.has('align')) plugins.push(alignment());
+  if (attributes.has('lang')) plugins.push(language(options.languages ? { languages: options.languages } : {}));
+  if (tags.has('table')) plugins.push(tables());
+
+  return plugins;
 }
 
 /**

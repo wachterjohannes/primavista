@@ -1,20 +1,16 @@
 // @flow
 /*
- * Reference adapter for Sulu Admin. Drop this file into
- * src/Sulu/Bundle/AdminBundle/Resources/js/containers/TextEditor/adapters/
- * and register it next to the CKEditor adapter:
- *
- *     textEditorRegistry.add('primavista', PrimavistaTextEditor);
- *
- * Then point the text_editor field type at it (containers/Form/fields/TextEditor.js,
- * prop `adapter`). It implements the same TextEditorProps contract as the
- * CKEditor adapter: value, onChange, onBlur, onFocus, disabled, locale,
+ * The Primavista adapter for Sulu's TextEditor container, registered by
+ * index.js under the key "primavista". It implements the same contract as
+ * the CKEditor adapter: value, onChange, onBlur, onFocus, disabled, locale,
  * options. Internal and external links open Sulu's own overlays from
  * linkTypeRegistry, so pages, media, articles and contacts work unchanged.
  * Everything Sulu-specific about the editor itself (toolbar, sulu-link,
  * preset, theme, enter_mode) comes from @primavista/sulu.
  *
- * Written against Sulu 3.0 (containers/CKEditor5 and containers/Link).
+ * Works with Sulu 3.0 (deprecated "formats" and "enter_mode" params) and
+ * with the text editor configs of Sulu 3.1 (sulu/sulu#9091), which arrive
+ * as the "config" prop.
  */
 import React, {Fragment} from 'react';
 import {action, isArrayLike, observable} from 'mobx';
@@ -23,6 +19,7 @@ import {Editor} from '@primavista/react';
 import {
     htmlToSuluValue,
     SULU_DEFAULT_TARGET,
+    suluConfigFromLegacyOptions,
     suluPlugins,
     suluPreset,
     suluTranslationKey,
@@ -30,16 +27,26 @@ import {
 } from '@primavista/sulu';
 import '@primavista/core/primavista.css';
 import '@primavista/sulu/sulu.css';
-import linkTypeRegistry from '../../Link/registries/linkTypeRegistry';
-import {ExternalLinkTypeOverlay} from '../../Link';
-import {translate} from '../../../utils';
+import {linkTypeRegistry} from 'sulu-admin-bundle/containers';
+import {ExternalLinkTypeOverlay} from 'sulu-admin-bundle/containers/Link';
+import {localizationStore} from 'sulu-admin-bundle/stores';
+import {translate} from 'sulu-admin-bundle/utils';
 import type {IObservableArray, IObservableValue} from 'mobx/lib/mobx';
-import type {TextEditorProps} from '../types';
+import type {TextEditorProps} from 'sulu-admin-bundle/containers/TextEditor/types';
+
+type TextEditorConfig = {
+    attributes: Array<string>,
+    enterMode: 'p' | 'br',
+    tags: Array<string>,
+};
+
+// Sulu 3.1 passes the resolved text editor config, Sulu 3.0 only the schema options.
+type Props = {...TextEditorProps, config?: TextEditorConfig};
 
 const DEFAULT_TARGET = SULU_DEFAULT_TARGET;
 
 @observer
-class PrimavistaTextEditor extends React.Component<TextEditorProps> {
+class PrimavistaTextEditor extends React.Component<Props> {
     // Internal link overlay state, one overlay per registered link type.
     @observable openOverlay: ?string = undefined;
     @observable id: ?string | number = undefined;
@@ -58,16 +65,37 @@ class PrimavistaTextEditor extends React.Component<TextEditorProps> {
 
     plugins: Array<Object>;
 
-    constructor(props: TextEditorProps) {
+    constructor(props: Props) {
         super(props);
         this.plugins = this.createPlugins();
     }
 
+    get config(): TextEditorConfig {
+        const {config} = this.props;
+        if (config) {
+            return config;
+        }
+
+        return suluConfigFromLegacyOptions({formats: this.formats, enterMode: this.legacyEnterMode});
+    }
+
     get enterMode(): 'p' | 'br' {
+        return this.config.enterMode;
+    }
+
+    get legacyEnterMode(): ?('p' | 'br') {
         const {options} = this.props;
         const value = options && options.enter_mode ? options.enter_mode.value : undefined;
 
-        return value === 'br' ? 'br' : 'p';
+        return value === 'br' || value === 'p' ? value : undefined;
+    }
+
+    // The languages the "lang" attribute offers: the system's localizations.
+    get languages(): Array<{code: string, label: string}> {
+        return localizationStore.localizations.map((localization) => ({
+            code: localization.locale.replace('_', '-'),
+            label: localization.locale,
+        }));
     }
 
     get formats(): ?Array<string> {
@@ -97,8 +125,9 @@ class PrimavistaTextEditor extends React.Component<TextEditorProps> {
             .map((key) => ({key, label: linkTypeRegistry.getTitle(key)}));
 
         return suluPlugins({
+            config: this.config,
             providers,
-            formats: this.formats,
+            languages: this.languages,
             openInternalLinkDialog: this.handleOpenInternalDialog,
             openExternalLinkDialog: this.handleOpenExternalDialog,
             describeInternalLink: ({provider, href}) => `${linkTypeRegistry.getTitle(provider)}: ${href}`,

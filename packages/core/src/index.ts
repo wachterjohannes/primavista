@@ -12,6 +12,12 @@ export {
   type SerializedInternalLinkNode,
 } from './nodes/InternalLinkNode';
 export {
+  $createLanguageNode,
+  $isLanguageNode,
+  LanguageNode,
+  type SerializedLanguageNode,
+} from './nodes/LanguageNode';
+export {
   $getLinkAtSelection,
   $selectionTouchesLink,
   $wrapSelectionInLink,

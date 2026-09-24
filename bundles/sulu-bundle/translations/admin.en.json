@@ -53,5 +53,7 @@
     "sulu_admin.primavista.link.remove": "Remove link",
     "sulu_admin.primavista.link.edit": "Edit link",
     "sulu_admin.primavista.link.cancel": "Cancel",
-    "sulu_admin.text_editor": "Text editor"
+    "sulu_admin.text_editor": "Text editor",
+    "sulu_admin.primavista.toolbar.language": "Language",
+    "sulu_admin.primavista.toolbar.language.remove": "Remove language"
 }

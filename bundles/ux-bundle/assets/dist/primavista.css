@@ -439,6 +439,14 @@
   vertical-align: middle;
 }
 
+/* Text parts in another language */
+
+.pv-language {
+  text-decoration: underline dotted;
+  text-decoration-color: var(--pv-muted);
+  text-underline-offset: 3px;
+}
+
 /* Alignment */
 
 .pv-content [style*="text-align: center"] { text-align: center; }

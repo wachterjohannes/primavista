@@ -79,7 +79,7 @@
     "repositories": [{
         "name": "primavista",
         "type": "path",
-        "url": "../bundle",
+        "url": "../bundles/ux-bundle",
         "options": {
             "symlink": true
         }

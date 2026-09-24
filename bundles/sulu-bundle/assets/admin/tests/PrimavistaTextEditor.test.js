@@ -2,11 +2,14 @@
 import React from 'react';
 import {observable} from 'mobx';
 import {mount} from 'enzyme';
-import {$getRoot, $isTextNode, $isElementNode} from 'lexical';
-import PrimavistaTextEditor from '../../adapters/PrimavistaTextEditor';
-import linkTypeRegistry from '../../../Link/registries/linkTypeRegistry';
+import {lexical} from '@primavista/core';
+import {linkTypeRegistry} from 'sulu-admin-bundle/containers';
+import {localizationStore} from 'sulu-admin-bundle/stores';
+import PrimavistaTextEditor from '../PrimavistaTextEditor';
 
-jest.mock('../../../../utils/Translator', () => ({
+const {$getRoot, $isTextNode, $isElementNode} = lexical;
+
+jest.mock('sulu-admin-bundle/utils/Translator', () => ({
     translate: jest.fn((key) => key === 'sulu_admin.primavista.toolbar.bold' ? 'Fett' : key),
 }));
 
@@ -121,6 +124,31 @@ test('Call onChange with HTML and with undefined when empty', () => {
         $getRoot().clear();
     }, {discrete: true});
     expect(changeSpy).toHaveBeenLastCalledWith(undefined);
+});
+
+test('Take the text editor config of Sulu 3.1 and offer the localizations as languages', () => {
+    localizationStore.setLocalizations([
+        {country: '', default: '1', language: 'en', locale: 'en', shadow: ''},
+        {country: 'AT', default: '0', language: 'de', locale: 'de_AT', shadow: ''},
+    ]);
+    const changeSpy = jest.fn();
+    const {editor, element} = mountEditor({
+        config: {attributes: ['lang'], enterMode: 'br', tags: ['a', 'strong', 'i']},
+        onChange: changeSpy,
+        value: 'one two',
+    });
+
+    const ids = Array.from(element.querySelectorAll('[data-pv-item]')).map((item) => item.getAttribute('data-pv-item'));
+    expect(ids).toEqual(['undo', 'redo', 'bold', 'italic', 'link', 'internal-link', 'language']);
+
+    selectAll(editor);
+    element.querySelector('[data-pv-item="language"]').click();
+    const languages = Array.from(element.querySelectorAll('.pv-menu [data-pv-option]'))
+        .map((option) => option.getAttribute('data-pv-option'));
+    expect(languages).toEqual(['en', 'de-AT', 'remove']);
+    element.querySelector('.pv-menu [data-pv-option="de-AT"]').click();
+    // A single paragraph with inline markup keeps the comment markers, as Sulu's utils.js wrote them.
+    expect(changeSpy).toHaveBeenLastCalledWith('<!--p--><span lang="de-AT">one two</span><!--/p-->');
 });
 
 test('Convert paragraphs for enter_mode br', () => {
