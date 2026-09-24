@@ -13,11 +13,17 @@ use Symfony\UX\StimulusBundle\Helper\StimulusHelper;
 
 /**
  * A textarea that becomes a Primavista editor in the browser. The submitted
- * value is HTML. Combine with the `sanitize_html` option for untrusted input.
+ * value is HTML. With FrameworkBundle's html_sanitizer enabled, the value is
+ * sanitized on submit by the `primavista` sanitizer, which keeps exactly the
+ * markup the editor emits. Pass `sanitize_html: false` to opt out or
+ * `sanitizer` to use another one.
  */
 final class PrimavistaType extends AbstractType
 {
     public const CONTROLLER = '@primavista/ux-bundle/editor';
+
+    /** Name of the sanitizer the bundle registers, see PrimavistaSanitizerConfig. */
+    public const SANITIZER = 'primavista';
 
     public function __construct(
         private readonly StimulusHelper $stimulus,
@@ -32,6 +38,15 @@ final class PrimavistaType extends AbstractType
         ]);
         $resolver->setAllowedTypes('placeholder', ['null', 'string']);
         $resolver->setAllowedTypes('theme', ['null', 'string']);
+
+        // The options come from FrameworkBundle's form extension and only
+        // exist while framework.html_sanitizer is enabled.
+        if ($resolver->isDefined('sanitize_html')) {
+            $resolver->setDefaults([
+                'sanitize_html' => true,
+                'sanitizer' => self::SANITIZER,
+            ]);
+        }
     }
 
     public function buildView(FormView $view, FormInterface $form, array $options): void

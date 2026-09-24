@@ -53,6 +53,10 @@ Decisions from the kickoff interview on 2026-09-24. See `RESEARCH.md` for the ba
 32. **The plugin list follows Sulu's text editor config.** `suluPlugins({ config })` takes `{ tags, attributes, enterMode }` as sulu/sulu#9091 defines it for 3.1 and switches plugins on per tag and attribute. On Sulu 3.0 the adapter derives the config from the deprecated `formats` and `enter_mode` params with the same rules as Sulu's `resolveTextEditorConfig`. One code path for both versions.
 33. **Language as an inline node.** `language()` wraps text in `LanguageNode`, exported as `<span lang="…">`, the markup CKEditor's TextPartLanguage writes (minus `dir`). Sulu 3.1 enables it with `attributes: {lang: true}`, the adapter feeds the system's localizations into the menu. Text formats could not carry the attribute, so it is an element node like the link.
 
+## Sanitizing (2026-09-24, sixth iteration)
+
+34. **The server is the trust boundary.** A browser sanitizer protects nothing, because anyone can post to the form without the editor. The editor exports a closed set of tags and attributes and no client-side sanitizer ships. `primavista/ux-bundle` requires `symfony/html-sanitizer` and registers the sanitizer `primavista`, built by `PrimavistaSanitizerConfig::create()`, that allows exactly that markup: blocks, text formats, lists with `start`, links with `href target title rel`, `<internal-link>` with its attributes, `<span lang>`, tables with `colspan` and `rowspan`, `figure.table` and `dir`. `style` survives only as one `text-align` declaration with a value the alignment plugin writes. `PrimavistaType` defaults to `sanitize_html: true` with that sanitizer whenever FrameworkBundle's `html_sanitizer` is enabled. The helper takes the internal link's tag and validation attribute, so the same rules cover `<sulu-link>`. The sanitizer serializes on its own (`<br />`, entity-encoded attribute characters), the stored markup is equivalent but not byte-identical to the editor's. Rejected: a suggested dependency, which would leave a field that accepts HTML unsanitized because a package was missing, and prepending the rules into `framework.html_sanitizer`, which cannot express the `text-align` rule without a separate service and would duplicate the PHP helper.
+
 ## Rejected
 
 - **ProseMirror or Tiptap as the base.** Larger bundle, and Tiptap adds a commercial layer Primavista wants to avoid.
@@ -64,13 +68,14 @@ Decisions from the kickoff interview on 2026-09-24. See `RESEARCH.md` for the ba
 - **Web Component as the core.** Shadow DOM would isolate host CSS, which Sulu does not want, and complicates form integration.
 - **A standalone `InternalLinkNode` element class.** Would need its own wrap, split and unwrap logic. Subclassing `LinkNode` gets that from Lexical.
 - **Editing links from the toolbar button.** Sulu users know the balloon, and a button that both creates and edits hides which one it does.
+- **A client-side sanitizer such as DOMPurify.** More bundle size for a check an attacker skips by posting directly. See 34.
 
 ## Open
 
 - GitHub organization and final name. The `primavista` GitHub account is taken, npm and Packagist are free. Name may still change. Not a concern while the project runs locally.
-- Sanitizing: browser, server via `symfony/html-sanitizer`, or both.
 - Media upload and mention hooks: own event system or existing conventions.
 - Bundle size of the controller. The table plugin is the largest single part of Lexical in the build.
 - A manual click-through inside a running Sulu Admin. The automated Sulu checks passed, the browser session inside Sulu is still to do.
 - Publishing to npm and Packagist.
+- Server-side sanitizing inside Sulu. Sulu saves content through its own API, not through Symfony forms, and `primavista/sulu-bundle` cannot reuse `PrimavistaSanitizerConfig` without depending on the UX bundle.
 - Publishing: npm scope `@primavista` and Packagist vendor `primavista` are free, the GitHub account is not.

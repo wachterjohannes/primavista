@@ -271,13 +271,14 @@
             "dist": {
                 "type": "path",
                 "url": "../bundles/ux-bundle",
-                "reference": "bc13dff015b31169492f2321cf4597e12e3f0e5a"
+                "reference": "aac362359ae4992e98f584600a1e43f589e5c639"
             },
             "require": {
                 "php": ">=8.2",
                 "symfony/config": "^7.4|^8.0",
                 "symfony/dependency-injection": "^7.4|^8.0",
                 "symfony/form": "^7.4|^8.0",
+                "symfony/html-sanitizer": "^7.4|^8.0",
                 "symfony/http-kernel": "^7.4|^8.0",
                 "symfony/stimulus-bundle": "^2.9|^3.0"
             },
@@ -286,7 +287,6 @@
                 "phpunit/phpunit": "^12.0",
                 "symfony/asset-mapper": "^7.4|^8.0",
                 "symfony/framework-bundle": "^7.4|^8.0",
-                "symfony/html-sanitizer": "^7.4|^8.0",
                 "symfony/twig-bundle": "^7.4|^8.0",
                 "symfony/validator": "^7.4|^8.0"
             },

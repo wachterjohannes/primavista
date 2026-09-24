@@ -17,7 +17,6 @@ final class ArticleType extends AbstractType
         $builder->add('body', PrimavistaType::class, [
             'label' => 'Body',
             'placeholder' => 'Start writing…',
-            'sanitize_html' => true,
         ]);
     }
 
