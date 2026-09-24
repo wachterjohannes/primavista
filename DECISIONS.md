@@ -53,6 +53,10 @@ Decisions from the kickoff interview on 2026-09-24. See `RESEARCH.md` for the ba
 32. **The plugin list follows Sulu's text editor config.** `suluPlugins({ config })` takes `{ tags, attributes, enterMode }` as sulu/sulu#9091 defines it for 3.1 and switches plugins on per tag and attribute. On Sulu 3.0 the adapter derives the config from the deprecated `formats` and `enter_mode` params with the same rules as Sulu's `resolveTextEditorConfig`. One code path for both versions.
 33. **Language as an inline node.** `language()` wraps text in `LanguageNode`, exported as `<span lang="…">`, the markup CKEditor's TextPartLanguage writes (minus `dir`). Sulu 3.1 enables it with `attributes: {lang: true}`, the adapter feeds the system's localizations into the menu. Text formats could not carry the attribute, so it is an element node like the link.
 
+## Bundle size (2026-09-24, sixth iteration)
+
+34. **The controller stays one file, terser runs after esbuild.** Measured with an esbuild metafile: the controller was already minified and already picked Lexical's production builds (`process.env.NODE_ENV` defined, `production` export condition), there are no duplicated packages and no dev code left. esbuild's output is 618 KB unminified. A second pass with terser (`compress.passes: 2`) brings it from 405.1 KB to 403.6 KB minified and from 130.9 KB to 125.6 KB gzip (109.5 KB to 103.9 KB brotli). `@primavista/react` declares `sideEffects: false`, core and sulu already did. What the 404 KB contain, minified: `lexical` 197 KB, `@lexical/table` 62 KB, own code 42 KB, `@lexical/link`, `@lexical/list` and `@lexical/html` 19 KB each, `@lexical/rich-text` 15 KB, `@lexical/utils` 12 KB, `@lexical/extension` with its signals 13 KB, the rest under 9 KB each. The re-exports of decision 12 cost 48 KB minified and 18 KB gzip (`lexical` 15 KB, `lexicalLink` and `lexicalUtils` 34 KB, because they keep all of `@lexical/html` and `@lexical/utils`). They stay, they are the only way to write plugins for the UX bundle. Bundler builds do not pay for them, the React island tree-shakes them away. `pnpm size` checks the built files against budgets about 10 % above these sizes and runs in CI. The 80 KB from the kickoff are out of reach without dropping features: rejected were lazy-loading the table plugin (a second file breaks the single self-contained file of decision 11), trimming the re-exports (breaks plugin authors), building Lexical from its TypeScript sources (430 KB, the error messages come back) and a minified stylesheet (9 KB, the readable file documents the `--pv-*` variables).
+
 ## Rejected
 
 - **ProseMirror or Tiptap as the base.** Larger bundle, and Tiptap adds a commercial layer Primavista wants to avoid.
@@ -70,7 +74,6 @@ Decisions from the kickoff interview on 2026-09-24. See `RESEARCH.md` for the ba
 - GitHub organization and final name. The `primavista` GitHub account is taken, npm and Packagist are free. Name may still change. Not a concern while the project runs locally.
 - Sanitizing: browser, server via `symfony/html-sanitizer`, or both.
 - Media upload and mention hooks: own event system or existing conventions.
-- Bundle size of the controller. The table plugin is the largest single part of Lexical in the build.
 - A manual click-through inside a running Sulu Admin. The automated Sulu checks passed, the browser session inside Sulu is still to do.
 - Publishing to npm and Packagist.
 - Publishing: npm scope `@primavista` and Packagist vendor `primavista` are free, the GitHub account is not.

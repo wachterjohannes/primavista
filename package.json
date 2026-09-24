@@ -13,6 +13,7 @@
     "changeset": "changeset",
     "version": "changeset version",
     "release": "pnpm build && changeset publish",
+    "size": "node scripts/size-check.mjs",
     "e2e": "playwright test",
     "e2e:install": "playwright install chromium",
     "build:pages": "pnpm --filter @primavista/pages build",

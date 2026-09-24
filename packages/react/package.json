@@ -4,6 +4,7 @@
   "description": "React binding for the Primavista editor. A thin mount wrapper with a value/onChange/onBlur contract.",
   "license": "MIT",
   "type": "module",
+  "sideEffects": false,
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",
   "types": "./dist/index.d.ts",

@@ -1,6 +1,7 @@
 import { readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import { dirname, join } from 'node:path';
+import { minify } from 'terser';
 import { defineConfig } from 'tsup';
 
 const require = createRequire(import.meta.url);
@@ -30,6 +31,9 @@ const BUNDLE_CSS = `
  * The controller ships self-contained: @primavista/core and Lexical are
  * bundled in, only Stimulus stays external. That keeps the Symfony side at
  * zero build steps with AssetMapper.
+ *
+ * esbuild minifies, a second pass with terser saves another 4 % gzip. See
+ * decision 34 for the numbers.
  */
 export default defineConfig({
   entry: { controller: 'src/controller.ts' },
@@ -48,6 +52,14 @@ export default defineConfig({
     options.legalComments = 'none';
   },
   onSuccess: async () => {
+    const controller = readFileSync('dist/controller.js', 'utf8');
+    const minified = await minify(controller, {
+      module: true,
+      compress: { passes: 2 },
+      format: { comments: false },
+    });
+    writeFileSync('dist/controller.js', minified.code ?? controller);
+
     // One stylesheet for AssetMapper: base look, every theme, bundle rules.
     const themesDir = join(corePackageDir, 'dist', 'themes');
     const themes = readdirSync(themesDir)

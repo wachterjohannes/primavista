@@ -7,6 +7,7 @@ Thanks for taking a look. Primavista is young, so small focused pull requests ar
 ```sh
 pnpm install
 pnpm build
+pnpm size
 pnpm test
 (cd bundle && composer install && composer test && composer phpstan)
 (cd demo && composer install)

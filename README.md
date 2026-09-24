@@ -190,11 +190,13 @@ Activate it with `theme: 'brand'`. `@primavista/sulu/sulu.css` reproduces Sulu A
 
 ## Sizes
 
-| File | Minified | Gzip |
+| File | Size | Gzip |
 |---|---|---|
-| `bundles/ux-bundle/assets/dist/controller.js` (core, Lexical, tables, links) | 402 KB | 133 KB |
-| `packages/core/dist/index.js` (Lexical external) | 72 KB | |
-| `packages/sulu/dist/index.js` | 3 KB | |
+| `bundles/ux-bundle/assets/dist/controller.js` (core, Lexical, tables, links) | 404 KB | 126 KB |
+| `packages/core/dist/index.js` (Lexical external, not minified) | 78 KB | 18 KB |
+| `packages/sulu/dist/index.js` (not minified) | 4 KB | 2 KB |
+
+`pnpm size` checks these files against a budget after `pnpm build`, CI fails when one grows past it. What the controller contains is in decision 34 of [DECISIONS.md](DECISIONS.md).
 
 ## Documentation
 
