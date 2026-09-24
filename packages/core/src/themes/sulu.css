@@ -1,0 +1,74 @@
+/*
+ * Sulu Admin look, taken from Sulu's ckeditor5.scss and Application colors:
+ * silver toolbar, Shakespeare accent, Open Sans 12px, 3px radius.
+ * Activate with createEditor(host, { theme: 'sulu' }).
+ */
+.pv-editor.pv-theme-sulu {
+  --pv-font: "Open Sans", Helvetica, Arial, sans-serif;
+  --pv-font-size: 12px;
+  --pv-line-height: 1.6;
+  --pv-fg: #353535;
+  --pv-bg: #ffffff;
+  --pv-muted: #6e6e6e;
+  --pv-border: #cccccc;
+  --pv-border-focus: #52b6ca;
+  --pv-radius: 3px;
+  --pv-toolbar-bg: #cccccc;
+  --pv-toolbar-fg: #353535;
+  --pv-button-hover-bg: #e6e6e6;
+  --pv-button-active-bg: #999999;
+  --pv-button-active-fg: #ffffff;
+  --pv-accent: #52b6ca;
+  --pv-accent-fg: #ffffff;
+  --pv-table-border: #cccccc;
+  --pv-table-header-bg: #f5f5f5;
+  --pv-selection-bg: rgba(82, 182, 202, 0.25);
+  --pv-min-height: 10rem;
+}
+
+.pv-editor.pv-theme-sulu .pv-toolbar {
+  padding: 5px 10px;
+  border-bottom: 0;
+}
+
+.pv-editor.pv-theme-sulu .pv-toolbar-separator {
+  background: #999999;
+}
+
+.pv-editor.pv-theme-sulu .pv-button {
+  min-width: 26px;
+  height: 26px;
+}
+
+.pv-editor.pv-theme-sulu .pv-select,
+.pv-editor.pv-theme-sulu .pv-input {
+  height: 26px;
+  border-color: #999999;
+}
+
+.pv-editor.pv-theme-sulu.pv-editor--focused {
+  box-shadow: none;
+}
+
+.pv-editor.pv-theme-sulu.pv-editor--readonly {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.pv-editor.pv-theme-sulu .pv-link,
+.pv-editor.pv-theme-sulu .pv-internal-link {
+  color: #0000ff;
+  text-decoration: underline;
+  --pv-internal-link-marker: #f8d200;
+  --pv-internal-link-removed: #d96161;
+}
+
+.pv-editor.pv-theme-sulu .pv-toolbar-panel {
+  background: #ffffff;
+  border: 1px solid #999999;
+  border-top: 0;
+}
+
+.pv-editor.pv-theme-sulu .pv-table {
+  width: 100%;
+}

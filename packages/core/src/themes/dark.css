@@ -1,0 +1,26 @@
+/*
+ * A dark counterpart to the default look. Shows that a theme is a handful of
+ * variables. Activate with createEditor(host, { theme: 'dark' }).
+ */
+.pv-editor.pv-theme-dark {
+  --pv-fg: #e5e7eb;
+  --pv-bg: #111827;
+  --pv-muted: #9ca3af;
+  --pv-border: #374151;
+  --pv-border-focus: #60a5fa;
+  --pv-toolbar-bg: #1f2937;
+  --pv-toolbar-fg: #d1d5db;
+  --pv-button-hover-bg: #374151;
+  --pv-button-active-bg: #1e3a8a;
+  --pv-button-active-fg: #bfdbfe;
+  --pv-accent: #60a5fa;
+  --pv-accent-fg: #0b1220;
+  --pv-table-border: #374151;
+  --pv-table-header-bg: #1f2937;
+  --pv-selection-bg: rgba(96, 165, 250, 0.3);
+}
+
+.pv-editor.pv-theme-dark .pv-menu,
+.pv-editor.pv-theme-dark .pv-balloon {
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.5);
+}

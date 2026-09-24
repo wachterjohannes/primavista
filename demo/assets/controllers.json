@@ -1,0 +1,14 @@
+{
+    "controllers": {
+        "@primavista/ux-bundle": {
+            "editor": {
+                "enabled": true,
+                "fetch": "eager",
+                "autoimport": {
+                    "@primavista/ux-bundle/dist/primavista.css": true
+                }
+            }
+        }
+    },
+    "entrypoints": []
+}

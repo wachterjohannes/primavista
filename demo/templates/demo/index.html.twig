@@ -1,0 +1,37 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Primavista demo{% endblock %}
+
+{% block importmap %}{{ importmap(['app', 'react-island']) }}{% endblock %}
+
+{% block body %}
+    <main>
+        <h1>Primavista</h1>
+        <p class="lead">One editor core. Symfony UX for Twig forms, React for Sulu Admin.</p>
+
+        <section data-testid="ux-section">
+            <h2>Symfony UX: form field</h2>
+            {{ form_start(form, {attr: {'data-testid': 'ux-form', novalidate: 'novalidate'}}) }}
+                {{ form_row(form.body, {attr: {'data-testid': 'ux-textarea'}}) }}
+                <div class="row">
+                    <button type="submit" class="primary" data-testid="ux-submit">Save</button>
+                </div>
+            {{ form_end(form) }}
+
+            <div class="stack">
+                <h3>Live value of the textarea</h3>
+                <pre data-testid="ux-live" data-live-output-for="{{ form.body.vars.id }}"></pre>
+                {% if submitted is not null %}
+                    <h3>Submitted and sanitized</h3>
+                    <pre data-testid="ux-submitted">{{ submitted }}</pre>
+                    <div class="rendered" data-testid="ux-rendered">{{ submitted|raw }}</div>
+                {% endif %}
+            </div>
+        </section>
+
+        <section data-testid="react-section">
+            <h2>React: the Sulu contract, Sulu theme, CKEditor-compatible HTML</h2>
+            <div id="react-editor" data-initial-html="{{ react_initial_html|e('html_attr') }}"></div>
+        </section>
+    </main>
+{% endblock %}

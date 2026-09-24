@@ -1,0 +1,39 @@
+{
+  "name": "@primavista/ux-bundle",
+  "version": "0.1.0",
+  "description": "Stimulus controller for the Primavista Symfony UX bundle.",
+  "license": "MIT",
+  "private": true,
+  "type": "module",
+  "main": "dist/controller.js",
+  "types": "dist/controller.d.ts",
+  "symfony": {
+    "controllers": {
+      "editor": {
+        "main": "dist/controller.js",
+        "fetch": "eager",
+        "enabled": true,
+        "autoimport": {
+          "@primavista/ux-bundle/dist/primavista.css": true
+        }
+      }
+    },
+    "importmap": {
+      "@hotwired/stimulus": "^3.0.0"
+    }
+  },
+  "scripts": {
+    "build": "tsup",
+    "typecheck": "tsc --noEmit -p tsconfig.json"
+  },
+  "peerDependencies": {
+    "@hotwired/stimulus": "^3.0.0"
+  },
+  "devDependencies": {
+    "@hotwired/stimulus": "^3.2.2",
+    "@primavista/core": "workspace:*",
+    "lexical": "^0.51.0",
+    "tsup": "^8.5.1",
+    "typescript": "^5.9.0"
+  }
+}
