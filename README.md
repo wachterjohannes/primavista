@@ -36,6 +36,7 @@ Sulu, and many Symfony projects with it, ship CKEditor 5. Its license got strict
 - **Everything is a plugin.** Bold, headings, lists, links, tables and alignment are plugins. Hosts add their own through the same interface.
 - **Two bindings, one UI.** The core owns the toolbar. React and Stimulus only mount it, so both look and behave the same.
 - **Clean HTML.** No wrapper spans, no inline styles, no editor classes. `p`, `h1` to `h6`, `strong`, `em`, `u`, `s`, `code`, `sub`, `sup`, `a`, lists, tables, `br`. Alignment as `style="text-align"`, text parts in another language as `<span lang>`.
+- **Paste cleanup.** Content pasted from Word, Google Docs, LibreOffice or a web page keeps only the markup the registered plugins produce. `font-weight: 700` becomes `strong`, Word's list paragraphs become real lists, `mso-*` styles, `<font>`, `<o:p>` and wrapper spans disappear.
 - **CMS links.** Internal links are stored as `<internal-link href="id?query#anchor" provider="page">`, with a dialog hook so the host shows its own resource picker. External links carry target, title and rel. A balloon under the link offers preview, edit and unlink.
 - **Sulu drop-in.** `composer require primavista/sulu-bundle` and one import in the admin build replace CKEditor, Sulu itself stays untouched. `@primavista/sulu` keeps every Sulu detail out of the core: `suluPlugins()` builds Sulu's toolbar from a text editor config (Sulu 3.0 params and the 3.1 configs), `<sulu-link>` replaces `<internal-link>`, `suluPreset()` writes CKEditor-compatible markup (`figure.table`, `thead`, `&nbsp;`), the Sulu theme matches the admin, `stripParagraphs` and `wrapParagraphs` cover `enter_mode: br`. Clicked through in a running Sulu Admin, see the [screencast](docs/sulu-integration.md#screencast) and [docs/sulu-integration.md](docs/sulu-integration.md).
 - **Themes.** All colors and spacings are CSS variables. `themes/dark.css` and the Sulu theme in `@primavista/sulu` ship, a theme is a handful of overrides.
@@ -94,7 +95,7 @@ editor.setHtml('<h1>Replaced</h1>');
 editor.destroy();
 ```
 
-`createEditor` takes a `plugins` array. Without it, `defaultPlugins()` is used: history, formatting (bold, italic, underline, strikethrough, subscript, superscript, code), headings, lists, links, alignment, tables (with merge and split). For a CMS add `internalLinks({ providers })`, for multilingual text `language({ languages })`.
+`createEditor` takes a `plugins` array. Without it, `defaultPlugins()` is used: history, formatting (bold, italic, underline, strikethrough, subscript, superscript, code), headings, lists, links, alignment, tables (with merge and split), paste cleanup. For a CMS add `internalLinks({ providers })`, for multilingual text `language({ languages })`.
 
 ## Plugins
 
@@ -139,6 +140,17 @@ internalLinks({
 ```
 
 `state` carries the current values, `mode` (`create` or `edit`), the selected text and `collapsed`. With a collapsed selection `apply` inserts `text` (or the URL) as link text. Without `openDialog` a compact form appears in the toolbar. The demo's React island shows a host dialog.
+
+## Paste cleanup
+
+`pasteCleanup()` handles Lexical's paste command before the rich text handler, runs the clipboard's `text/html` through `cleanPastedHtml` and lets Lexical import the result. What survives follows the editor: headings, lists, links, tables and `<span lang>` only when their plugin is registered. Inline formats and alignment are options, because those plugins register no nodes:
+
+```ts
+formatting({ formats: ['bold', 'italic'] }),
+pasteCleanup({ formats: ['bold', 'italic'], alignment: false }),
+```
+
+The cleaner maps `font-weight`, `font-style`, `text-decoration` and `vertical-align` to `strong`, `em`, `u`, `s`, `sup` and `sub`, ignores Google Docs' `<b id="docs-internal-guid-…">` wrapper and the underline style inside links, and drops classes, ids, other styles, comments, images and scripts. Word's list paragraphs (`mso-list: l0 level1 lfo1`) become nested `ul` and `ol`, the marker decides the type. Empty paragraphs are removed, `text-align: left` too, because it is the default. `lang` stays only where it differs from the language of the pasted document. Plain text and content copied between Primavista editors take Lexical's usual path. `cleanPastedHtml(html, options)` is exported for use outside the editor.
 
 ## React
 
@@ -192,7 +204,7 @@ Activate it with `theme: 'brand'`. `@primavista/sulu/sulu.css` reproduces Sulu A
 
 | File | Minified | Gzip |
 |---|---|---|
-| `bundles/ux-bundle/assets/dist/controller.js` (core, Lexical, tables, links) | 402 KB | 133 KB |
+| `bundles/ux-bundle/assets/dist/controller.js` (core, Lexical, tables, links) | 426 KB | 138 KB |
 | `packages/core/dist/index.js` (Lexical external) | 72 KB | |
 | `packages/sulu/dist/index.js` | 3 KB | |
 

@@ -31,7 +31,8 @@ export function createExportMap(options: Required<HtmlOptions>): DOMExportOutput
   return map;
 }
 
-const FORMAT_TAGS: ReadonlyArray<readonly [format: Parameters<TextNode['hasFormat']>[0], tag: string]> = [
+/** Text format to element, innermost first. The paste cleanup nests in the same order. */
+export const FORMAT_TAGS:ReadonlyArray<readonly [format: Parameters<TextNode['hasFormat']>[0], tag: string]> = [
   ['code', 'code'],
   ['subscript', 'sub'],
   ['superscript', 'sup'],

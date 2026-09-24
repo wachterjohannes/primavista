@@ -1,4 +1,4 @@
-import { $getRoot, $isElementNode, $isTextNode, type LexicalNode } from 'lexical';
+import { $getRoot, $isElementNode, $isTextNode, PASTE_COMMAND, type LexicalNode } from 'lexical';
 import { createEditor, type InternalLinkDialogState, type PrimavistaEditor } from '@primavista/core';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import {
@@ -58,6 +58,12 @@ function selectAll(editor: PrimavistaEditor): void {
     },
     { discrete: true },
   );
+}
+
+/** A paste event as far as the paste cleanup reads it. */
+function clipboardEvent(data: Record<string, string>): ClipboardEvent {
+  const clipboardData = { types: Object.keys(data), files: [], getData: (type: string) => data[type] ?? '' };
+  return { clipboardData, preventDefault: () => {} } as unknown as ClipboardEvent;
 }
 
 describe('sulu links', () => {
@@ -137,6 +143,16 @@ describe('sulu plugins', () => {
     expect(entries).toEqual(['Deutsch (Österreich)', 'Remove language']);
     editor.toolbar.element.querySelector<HTMLButtonElement>('.pv-menu [data-pv-option="de-AT"]')!.click();
     expect(editor.getHtml()).toBe('<p><span lang="de-AT">Hallo</span></p>');
+  });
+
+  it('cleans pasted content down to what the config allows', () => {
+    const { editor } = mount({ plugins: suluPlugins({ providers, config: SULU_MINI_CONFIG }) });
+    editor.lexical.update(() => $getRoot().selectEnd(), { discrete: true });
+    const html =
+      '<h2 class="title">Title</h2><p style="text-align:center"><span style="font-weight:700">Bold</span>, <u>underlined</u> and ' +
+      '<span style="font-style:italic">italic</span></p><ul><li>Item</li></ul>';
+    editor.lexical.dispatchCommand(PASTE_COMMAND, clipboardEvent({ 'text/html': html, 'text/plain': 'Title' }));
+    expect(editor.getHtml()).toBe('<p>Title</p><p><strong>Bold</strong>, underlined and <em>italic</em></p><p>Item</p>');
   });
 
   it('maps the legacy formats and enter_mode params to a config', () => {

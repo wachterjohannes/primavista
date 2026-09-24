@@ -11,7 +11,7 @@ export interface FormattingOptions {
   formats?: ReadonlyArray<InlineFormat>;
 }
 
-const DEFAULT_FORMATS: ReadonlyArray<InlineFormat> = ['bold', 'italic', 'underline', 'strikethrough', 'subscript', 'superscript', 'code'];
+export const DEFAULT_FORMATS: ReadonlyArray<InlineFormat> = ['bold', 'italic', 'underline', 'strikethrough', 'subscript', 'superscript', 'code'];
 
 const LABELS: Record<InlineFormat, { label: string; shortcut?: string; icon: string }> = {
   bold: { label: 'Bold', shortcut: 'Ctrl+B', icon: icons.bold },
