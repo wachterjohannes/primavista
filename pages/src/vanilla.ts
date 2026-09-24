@@ -11,9 +11,9 @@ const highlight = document.getElementById('demo-highlight');
 
 const INITIAL = `<h2>Sight-read your content</h2>
 <p>This is <strong>@primavista/core</strong> without any framework. Toolbar, links, tables and alignment come from plugins. Try <code>Ctrl+K</code> on a selection.</p>
-<ul><li>Plain semantic HTML on the way out</li><li>Internal links as <code>&lt;sulu-link&gt;</code>, external ones as <code>&lt;a&gt;</code></li><li>Themes are CSS variables</li></ul>
+<ul><li>Plain semantic HTML on the way out</li><li>Internal links as <code>&lt;internal-link&gt;</code>, external ones as <code>&lt;a&gt;</code></li><li>Themes are CSS variables</li></ul>
 <p style="text-align: center;">Centered, because alignment is a plugin too.</p>
-<p>Read more on the <sulu-link href="uuid-about" provider="page" target="_self" title="About">about page</sulu-link>.</p>`;
+<p>Read more on the <internal-link href="uuid-about" provider="page" target="_self" title="About">about page</internal-link>.</p>`;
 
 let editor: PrimavistaEditor | null = null;
 let html = INITIAL;

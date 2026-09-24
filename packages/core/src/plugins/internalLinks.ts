@@ -49,11 +49,11 @@ export interface InternalLinkDialogState {
 
 export interface InternalLinksOptions {
   providers: ReadonlyArray<InternalLinkProvider>;
-  /** Custom element name in the HTML. Defaults to `sulu-link`. */
+  /** Custom element name in the HTML. Defaults to `internal-link`. */
   tag?: string;
-  /** Attribute for the host's validation state. Defaults to `sulu-validation-state`. */
+  /** Attribute for the host's validation state. Defaults to `validation-state`. */
   validationAttribute?: string;
-  /** Target for new links. Sulu writes `_self`. */
+  /** Target for new links, for example `_self`. Defaults to none. */
   defaultTarget?: string | null;
   /**
    * Opens the host's resource picker for the provider. Without it a plain
@@ -65,9 +65,9 @@ export interface InternalLinksOptions {
 }
 
 /**
- * Links to CMS resources, stored as `<sulu-link href provider target title>`.
- * One toolbar menu entry per provider. The host resolves the ids when it
- * renders the page.
+ * Links to resources of the host system, stored as
+ * `<internal-link href provider target title>`. One toolbar menu entry per
+ * provider. The host resolves the ids when it renders the page.
  */
 export function internalLinks(options: InternalLinksOptions): PrimavistaPlugin {
   if (options.tag) InternalLinkNode.tagName = options.tag;
@@ -222,7 +222,7 @@ const TARGET_LABELS: Record<string, string> = {
   _top: 'Top frame',
 };
 
-/** `uuid?query#anchor` into its parts, the way Sulu's LinkTag reads it. */
+/** `id?query#anchor` into its parts. */
 export function parseHref(href: string): { href: string; query: string | null; anchor: string | null } {
   const [beforeHash, anchor = null] = splitOnce(href, '#');
   const [id, query = null] = splitOnce(beforeHash, '?');
@@ -282,7 +282,7 @@ function renderInternalLinkPanel(
     el.textContent = translate(`link.target.${option.value || 'default'}`, option.label);
     target.appendChild(el);
   }
-  // Keep a target the host wrote (Sulu uses `_self`) even if the panel does not list it.
+  // Keep a target the host wrote (for example `_self`) even if the panel does not list it.
   if (state.target && !Array.from(target.options).some((option) => option.value === state.target)) {
     const el = document.createElement('option');
     el.value = state.target;

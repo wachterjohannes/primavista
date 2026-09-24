@@ -25,6 +25,7 @@
 return [
     'app' => ['path' => './assets/app.js', 'entrypoint' => true],
     'react-island' => ['path' => './assets/build/react-island.js', 'entrypoint' => true],
+    'react-island-css' => ['path' => './assets/build/react-island.css', 'type' => 'css', 'entrypoint' => true],
     '@hotwired/stimulus' => ['version' => '3.2.2'],
     '@symfony/stimulus-bundle' => ['path' => './vendor/symfony/stimulus-bundle/assets/dist/loader.js'],
 ];

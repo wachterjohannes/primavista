@@ -2,6 +2,7 @@ import { expect, test } from '@playwright/test';
 import { content, reactEditor, replaceContent, selectAllIn, toolbarButton, uxEditor } from './helpers';
 
 test.describe('Sulu feature parity', () => {
+  // The Symfony UX editor runs the core's plugins (`<internal-link>`), the React island the Sulu ones (`<sulu-link>`).
   test.beforeEach(async ({ page }) => {
     await page.goto('/');
   });
@@ -22,11 +23,11 @@ test.describe('Sulu feature parity', () => {
     await expect(form.getByLabel('Resource id')).toHaveValue('uuid-about');
     await form.getByLabel('Anchor').fill('team');
     await form.locator('button[type="submit"]').click();
-    await expect(textarea).toHaveValue(/<sulu-link href="uuid-about#team" provider="page" target="_self" title="About us">About us<\/sulu-link>/);
+    await expect(textarea).toHaveValue(/<internal-link href="uuid-about#team" provider="page" target="_self" title="About us">About us<\/internal-link>/);
 
     await content(editor).locator('a.pv-internal-link').click();
     await balloon.locator('[data-pv-balloon-action="unlink"]').click();
-    await expect(textarea).not.toHaveValue(/sulu-link/);
+    await expect(textarea).not.toHaveValue(/internal-link/);
     await expect(textarea).toHaveValue(/<p>Internal link: About us<\/p>/);
   });
 
@@ -45,7 +46,7 @@ test.describe('Sulu feature parity', () => {
     await form.getByLabel('Link target').selectOption('_blank');
     await form.locator('button[type="submit"]').click();
     await expect(textarea).toHaveValue(
-      '<p><sulu-link href="101" provider="media" target="_blank" title="Download">Brochure</sulu-link></p>',
+      '<p><internal-link href="101" provider="media" target="_blank" title="Download">Brochure</internal-link></p>',
     );
     await expect(toolbarButton(editor, 'internal-link')).toBeDisabled();
     await expect(toolbarButton(editor, 'link')).toBeDisabled();

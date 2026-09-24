@@ -2,8 +2,7 @@ export { createEditor } from './editor';
 export * from './plugins';
 export { icons, type IconName } from './icons';
 export { defaultTheme, mergeThemes } from './theme';
-export { suluPreset } from './presets';
-export { PRIMAVISTA_SET_HTML_TAG, stripParagraphs, wrapParagraphs } from './html';
+export { PRIMAVISTA_SET_HTML_TAG } from './html';
 export {
   $createInternalLinkNode,
   $isExternalLinkNode,

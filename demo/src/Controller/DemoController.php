@@ -13,13 +13,19 @@ use Symfony\Component\Routing\Attribute\Route;
 
 final class DemoController extends AbstractController
 {
-    private const INITIAL_HTML = '<h2>Primavista</h2><p>Same core, <strong>two bindings</strong>. Edit me.</p><ul><li>Symfony UX above</li><li>React below</li></ul><p>Internal link: <sulu-link href="uuid-about" provider="page" target="_self" title="About us">About us</sulu-link></p>';
+    private const INITIAL_HTML = '<h2>Primavista</h2><p>Same core, <strong>two bindings</strong>. Edit me.</p><ul><li>Symfony UX above</li><li>React below</li></ul><p>Internal link: ';
+
+    /** The Symfony UX field uses the core's own internal-link element. */
+    private const UX_INITIAL_HTML = self::INITIAL_HTML.'<internal-link href="uuid-about" provider="page" target="_self" title="About us">About us</internal-link></p>';
+
+    /** The React island runs the Sulu plugins and stores Sulu's sulu-link element. */
+    private const REACT_INITIAL_HTML = self::INITIAL_HTML.'<sulu-link href="uuid-about" provider="page" target="_self" title="About us">About us</sulu-link></p>';
 
     #[Route('/', name: 'demo', methods: ['GET', 'POST'])]
     public function index(Request $request): Response
     {
         $article = new Article();
-        $article->body = self::INITIAL_HTML;
+        $article->body = self::UX_INITIAL_HTML;
 
         $form = $this->createForm(ArticleType::class, $article);
         $form->handleRequest($request);
@@ -32,7 +38,7 @@ final class DemoController extends AbstractController
         return $this->render('demo/index.html.twig', [
             'form' => $form,
             'submitted' => $submitted,
-            'react_initial_html' => self::INITIAL_HTML,
+            'react_initial_html' => self::REACT_INITIAL_HTML,
         ]);
     }
 }

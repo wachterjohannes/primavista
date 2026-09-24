@@ -18,6 +18,7 @@ const DOCS = [
   { src: 'README.md', slug: 'index', title: 'Overview', group: 'Start' },
   { src: 'packages/core/README.md', slug: 'core', title: '@primavista/core', group: 'Packages' },
   { src: 'packages/react/README.md', slug: 'react', title: '@primavista/react', group: 'Packages' },
+  { src: 'packages/sulu/README.md', slug: 'sulu', title: '@primavista/sulu', group: 'Packages' },
   { src: 'bundle/README.md', slug: 'symfony-ux', title: 'Symfony UX bundle', group: 'Packages' },
   { src: 'docs/sulu-integration.md', slug: 'sulu-integration', title: 'Replacing CKEditor in Sulu', group: 'Sulu' },
   { src: 'docs/sulu-requirements.md', slug: 'sulu-requirements', title: 'What Sulu uses from CKEditor', group: 'Sulu' },

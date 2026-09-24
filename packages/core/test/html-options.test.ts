@@ -1,6 +1,9 @@
 import { afterEach, describe, expect, it } from 'vitest';
-import { headings, suluPreset } from '../src';
+import { headings, type EditorOptions } from '../src';
 import { mount, select, selectAll } from './helpers';
+
+/** The options `@primavista/sulu`'s preset bundles, spelled out. */
+const CK: Pick<EditorOptions, 'html'> = { html: { tableWrapper: 'figure', tableHeadSection: true, emptyParagraph: 'nbsp' } };
 
 const cleanups: Array<() => void> = [];
 afterEach(() => cleanups.splice(0).forEach((fn) => fn()));
@@ -21,8 +24,8 @@ describe('CKEditor-compatible output', () => {
     expect(roundTrip(ck)).toBe('<table><tbody><tr><th>A</th><th>B</th></tr><tr><td>1</td><td>2</td></tr></tbody></table>');
   });
 
-  it('keeps figure and thead with the sulu preset', () => {
-    expect(roundTrip(ck, suluPreset())).toBe(ck);
+  it('keeps figure and thead with the CKEditor options', () => {
+    expect(roundTrip(ck, CK)).toBe(ck);
   });
 
   it('does not create a thead when the first row has a body cell', () => {
@@ -35,8 +38,8 @@ describe('CKEditor-compatible output', () => {
     expect(roundTrip(html, { html: { tableHeadSection: true } })).toBe(html);
   });
 
-  it('writes empty paragraphs as nbsp with the sulu preset', () => {
-    const { editor, container } = mount({ initialHtml: '<p>a</p>', ...suluPreset() });
+  it('writes empty paragraphs as nbsp with the CKEditor options', () => {
+    const { editor, container } = mount({ initialHtml: '<p>a</p>', ...CK });
     cleanups.push(() => {
       editor.destroy();
       container.remove();
@@ -89,12 +92,12 @@ describe('heading levels', () => {
 
 describe('themes', () => {
   it('adds the theme class', () => {
-    const { editor, container } = mount({ theme: 'sulu' });
+    const { editor, container } = mount({ theme: 'dark' });
     cleanups.push(() => {
       editor.destroy();
       container.remove();
     });
-    expect(editor.element.classList.contains('pv-theme-sulu')).toBe(true);
+    expect(editor.element.classList.contains('pv-theme-dark')).toBe(true);
     selectAll(editor);
   });
 });

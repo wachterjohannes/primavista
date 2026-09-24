@@ -11,36 +11,32 @@
  * CKEditor adapter: value, onChange, onBlur, onFocus, disabled, locale,
  * options. Internal and external links open Sulu's own overlays from
  * linkTypeRegistry, so pages, media, articles and contacts work unchanged.
+ * Everything Sulu-specific about the editor itself (toolbar, sulu-link,
+ * preset, theme, enter_mode) comes from @primavista/sulu.
  *
  * Written against Sulu 3.0 (containers/CKEditor5 and containers/Link).
  */
 import React, {Fragment} from 'react';
 import {action, isArrayLike, observable} from 'mobx';
 import {observer} from 'mobx-react';
+import {Editor} from '@primavista/react';
 import {
-    alignment,
-    Editor,
-    formatting,
-    headings,
-    history,
-    internalLinks,
-    links,
-    lists,
-    stripParagraphs,
+    htmlToSuluValue,
+    SULU_DEFAULT_TARGET,
+    suluPlugins,
     suluPreset,
-    tables,
-    wrapParagraphs,
-} from '@primavista/react';
+    suluTranslationKey,
+    suluValueToHtml,
+} from '@primavista/sulu';
 import '@primavista/core/primavista.css';
-import '@primavista/core/themes/sulu.css';
+import '@primavista/sulu/sulu.css';
 import linkTypeRegistry from '../../Link/registries/linkTypeRegistry';
 import {ExternalLinkTypeOverlay} from '../../Link';
 import {translate} from '../../../utils';
 import type {IObservableArray, IObservableValue} from 'mobx/lib/mobx';
 import type {TextEditorProps} from '../types';
 
-const DEFAULT_FORMATS = ['h2', 'h3', 'h4', 'h5', 'h6'];
-const DEFAULT_TARGET = '_self';
+const DEFAULT_TARGET = SULU_DEFAULT_TARGET;
 
 @observer
 class PrimavistaTextEditor extends React.Component<TextEditorProps> {
@@ -74,7 +70,7 @@ class PrimavistaTextEditor extends React.Component<TextEditorProps> {
         return value === 'br' ? 'br' : 'p';
     }
 
-    get formats(): Array<string> {
+    get formats(): ?Array<string> {
         const {options} = this.props;
         const unvalidatedValues = options && options.formats ? options.formats.value : [];
 
@@ -92,7 +88,7 @@ class PrimavistaTextEditor extends React.Component<TextEditorProps> {
             return format.name;
         });
 
-        return names.length ? names : DEFAULT_FORMATS;
+        return names.length ? names : undefined;
     }
 
     createPlugins(): Array<Object> {
@@ -100,45 +96,25 @@ class PrimavistaTextEditor extends React.Component<TextEditorProps> {
             .filter((key) => key !== 'external')
             .map((key) => ({key, label: linkTypeRegistry.getTitle(key)}));
 
-        return [
-            history(),
-            formatting({
-                formats: ['bold', 'italic', 'underline', 'strikethrough', 'subscript', 'superscript', 'code'],
-            }),
-            headings({levels: this.formats}),
-            lists(),
-            links({
-                defaultTarget: DEFAULT_TARGET,
-                openDialog: this.handleOpenExternalDialog,
-            }),
-            internalLinks({
-                providers,
-                defaultTarget: DEFAULT_TARGET,
-                openDialog: this.handleOpenInternalDialog,
-                describe: ({provider, href}) => `${linkTypeRegistry.getTitle(provider)}: ${href}`,
-            }),
-            alignment(),
-            tables(),
-        ];
+        return suluPlugins({
+            providers,
+            formats: this.formats,
+            openInternalLinkDialog: this.handleOpenInternalDialog,
+            openExternalLinkDialog: this.handleOpenExternalDialog,
+            describeInternalLink: ({provider, href}) => `${linkTypeRegistry.getTitle(provider)}: ${href}`,
+        });
     }
 
     // Value mapping: Sulu stores undefined for an empty editor and, with
     // enter_mode "br", paragraphs as comments plus <br>.
 
     toEditorValue(value: ?string): string {
-        if (!value) {
-            return '';
-        }
-        return this.enterMode === 'br' ? wrapParagraphs(value) : value;
+        return suluValueToHtml(value, this.enterMode);
     }
 
     handleChange = (html: string) => {
         const {onChange} = this.props;
-        if (html === '') {
-            onChange(undefined);
-            return;
-        }
-        onChange(this.enterMode === 'br' ? stripParagraphs(html) : html);
+        onChange(htmlToSuluValue(html, this.enterMode));
     };
 
     handleFocus = () => {
@@ -265,7 +241,7 @@ class PrimavistaTextEditor extends React.Component<TextEditorProps> {
     // back to Primavista's English defaults, so nothing breaks before the
     // sulu_admin.primavista.* keys exist.
     translateLabel = (key: string, fallback: string): string => {
-        const translationKey = 'sulu_admin.primavista.' + key;
+        const translationKey = suluTranslationKey(key);
         const translated = translate(translationKey);
         return translated === translationKey ? fallback : translated;
     };

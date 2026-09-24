@@ -5,6 +5,7 @@ import { defineConfig } from 'tsup';
 
 const require = createRequire(import.meta.url);
 const coreDist = join(dirname(require.resolve('@primavista/core/package.json')), 'dist');
+const suluDist = join(dirname(require.resolve('@primavista/sulu/package.json')), 'dist');
 
 /** Static demo for GitHub Pages. Everything is bundled, the page needs no server. */
 export default defineConfig({
@@ -31,6 +32,7 @@ export default defineConfig({
     const themes = readdirSync(join(coreDist, 'themes'))
       .sort()
       .map((file) => readFileSync(join(coreDist, 'themes', file), 'utf8'))
+      .concat(readFileSync(join(suluDist, 'sulu.css'), 'utf8'))
       .join('\n');
     writeFileSync('dist/assets/primavista.css', readFileSync(join(coreDist, 'primavista.css'), 'utf8') + '\n' + themes);
     for (const file of readdirSync('public')) copyFileSync(join('public', file), join('dist', file));

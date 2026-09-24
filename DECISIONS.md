@@ -14,7 +14,7 @@ Decisions from the kickoff interview on 2026-09-24. See `RESEARCH.md` for the ba
 
 ## Implementation decisions (2026-09-24, first prototype)
 
-8. **Repo layout.** pnpm monorepo: `packages/core`, `packages/react`, `bundle` (Composer, Symfony UX conventions), `demo` (Symfony app), `e2e` (Playwright). No `packages/sulu`: the `fieldRegistry.add()` call belongs into Sulu.
+8. **Repo layout.** pnpm monorepo: `packages/core`, `packages/react`, `bundle` (Composer, Symfony UX conventions), `demo` (Symfony app), `e2e` (Playwright). `packages/sulu` came later (see 30), the `fieldRegistry.add()` call still belongs into Sulu.
 9. **Core owns the UI.** The toolbar is vanilla DOM inside the core. React is a mount wrapper with `value`, `onChange`, `onBlur`. No `@lexical/react`, so there is exactly one UI layer for both bindings.
 10. **Plugin interface.** `{ name, nodes?, theme?, register?(context), toolbar? }`. Bold, lists, headings, links and tables are plugins themselves. Toolbar state callbacks run inside `editor.read()`.
 11. **Self-contained Stimulus controller.** `bundle/assets/dist/controller.js` bundles core and Lexical, only Stimulus stays external, and the file is committed. Zero build steps with AssetMapper and no dependency on published npm packages.
@@ -25,23 +25,27 @@ Decisions from the kickoff interview on 2026-09-24. See `RESEARCH.md` for the ba
 
 ## Sulu parity (2026-09-24, second iteration)
 
-16. **Internal links as a `LinkNode` subclass.** `InternalLinkNode` extends Lexical's `LinkNode` and adds `provider` and `validationState`. That reuses `$toggleLink` for wrapping, splitting and unwrapping, and only the export differs: `<sulu-link href provider target title sulu-validation-state>`. Tag and attribute names are static fields, so another CMS can rename them.
+16. **Internal links as a `LinkNode` subclass.** `InternalLinkNode` extends Lexical's `LinkNode` and adds `provider` and `validationState`. That reuses `$toggleLink` for wrapping, splitting and unwrapping, and only the export differs: `<internal-link href provider target title validation-state>` by default, `<sulu-link … sulu-validation-state>` through `@primavista/sulu`. Tag and attribute names are static fields, so any CMS can rename them.
 17. **Dialogs belong to the host.** Both link plugins expose `openDialog(state)` with `apply`, `remove` and `cancel`. Sulu renders its own `LinkTypeOverlay` and `ExternalLinkTypeOverlay`, the Symfony UX demo uses the built-in toolbar form. The editor never ships a resource picker.
 18. **Balloon instead of toolbar editing.** Like Sulu's `LinkBalloonView`: a floating panel under the link with preview (external only), edit and unlink. The toolbar link buttons are disabled while the selection touches a link, so create and edit never collide.
 19. **Alignment as inline style.** Exported as `style="text-align: …"`, the format Sulu content already contains from CKEditor.
 20. **Toolbar menus.** A third toolbar item type for the provider dropdown. Buttons and selects stay as they were.
-21. **`enter_mode: br` as helper functions.** `stripParagraphs` and `wrapParagraphs` copy Sulu's algorithm verbatim so stored content stays byte-compatible. Applied by the adapter, not the core.
+21. **`enter_mode: br` as helper functions.** `stripParagraphs` and `wrapParagraphs` copy Sulu's algorithm verbatim so stored content stays byte-compatible. They live in `@primavista/sulu` and the adapter applies them, the core never sees them.
 22. **The Sulu adapter lives in `docs/sulu`.** A reference file written against Sulu 3.0's `TextEditorProps`, `linkTypeRegistry` and overlays. It goes into Sulu's repository, not into an npm package, because it imports Sulu internals.
 23. **Translation through a hook, not through label options.** `translate(key, fallback)` on the editor options with stable keys (`toolbar.bold`, `link.url`). One hook covers every plugin and the adapter maps it to Sulu's `translate()`. Per-plugin label objects were rejected because every host would repeat them.
 24. **Custom elements are marked inline on import.** Lexical's HTML importer treats unknown tags as blocks and drops the whitespace before them. `$loadHtml` sets `display: inline` on `<sulu-link>` before parsing.
 
 ## Repository and Sulu verification (2026-09-24, third iteration)
 
-25. **Themes are CSS variables scoped by a class.** `theme: 'sulu'` adds `pv-theme-sulu`, `themes/sulu.css` overrides the `--pv-*` variables. No JavaScript theme objects beyond Lexical's class map, which moved to `themeClasses`.
-26. **CKEditor markup is opt-in.** `html: { tableWrapper, tableHeadSection, emptyParagraph }` reproduces `figure.table`, `thead` and `&nbsp;`. `suluPreset()` bundles them with the theme. The default output stays plain.
+25. **Themes are CSS variables scoped by a class.** `theme: 'sulu'` adds `pv-theme-sulu`, `@primavista/sulu/sulu.css` overrides the `--pv-*` variables. No JavaScript theme objects beyond Lexical's class map, which moved to `themeClasses`.
+26. **CKEditor markup is opt-in.** `html: { tableWrapper, tableHeadSection, emptyParagraph }` reproduces `figure.table`, `thead` and `&nbsp;`. `suluPreset()` from `@primavista/sulu` bundles them with the theme. The default output stays plain.
 27. **Headings outside `levels` are demoted.** A node transform turns them into paragraphs, matching CKEditor's schema behaviour. Off with `demoteUnlisted: false`.
 28. **CommonJS next to ESM.** Sulu's Jest cannot load ESM without a transform, so both packages ship `index.cjs`. React 17 is supported because Sulu Admin runs on it.
 29. **The adapter is verified inside Sulu.** The reference adapter and its test were run in a local Sulu 3.0 checkout: Jest, `flow focus-check`, ESLint. Sulu needs three config changes for that (Jest transform list, Flow `[untyped]`, package dependencies), documented in `docs/sulu-integration.md`.
+
+## Package split (2026-09-24, fourth iteration)
+
+30. **Sulu specifics live in `@primavista/sulu`.** The core knows nothing about Sulu: `internalLinks` writes `<internal-link>` with a `validation-state` attribute, the themes folder holds only `dark.css`, there is no preset and no `enter_mode` code. `@primavista/sulu` configures the same plugin as `suluLinks()` for `<sulu-link>`, adds `suluPlugins()` (Sulu's toolbar in Sulu's order), `suluPreset()`, `sulu.css`, the `enter_mode` helpers, the empty value mapping and `suluTranslationKey()`. The adapter inside Sulu imports from `@primavista/react` and `@primavista/sulu`. Rejected: keeping Sulu defaults in the core (every host would inherit Sulu's element names), and moving `internalLinks` entirely into the Sulu package (Symfony UX apps need CMS links too, the Symfony demo uses the generic form).
 
 ## Rejected
 

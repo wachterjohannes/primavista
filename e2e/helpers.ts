@@ -1,7 +1,15 @@
 import { expect, type Locator, type Page } from '@playwright/test';
 
+const INITIAL_HTML_START =
+  '<h2>Primavista</h2><p>Same core, <strong>two bindings</strong>. Edit me.</p><ul><li>Symfony UX above</li><li>React below</li></ul><p>Internal link: ';
+
+/** The Symfony UX field runs the core's internalLinks plugin and stores `<internal-link>`. */
+export const UX_INITIAL_HTML =
+  INITIAL_HTML_START + '<internal-link href="uuid-about" provider="page" target="_self" title="About us">About us</internal-link></p>';
+
+/** The React island runs the Sulu plugins and stores `<sulu-link>`. */
 export const INITIAL_HTML =
-  '<h2>Primavista</h2><p>Same core, <strong>two bindings</strong>. Edit me.</p><ul><li>Symfony UX above</li><li>React below</li></ul><p>Internal link: <sulu-link href="uuid-about" provider="page" target="_self" title="About us">About us</sulu-link></p>';
+  INITIAL_HTML_START + '<sulu-link href="uuid-about" provider="page" target="_self" title="About us">About us</sulu-link></p>';
 
 export function uxEditor(page: Page): Locator {
   return page.getByTestId('ux-section').locator('.pv-editor');

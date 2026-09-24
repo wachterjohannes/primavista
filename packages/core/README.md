@@ -46,7 +46,7 @@ Toolbar items are buttons, native selects or menus. Their state callbacks run in
 
 ## Storage helpers
 
-`stripParagraphs` and `wrapParagraphs` implement Sulu's `enter_mode: br` format. `InternalLinkNode`, `$isInternalLinkNode`, `$getLinkAtSelection` and `registerLinkBalloon` are exported for plugin authors.
+`internalLinks` stores links to host resources as `<internal-link href="id?query#anchor" provider="page">`. The tag and the validation attribute are options, `@primavista/sulu` sets them to Sulu's `<sulu-link>` format and adds the Sulu preset, theme and `enter_mode` helpers. `InternalLinkNode`, `$isInternalLinkNode`, `$getLinkAtSelection` and `registerLinkBalloon` are exported for plugin authors.
 
 ## Theming
 

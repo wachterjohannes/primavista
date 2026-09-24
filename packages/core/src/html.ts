@@ -250,26 +250,3 @@ export function $isDocumentEmpty(): boolean {
 }
 
 export { SET_HTML_TAG as PRIMAVISTA_SET_HTML_TAG };
-
-/**
- * Sulu's `enter_mode: br` storage format. Paragraph tags become comments and
- * `<br>` separators, a single paragraph is unwrapped. Same algorithm as
- * Sulu's CKEditor container, so stored content stays compatible.
- */
-export function stripParagraphs(html: string): string {
-  const single = html.match(/^<p>([^<>]*)<\/p>$/);
-  if (single) return single[1] ?? '';
-  const replaced = html.replace(/<p>/g, '<!--p-->').replace(/<\/p>/g, '<!--/p--><br></br>');
-  const marker = '<br></br>';
-  const last = replaced.lastIndexOf(marker);
-  return last === -1 ? replaced : replaced.slice(0, last) + replaced.slice(last + marker.length);
-}
-
-/** Inverse of `stripParagraphs`. */
-export function wrapParagraphs(html: string): string {
-  if (!html.includes('<!--p-->')) return `<p>${html}</p>`;
-  return html
-    .replace(/<!--p-->/g, '<p>')
-    .replace(/<!--\/p--><br><\/br>/g, '</p>')
-    .replace(/<!--\/p-->/g, '</p>');
-}

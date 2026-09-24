@@ -40,7 +40,7 @@ export interface LinkDialogState {
 export interface LinksOptions {
   /** Return false to reject a URL. Defaults to rejecting `javascript:`. */
   validateUrl?: (url: string) => boolean;
-  /** Target written for new links from the built-in panel. Sulu uses `_self`. */
+  /** Target written for new links from the built-in panel, for example `_self`. */
   defaultTarget?: string | null;
   /**
    * Replaces the built-in panel. Host systems open their own dialog here and
@@ -240,7 +240,7 @@ function renderLinkPanel(
     el.textContent = translate(`link.target.${option.value || 'default'}`, option.label);
     target.appendChild(el);
   }
-  // Keep a target the host wrote (Sulu uses `_self`) even if the panel does not list it.
+  // Keep a target the host wrote (for example `_self`) even if the panel does not list it.
   if (state.target && !Array.from(target.options).some((option) => option.value === state.target)) {
     const el = document.createElement('option');
     el.value = state.target;

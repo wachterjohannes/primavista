@@ -36,9 +36,9 @@ Sulu, and many Symfony projects with it, ship CKEditor 5. Its license got strict
 - **Everything is a plugin.** Bold, headings, lists, links, tables and alignment are plugins. Hosts add their own through the same interface.
 - **Two bindings, one UI.** The core owns the toolbar. React and Stimulus only mount it, so both look and behave the same.
 - **Clean HTML.** No wrapper spans, no inline styles, no editor classes. `p`, `h1` to `h6`, `strong`, `em`, `u`, `s`, `code`, `sub`, `sup`, `a`, lists, tables, `br`. Alignment as `style="text-align"`.
-- **CMS links.** Internal links are stored as `<sulu-link href="id?query#anchor" provider="page">`, with a dialog hook so the host shows its own resource picker. External links carry target, title and rel. A balloon under the link offers preview, edit and unlink.
-- **Sulu drop-in.** `suluPreset()` writes CKEditor-compatible markup (`figure.table`, `thead`, `&nbsp;`), the Sulu theme matches the admin, `stripParagraphs` and `wrapParagraphs` cover `enter_mode: br`. The reference adapter passes Sulu's Jest, Flow, ESLint and webpack build and was clicked through in a running Sulu Admin, see the [screencast](docs/sulu-integration.md#screencast) and [docs/sulu-integration.md](docs/sulu-integration.md).
-- **Themes.** All colors and spacings are CSS variables. `themes/sulu.css` and `themes/dark.css` ship, a theme is a handful of overrides.
+- **CMS links.** Internal links are stored as `<internal-link href="id?query#anchor" provider="page">`, with a dialog hook so the host shows its own resource picker. External links carry target, title and rel. A balloon under the link offers preview, edit and unlink.
+- **Sulu drop-in.** `@primavista/sulu` keeps every Sulu detail out of the core: `suluPlugins()` builds Sulu's toolbar, `<sulu-link>` replaces `<internal-link>`, `suluPreset()` writes CKEditor-compatible markup (`figure.table`, `thead`, `&nbsp;`), the Sulu theme matches the admin, `stripParagraphs` and `wrapParagraphs` cover `enter_mode: br`. The reference adapter passes Sulu's Jest, Flow, ESLint and webpack build and was clicked through in a running Sulu Admin, see the [screencast](docs/sulu-integration.md#screencast) and [docs/sulu-integration.md](docs/sulu-integration.md).
+- **Themes.** All colors and spacings are CSS variables. `themes/dark.css` and the Sulu theme in `@primavista/sulu` ship, a theme is a handful of overrides.
 - **Zero build in Symfony.** The Stimulus controller is one self-contained file served by AssetMapper. `composer require`, done.
 - **Translatable.** One `translate(key, fallback)` hook covers the toolbar and every form.
 
@@ -48,6 +48,7 @@ Sulu, and many Symfony projects with it, ship CKEditor 5. Its license got strict
 |---|---|---|
 | [`packages/core`](packages/core) | `@primavista/core` | Editor, toolbar, HTML import and export, plugin API. No framework. |
 | [`packages/react`](packages/react) | `@primavista/react` | `<Editor value onChange onBlur />`, a thin mount wrapper. React 17 to 19. |
+| [`packages/sulu`](packages/sulu) | `@primavista/sulu` | Sulu flavour: `suluPlugins()`, `<sulu-link>`, CKEditor-compatible preset, Sulu theme, `enter_mode` helpers. |
 | [`bundle`](bundle) | `primavista/ux-bundle` | Symfony bundle: `PrimavistaType` form type plus a Stimulus controller. |
 | [`demo`](demo) | | Symfony app that renders both bindings on one page. Target of the browser tests. |
 | [`pages`](pages) | | Static demo published to [GitHub Pages](https://johanneswachter.dev/primavista/). |
@@ -60,8 +61,8 @@ Requirements: Node 20+, pnpm 10, PHP 8.4, Composer.
 
 ```sh
 pnpm install
-pnpm build                      # core, react, bundle controller, demo island
-pnpm test                       # Vitest: core and react
+pnpm build                      # core, react, sulu, bundle controller, demo island
+pnpm test                       # Vitest: core, react and sulu
 (cd bundle && composer install && composer test && composer phpstan)
 (cd demo && composer install)
 pnpm e2e:install                # downloads Chromium once
@@ -140,11 +141,12 @@ internalLinks({
 ## React
 
 ```tsx
-import { Editor, suluPreset } from '@primavista/react';
+import { Editor } from '@primavista/react';
+import { suluPlugins, suluPreset } from '@primavista/sulu';
 import '@primavista/core/primavista.css';
-import '@primavista/core/themes/sulu.css';
+import '@primavista/sulu/sulu.css';
 
-<Editor value={html} onChange={setHtml} onBlur={markTouched} placeholder="Write…" {...suluPreset()} />
+<Editor value={html} onChange={setHtml} onBlur={markTouched} plugins={suluPlugins({ providers })} {...suluPreset()} />
 ```
 
 The props match what Sulu's `fieldRegistry.add()` expects. `plugins`, `theme`, `html` and `translate` are read once on mount. Pass a `key` to remount with another set.
@@ -178,7 +180,7 @@ Every color and spacing is a custom property on `.pv-editor`. A theme is a style
 }
 ```
 
-Activate it with `theme: 'brand'`. `themes/sulu.css` reproduces Sulu Admin, `themes/dark.css` is a dark variant.
+Activate it with `theme: 'brand'`. `@primavista/sulu/sulu.css` reproduces Sulu Admin, `themes/dark.css` is a dark variant.
 
 ## Translations
 
@@ -190,6 +192,7 @@ Activate it with `theme: 'brand'`. `themes/sulu.css` reproduces Sulu Admin, `the
 |---|---|---|
 | `bundle/assets/dist/controller.js` (core, Lexical, tables, links) | 402 KB | 133 KB |
 | `packages/core/dist/index.js` (Lexical external) | 72 KB | |
+| `packages/sulu/dist/index.js` | 3 KB | |
 
 ## Documentation
 

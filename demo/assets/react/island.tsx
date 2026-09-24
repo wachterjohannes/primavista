@@ -1,18 +1,6 @@
-import {
-  alignment,
-  Editor,
-  formatting,
-  headings,
-  history,
-  internalLinks,
-  links,
-  lists,
-  suluPreset,
-  tables,
-  type InternalLinkDialogState,
-  type PrimavistaEditor,
-  type PrimavistaPlugin,
-} from '@primavista/react';
+import { Editor, type InternalLinkDialogState, type PrimavistaEditor } from '@primavista/react';
+import { suluPlugins, suluPreset } from '@primavista/sulu';
+import '@primavista/sulu/sulu.css';
 import { useMemo, useRef, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 
@@ -30,8 +18,9 @@ const RESOURCES: Record<string, Array<{ id: string; title: string }>> = {
 };
 
 /**
- * Mirrors how Sulu Admin would use the field: a controlled component with
- * value, onChange and onBlur, and the host's own overlay for internal links.
+ * Mirrors how Sulu Admin uses the field: a controlled component with value,
+ * onChange and onBlur, the plugin list from `@primavista/sulu`, and the
+ * host's own overlay for internal links.
  */
 function SuluLikeField({ initialHtml }: { initialHtml: string }) {
   const [value, setValue] = useState(initialHtml);
@@ -39,29 +28,20 @@ function SuluLikeField({ initialHtml }: { initialHtml: string }) {
   const [dialog, setDialog] = useState<InternalLinkDialogState | null>(null);
   const editorRef = useRef<PrimavistaEditor | null>(null);
 
-  const plugins = useMemo<PrimavistaPlugin[]>(
-    () => [
-      history(),
-      formatting(),
-      headings({ levels: ['h2', 'h3', 'h4', 'h5', 'h6'] }),
-      lists(),
-      links({ defaultTarget: '_self' }),
-      internalLinks({
+  const plugins = useMemo(
+    () =>
+      suluPlugins({
         providers: [
           { key: 'page', label: 'Page' },
           { key: 'media', label: 'Media' },
         ],
-        defaultTarget: '_self',
-        openDialog: (state) => setDialog(state),
-        describe: ({ provider, href }) => {
+        openInternalLinkDialog: (state) => setDialog(state),
+        describeInternalLink: ({ provider, href }) => {
           const id = href.split(/[?#]/)[0];
           const item = RESOURCES[provider]?.find((r) => r.id === id);
           return item ? `${provider}: ${item.title}` : `${provider}: ${href}`;
         },
       }),
-      alignment(),
-      tables(),
-    ],
     [],
   );
 

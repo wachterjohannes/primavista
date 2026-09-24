@@ -417,7 +417,7 @@
   flex: 0 1 8em;
 }
 
-/* Internal links and their validation state, as in Sulu Admin */
+/* Internal links and the validation state a host may flag them with */
 
 .pv-internal-link {
   --pv-internal-link-marker: #d97706;

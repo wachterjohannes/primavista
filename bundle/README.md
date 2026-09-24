@@ -74,7 +74,7 @@ detail.plugins.push(detail.core.internalLinks({
 }));
 ```
 
-The stored markup is `<sulu-link href="id?query#anchor" provider="page" target="_self" title="…">text</sulu-link>`. Resolve it when rendering, or configure `tag` and `validationAttribute` for another format.
+The stored markup is `<internal-link href="id?query#anchor" provider="page" target="_self" title="…">text</internal-link>`. Resolve it when rendering, or configure `tag` and `validationAttribute` for another format. Sulu's `<sulu-link>` format comes from `@primavista/sulu`.
 
 ## Development
 

@@ -107,8 +107,8 @@ export interface PluginContext {
 
 /**
  * The extension point. Everything the editor can do is a plugin, including
- * bold and lists. Host systems such as Sulu register their own plugins for
- * internal links or media through the same interface.
+ * bold and lists. Host systems register their own plugins for internal links
+ * or media through the same interface.
  */
 export interface PrimavistaPlugin {
   name: string;
@@ -141,7 +141,7 @@ export interface EditorOptions {
   namespace?: string;
   /**
    * Visual theme. Adds `pv-theme-<name>` to the editor element, which the
-   * theme stylesheet (for example `themes/sulu.css`) scopes its variables to.
+   * theme stylesheet (for example `themes/dark.css`) scopes its variables to.
    */
   theme?: string;
   /** Overrides individual Lexical theme classes. */

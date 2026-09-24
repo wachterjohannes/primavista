@@ -7,8 +7,6 @@ import {
   history,
   internalLinks,
   links,
-  stripParagraphs,
-  wrapParagraphs,
   type InternalLinkDialogState,
   type PrimavistaEditor,
 } from '../src';
@@ -32,16 +30,16 @@ const providers = [
   { key: 'media', label: 'Media' },
 ];
 
-function suluPlugins(openDialog?: (state: InternalLinkDialogState) => void) {
+function linkPlugins(openDialog?: (state: InternalLinkDialogState) => void) {
   const options = openDialog ? { providers, openDialog } : { providers };
   return [history(), formatting(), links(), internalLinks(options)];
 }
 
 describe('internal links', () => {
-  it('round-trips sulu-link markup', () => {
+  it('round-trips internal-link markup', () => {
     const html =
-      '<p>See <sulu-link href="abc-123?x=1#top" provider="page" target="_self" title="Home" sulu-validation-state="unpublished">home</sulu-link>.</p>';
-    const { editor } = setup({ initialHtml: html, plugins: suluPlugins() });
+      '<p>See <internal-link href="abc-123?x=1#top" provider="page" target="_self" title="Home" validation-state="unpublished">home</internal-link>.</p>';
+    const { editor } = setup({ initialHtml: html, plugins: linkPlugins() });
     expect(editor.getHtml()).toBe(html);
     const anchor = editor.contentElement.querySelector('a.pv-internal-link')!;
     expect(anchor.getAttribute('data-provider')).toBe('page');
@@ -51,7 +49,7 @@ describe('internal links', () => {
 
   it('offers one menu entry per provider and creates a link through the dialog', () => {
     const openDialog = vi.fn();
-    const { editor } = setup({ initialHtml: '<p>Contact</p>', plugins: suluPlugins(openDialog) });
+    const { editor } = setup({ initialHtml: '<p>Contact</p>', plugins: linkPlugins(openDialog) });
     selectAll(editor);
     const menu = button(editor, 'internal-link');
     expect(menu.disabled).toBe(false);
@@ -66,28 +64,28 @@ describe('internal links', () => {
     expect(state.selectedText).toBe('Contact');
     state.apply({ href: 42, query: 'v=2', anchor: 'sec', target: '_blank', title: 'Brochure' });
     expect(editor.getHtml()).toBe(
-      '<p><sulu-link href="42?v=2#sec" provider="media" target="_blank" title="Brochure">Contact</sulu-link></p>',
+      '<p><internal-link href="42?v=2#sec" provider="media" target="_blank" title="Brochure">Contact</internal-link></p>',
     );
     expect(menu.disabled).toBe(true);
   });
 
   it('inserts the resource text when nothing is selected', () => {
     const openDialog = vi.fn();
-    const { editor } = setup({ initialHtml: '<p>Read</p>', plugins: suluPlugins(openDialog) });
+    const { editor } = setup({ initialHtml: '<p>Read</p>', plugins: linkPlugins(openDialog) });
     typeText(editor, ' ');
     button(editor, 'internal-link').click();
     editor.toolbar.element.querySelector<HTMLButtonElement>('.pv-menu-item')!.click();
     const state = openDialog.mock.calls[0]![0] as InternalLinkDialogState;
     expect(state.collapsed).toBe(true);
     state.apply({ href: 'uuid-1', text: 'the page' });
-    expect(editor.getHtml()).toBe('<p>Read <sulu-link href="uuid-1" provider="page">the page</sulu-link></p>');
+    expect(editor.getHtml()).toBe('<p>Read <internal-link href="uuid-1" provider="page">the page</internal-link></p>');
   });
 
   it('edits and removes through the balloon and resets the validation state', () => {
     const openDialog = vi.fn();
     const { editor } = setup({
-      initialHtml: '<p><sulu-link href="old" provider="page" sulu-validation-state="removed">x</sulu-link></p>',
-      plugins: suluPlugins(openDialog),
+      initialHtml: '<p><internal-link href="old" provider="page" validation-state="removed">x</internal-link></p>',
+      plugins: linkPlugins(openDialog),
     });
     selectAll(editor);
     const balloon = editor.element.querySelector<HTMLElement>('.pv-balloon')!;
@@ -98,7 +96,7 @@ describe('internal links', () => {
     expect(state.mode).toBe('edit');
     expect(state.href).toBe('old');
     state.apply({ href: 'new', anchor: 'a' });
-    expect(editor.getHtml()).toBe('<p><sulu-link href="new#a" provider="page">x</sulu-link></p>');
+    expect(editor.getHtml()).toBe('<p><internal-link href="new#a" provider="page">x</internal-link></p>');
 
     selectAll(editor);
     balloon.querySelector<HTMLButtonElement>('[data-pv-balloon-action="unlink"]')!.click();
@@ -106,23 +104,23 @@ describe('internal links', () => {
   });
 
   it('uses the built-in panel without a dialog', () => {
-    const { editor } = setup({ initialHtml: '<p>Doc</p>', plugins: suluPlugins() });
+    const { editor } = setup({ initialHtml: '<p>Doc</p>', plugins: linkPlugins() });
     selectAll(editor);
     button(editor, 'internal-link').click();
     editor.toolbar.element.querySelector<HTMLButtonElement>('.pv-menu-item')!.click();
     const form = editor.element.querySelector<HTMLFormElement>('.pv-link-form')!;
     form.querySelector<HTMLInputElement>('[aria-label="Resource id"]')!.value = 'p-1';
     form.dispatchEvent(new Event('submit', { cancelable: true }));
-    expect(editor.getHtml()).toBe('<p><sulu-link href="p-1" provider="page">Doc</sulu-link></p>');
+    expect(editor.getHtml()).toBe('<p><internal-link href="p-1" provider="page">Doc</internal-link></p>');
   });
 
   it('keeps external and internal links apart', () => {
     const { editor } = setup({
-      initialHtml: '<p><a href="https://x.example">ext</a> and <sulu-link href="1" provider="page">int</sulu-link></p>',
-      plugins: suluPlugins(),
+      initialHtml: '<p><a href="https://x.example">ext</a> and <internal-link href="1" provider="page">int</internal-link></p>',
+      plugins: linkPlugins(),
     });
     expect(editor.getHtml()).toBe(
-      '<p><a href="https://x.example">ext</a> and <sulu-link href="1" provider="page">int</sulu-link></p>',
+      '<p><a href="https://x.example">ext</a> and <internal-link href="1" provider="page">int</internal-link></p>',
     );
   });
 });
@@ -198,16 +196,6 @@ describe('table cells', () => {
     expect(editor.getHtml()).toBe(
       '<table><tbody><tr><td><p>a</p><p>b</p></td><td></td></tr><tr><td>c</td><td>d</td></tr></tbody></table>',
     );
-  });
-});
-
-describe('enter mode br helpers', () => {
-  it('matches the Sulu algorithm', () => {
-    expect(stripParagraphs('<p>only</p>')).toBe('only');
-    expect(stripParagraphs('<p>a</p><p>b</p>')).toBe('<!--p-->a<!--/p--><br></br><!--p-->b<!--/p-->');
-    expect(wrapParagraphs('only')).toBe('<p>only</p>');
-    expect(wrapParagraphs('<!--p-->a<!--/p--><br></br><!--p-->b<!--/p-->')).toBe('<p>a</p><p>b</p>');
-    expect(wrapParagraphs(stripParagraphs('<p>a <strong>b</strong></p><p>c</p>'))).toBe('<p>a <strong>b</strong></p><p>c</p>');
   });
 });
 

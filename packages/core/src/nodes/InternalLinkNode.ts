@@ -32,20 +32,21 @@ const ATTRIBUTE_TARGET = 'target';
 const ATTRIBUTE_TITLE = 'title';
 
 /**
- * A link to a CMS resource, stored as a custom element that the host resolves
- * when it renders the page. This is the format Sulu's MarkupBundle expects:
+ * A link to a resource of the host system, stored as a custom element that
+ * the host resolves when it renders the page:
  *
- * `<sulu-link href="uuid?query#anchor" provider="page" target="_self" title="…" sulu-validation-state="…">text</sulu-link>`
+ * `<internal-link href="id?query#anchor" provider="page" target="_self" title="…" validation-state="…">text</internal-link>`
  *
  * The href holds the resource id plus optional query and anchor. The tag name
- * and the validation attribute are configurable through the static fields,
- * which the plugin sets before the editor is created.
+ * and the validation attribute are static fields, which the plugin sets
+ * before the editor is created. `@primavista/sulu` sets them to Sulu's
+ * `<sulu-link>` format.
  */
 export class InternalLinkNode extends LinkNode {
   /** Custom element name in the exported HTML. */
-  static tagName = 'sulu-link';
+  static tagName = 'internal-link';
   /** Attribute the host uses to flag unpublished or removed targets. */
-  static validationAttribute = 'sulu-validation-state';
+  static validationAttribute = 'validation-state';
 
   __provider: string;
   __validationState: null | string;
@@ -189,7 +190,7 @@ function $convertInternalLinkElement(element: HTMLElement): DOMConversionOutput 
   const href = element.getAttribute(ATTRIBUTE_HREF);
   if (!href) return { node: null };
   const node = $createInternalLinkNode(href, {
-    provider: element.getAttribute(ATTRIBUTE_PROVIDER) ?? 'page',
+    provider: element.getAttribute(ATTRIBUTE_PROVIDER) ?? '',
     target: element.getAttribute(ATTRIBUTE_TARGET),
     title: element.getAttribute(ATTRIBUTE_TITLE),
     validationState: element.getAttribute(InternalLinkNode.validationAttribute),

@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { content, expectToolbar, INITIAL_HTML, replaceContent, selectAllIn, toolbarButton, uxEditor } from './helpers';
+import { content, expectToolbar, replaceContent, selectAllIn, toolbarButton, UX_INITIAL_HTML, uxEditor } from './helpers';
 
 test.describe('Symfony UX binding', () => {
   test.beforeEach(async ({ page }) => {
@@ -12,11 +12,11 @@ test.describe('Symfony UX binding', () => {
     const textarea = page.getByTestId('ux-textarea');
     await expect(textarea).toHaveAttribute('data-controller', 'primavista--ux-bundle--editor');
     await expect(textarea).toHaveAttribute('aria-hidden', 'true');
-    await expect(textarea).toHaveValue(INITIAL_HTML);
+    await expect(textarea).toHaveValue(UX_INITIAL_HTML);
     await expect(content(editor).locator('h2')).toHaveText('Primavista');
     await expect(content(editor).locator('strong')).toHaveText('two bindings');
     await expect(content(editor).locator('li')).toHaveCount(2);
-    await expect(page.getByTestId('ux-live')).toHaveText(INITIAL_HTML);
+    await expect(page.getByTestId('ux-live')).toHaveText(UX_INITIAL_HTML);
   });
 
   test('keeps the textarea in sync while typing', async ({ page }) => {
