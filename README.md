@@ -37,7 +37,7 @@ Sulu, and many Symfony projects with it, ship CKEditor 5. Its license got strict
 - **Two bindings, one UI.** The core owns the toolbar. React and Stimulus only mount it, so both look and behave the same.
 - **Clean HTML.** No wrapper spans, no inline styles, no editor classes. `p`, `h1` to `h6`, `strong`, `em`, `u`, `s`, `code`, `sub`, `sup`, `a`, lists, tables, `br`. Alignment as `style="text-align"`.
 - **CMS links.** Internal links are stored as `<sulu-link href="id?query#anchor" provider="page">`, with a dialog hook so the host shows its own resource picker. External links carry target, title and rel. A balloon under the link offers preview, edit and unlink.
-- **Sulu drop-in.** `suluPreset()` writes CKEditor-compatible markup (`figure.table`, `thead`, `&nbsp;`), the Sulu theme matches the admin, `stripParagraphs` and `wrapParagraphs` cover `enter_mode: br`. The reference adapter passes Sulu's Jest, Flow, ESLint and webpack build. See [docs/sulu-integration.md](docs/sulu-integration.md).
+- **Sulu drop-in.** `suluPreset()` writes CKEditor-compatible markup (`figure.table`, `thead`, `&nbsp;`), the Sulu theme matches the admin, `stripParagraphs` and `wrapParagraphs` cover `enter_mode: br`. The reference adapter passes Sulu's Jest, Flow, ESLint and webpack build and was clicked through in a running Sulu Admin, see the [screencast](docs/sulu-integration.md#screencast) and [docs/sulu-integration.md](docs/sulu-integration.md).
 - **Themes.** All colors and spacings are CSS variables. `themes/sulu.css` and `themes/dark.css` ship, a theme is a handful of overrides.
 - **Zero build in Symfony.** The Stimulus controller is one self-contained file served by AssetMapper. `composer require`, done.
 - **Translatable.** One `translate(key, fallback)` hook covers the toolbar and every form.
@@ -193,7 +193,7 @@ Activate it with `theme: 'brand'`. `themes/sulu.css` reproduces Sulu Admin, `the
 
 ## Documentation
 
-- [docs/sulu-integration.md](docs/sulu-integration.md): replacing CKEditor 5 in Sulu Admin, step by step.
+- [docs/sulu-integration.md](docs/sulu-integration.md): replacing CKEditor 5 in Sulu Admin, step by step, with a screencast.
 - [docs/sulu-requirements.md](docs/sulu-requirements.md): what Sulu uses from CKEditor, read from the source.
 - [docs/sulu/PrimavistaTextEditor.js](docs/sulu/PrimavistaTextEditor.js): the reference adapter, with its [Jest test](docs/sulu/tests/PrimavistaTextEditor.test.js).
 - [RESEARCH.md](RESEARCH.md): the editor landscape and the Symfony UX conventions.

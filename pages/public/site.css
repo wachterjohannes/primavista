@@ -238,3 +238,12 @@ button.primary {
 .pv-content .pv-highlight {
   background: #fff1a8;
 }
+
+.screencast {
+  display: block;
+  width: 100%;
+  margin: 0.75rem 0 0.5rem;
+  border: 1px solid var(--site-border);
+  border-radius: 8px;
+  background: #000;
+}

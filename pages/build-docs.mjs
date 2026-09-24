@@ -116,6 +116,8 @@ mkdirSync(out, { recursive: true });
 for (const doc of DOCS) {
   writeFileSync(join(out, `${doc.slug}.html`), page(doc, render(doc)));
 }
-copyFileSync(join(root, 'docs', 'assets', 'screenshot.png'), join(here, 'dist', 'assets', 'screenshot.png'));
+for (const asset of ['screenshot.png', 'sulu-screencast.mp4', 'sulu-screencast.gif', 'sulu-screencast.png']) {
+  copyFileSync(join(root, 'docs', 'assets', asset), join(here, 'dist', 'assets', asset));
+}
 copyFileSync(join(here, 'public', 'docs.css'), join(here, 'dist', 'docs.css'));
 console.log(`docs: ${DOCS.length} pages`);

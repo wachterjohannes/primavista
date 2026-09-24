@@ -52,5 +52,6 @@
     "sulu_admin.primavista.link.update": "Link aktualisieren",
     "sulu_admin.primavista.link.remove": "Link entfernen",
     "sulu_admin.primavista.link.edit": "Link bearbeiten",
-    "sulu_admin.primavista.link.cancel": "Abbrechen"
+    "sulu_admin.primavista.link.cancel": "Abbrechen",
+    "sulu_admin.text_editor": "Texteditor"
 }
