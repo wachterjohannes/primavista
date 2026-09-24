@@ -17,7 +17,8 @@
 </p>
 
 <p align="center">
-  <a href="https://johanneswachter.dev/primavista/"><strong>Live demo</strong></a>
+  <a href="https://johanneswachter.dev/primavista/"><strong>Live demo</strong></a> ·
+  <a href="https://johanneswachter.dev/primavista/docs/"><strong>Documentation</strong></a>
 </p>
 
 <p align="center">

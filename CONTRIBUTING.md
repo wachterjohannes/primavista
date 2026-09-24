@@ -22,7 +22,7 @@ pnpm e2e
 - `packages/react`: the mount wrapper.
 - `bundle`: the Symfony bundle. `assets/dist` is built output and is committed, run `pnpm build` after touching `assets/src` or the core.
 - `demo`: the Symfony app the browser tests run against.
-- `pages`: the static demo for GitHub Pages, built with `pnpm build:pages`. It reuses the demo's React island.
+- `pages`: the static demo and the rendered documentation for GitHub Pages, built with `pnpm build:pages`. It reuses the demo's React island and renders the Markdown files listed in `pages/build-docs.mjs`.
 - `docs`: research, decisions and the Sulu integration notes.
 
 ## Ground rules
