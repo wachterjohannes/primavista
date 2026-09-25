@@ -50,7 +50,7 @@ Custom plugins that add markup, or `internalLinks({ tag, validationAttribute })`
 services:
     app.sanitizer_config.content:
         class: Symfony\Component\HtmlSanitizer\HtmlSanitizerConfig
-        factory: [Primavista\UxBundle\HtmlSanitizer\PrimavistaSanitizerConfig, create]
+        factory: [Primavista\HtmlSanitizer\PrimavistaSanitizerConfig, create]
         arguments: ['cms-link', 'cms-state']
         calls:
             - [allowElement, ['mark'], true]
@@ -60,7 +60,7 @@ services:
         tags: [{ name: html_sanitizer, sanitizer: app_content }]
 ```
 
-`PrimavistaSanitizerConfig` needs no Twig and no bundle, only `symfony/html-sanitizer`. `PrimavistaSanitizerConfig::create('sulu-link', 'sulu-validation-state')` covers Sulu's `<sulu-link>`.
+`PrimavistaSanitizerConfig` lives in `primavista/html-sanitizer`, which the bundle requires. It needs no Twig and no bundle, only `symfony/html-sanitizer`. `PrimavistaSanitizerConfig::create('sulu-link', 'sulu-validation-state')` covers Sulu's `<sulu-link>`, the optional `elements`, `alignment` and `language` arguments narrow the rules to an editor with fewer plugins.
 
 ## Controller
 

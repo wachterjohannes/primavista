@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "bd99491c72e1a019dc9412029400b692",
+    "content-hash": "216cb81cfb3013d709d9de05d25e040e",
     "packages": [
         {
             "name": "composer/semver",
@@ -266,15 +266,78 @@
             "time": "2026-03-08T20:05:35+00:00"
         },
         {
+            "name": "primavista/html-sanitizer",
+            "version": "0.1.0",
+            "dist": {
+                "type": "path",
+                "url": "../libs/html-sanitizer",
+                "reference": "061cdbbe5fb42c8db696169b89fcc557d55bdee3"
+            },
+            "require": {
+                "php": ">=8.2",
+                "symfony/html-sanitizer": "^7.2|^8.0"
+            },
+            "require-dev": {
+                "phpstan/phpstan": "^2.1",
+                "phpunit/phpunit": "^11.5|^12.0"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "Primavista\\HtmlSanitizer\\": "src/"
+                }
+            },
+            "autoload-dev": {
+                "psr-4": {
+                    "Primavista\\HtmlSanitizer\\Tests\\": "tests/"
+                }
+            },
+            "scripts": {
+                "test": [
+                    "phpunit"
+                ],
+                "phpstan": [
+                    "phpstan analyse"
+                ]
+            },
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Johannes Wachter",
+                    "email": "johannes@sulu.io"
+                }
+            ],
+            "description": "symfony/html-sanitizer configuration that keeps exactly the markup the Primavista editor emits.",
+            "homepage": "https://github.com/wachterjohannes/primavista",
+            "keywords": [
+                "editor",
+                "html-sanitizer",
+                "lexical",
+                "wysiwyg",
+                "xss"
+            ],
+            "support": {
+                "issues": "https://github.com/wachterjohannes/primavista/issues",
+                "source": "https://github.com/wachterjohannes/primavista"
+            },
+            "transport-options": {
+                "symlink": true,
+                "relative": true
+            }
+        },
+        {
             "name": "primavista/ux-bundle",
             "version": "dev-main",
             "dist": {
                 "type": "path",
                 "url": "../bundles/ux-bundle",
-                "reference": "aac362359ae4992e98f584600a1e43f589e5c639"
+                "reference": "85a9d3ce208741766cc36dc823f3cb061671acd6"
             },
             "require": {
                 "php": ">=8.2",
+                "primavista/html-sanitizer": "^0.1",
                 "symfony/config": "^7.4|^8.0",
                 "symfony/dependency-injection": "^7.4|^8.0",
                 "symfony/form": "^7.4|^8.0",

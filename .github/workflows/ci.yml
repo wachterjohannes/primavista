@@ -30,6 +30,9 @@ jobs:
       - uses: shivammathur/setup-php@v2
         with:
           php-version: '8.4'
+      - run: composer install --no-interaction --working-dir=libs/html-sanitizer
+      - run: composer test --working-dir=libs/html-sanitizer
+      - run: composer phpstan --working-dir=libs/html-sanitizer
       - run: composer install --no-interaction --working-dir=bundles/ux-bundle
       - run: composer test --working-dir=bundles/ux-bundle
       - run: composer phpstan --working-dir=bundles/ux-bundle

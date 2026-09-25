@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace Primavista\UxBundle\Tests\Form;
 
 use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
+use Primavista\HtmlSanitizer\PrimavistaSanitizerConfig;
 use Primavista\UxBundle\Form\PrimavistaType;
-use Primavista\UxBundle\HtmlSanitizer\PrimavistaSanitizerConfig;
 use Symfony\Component\DependencyInjection\ServiceLocator;
 use Symfony\Component\Form\Extension\Core\Type\TextareaType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;

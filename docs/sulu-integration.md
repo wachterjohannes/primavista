@@ -101,7 +101,7 @@ npm run build
 
 **Content templates.** Nothing to change. Every `text_editor` property now renders Primavista. `formats` and `enter_mode` keep their meaning, and with Sulu 3.1 the `config` param does too.
 
-**Nothing on the PHP side.** The stored HTML is the same: paragraphs, headings, inline formats, lists, tables in `<figure class="table">` with `<thead>`, `<a>` for external links and `<sulu-link>` for internal ones, `&nbsp;` in empty paragraphs. Existing content opens in Primavista unchanged.
+**Nothing on the PHP side.** Saving sanitizes `text_editor` values with the property's text editor config, see the bundle README. The stored HTML is the same: paragraphs, headings, inline formats, lists, tables in `<figure class="table">` with `<thead>`, `<a>` for external links and `<sulu-link>` for internal ones, `&nbsp;` in empty paragraphs. Existing content opens in Primavista unchanged.
 
 ## 2. What the bundle does inside Sulu
 
@@ -112,6 +112,7 @@ npm run build
 - Link dialogs: `internalLinks` asks for a dialog, the adapter renders Sulu's `LinkTypeOverlay` for the provider (`linkTypeRegistry.getOverlay(key)`) and calls `apply` on confirm. External links go through `ExternalLinkTypeOverlay`, `mailto:` subject and body included.
 - Translations: every toolbar and form string goes through Sulu's `translate()` with the `sulu_admin.primavista.` prefix. The bundle ships English and German.
 - Languages: with `attributes: {lang: true}` in a Sulu 3.1 config the toolbar gets a language menu. Its entries are the system's localizations from `localizationStore`.
+- Sanitizing: `TextEditorSanitizingDataMapper` runs after Sulu's `TemplateDataMapper` and sanitizes every `text_editor` value of the save, inside blocks too, with the allowlist of the property's config from `sulu_admin.text_editor_configs`. Sulu 3.0 falls back to the `default` config and the `formats` param.
 
 ## 3. Checklist in the browser
 
@@ -138,7 +139,7 @@ Open a page with a `text_editor` field and walk through what the screencast does
 | `options.enter_mode = br` | `suluValueToHtml` and `htmlToSuluValue` from `@primavista/sulu`, same algorithm as Sulu's `utils.js` |
 | CKEditor markup | `suluPreset()` from `@primavista/sulu`: `figure.table`, `thead`, `&nbsp;`, theme `sulu` |
 
-Tag keys map to plugins as in Sulu 3.1: `h1` to `h6` to the heading select, `strong`, `i`, `u`, `s`, `sub`, `sup`, `code` to the inline formats, `ul` and `ol` to the list buttons, `a` to both link plugins, `table` to tables. Attribute `align` adds alignment, `lang` the language menu.
+Tag keys map to plugins as in Sulu 3.1: `h1` to `h6` to the heading select, `strong`, `i`, `u`, `s`, `sub`, `sup`, `code` to the inline formats, `ul` and `ol` to the list buttons, `a` to both link plugins, `table` to tables. Attribute `style` adds alignment (`align` from an earlier draft of the pull request still works), `lang` the language menu.
 
 ## Links
 
@@ -184,7 +185,7 @@ Sulu's Jest needs `lexical|@lexical|@preact|` in `transformIgnorePatterns`, beca
 
 ## What Sulu could offer
 
-Two small additions would make the bundle plain: a setting that names the `text_editor` adapter, so the field does not have to be replaced, and the text editor configs of pull request 9091, which the adapter already reads.
+Three small additions would make the bundle plain: a setting that names the `text_editor` adapter, so the field does not have to be replaced, the text editor configs of pull request 9091, which the adapter already reads, and sanitizing `text_editor` values with those configs on save, which the bundle's data mapper does until then.
 
 ## Recording the screencast
 

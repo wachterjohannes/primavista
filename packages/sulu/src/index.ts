@@ -60,7 +60,7 @@ const HEADING_TAGS: ReadonlyArray<HeadingLevel> = ['h1', 'h2', 'h3', 'h4', 'h5',
 export const SULU_DEFAULT_CONFIG: SuluTextEditorConfig = {
   enterMode: 'p',
   tags: ['h2', 'h3', 'h4', 'h5', 'h6', 'strong', 'i', 'u', 's', 'sub', 'sup', 'ul', 'ol', 'a', 'table', 'code'],
-  attributes: ['align'],
+  attributes: ['style'],
 };
 
 /** Sulu's shipped `mini` config: inline markup only, paragraphs as line breaks. */
@@ -171,7 +171,8 @@ export function suluPlugins(options: SuluPluginsOptions): PrimavistaPlugin[] {
     plugins.push(links(external), suluLinks(internal));
   }
 
-  if (attributes.has('align')) plugins.push(alignment());
+  // `align` is the key of an earlier draft of sulu/sulu#9091, kept for configs written against it.
+  if (attributes.has('style') || attributes.has('align')) plugins.push(alignment());
   if (attributes.has('lang')) plugins.push(language(options.languages ? { languages: options.languages } : {}));
   if (tags.has('table')) plugins.push(tables());
   if (options.autoformat) plugins.push(autoformat(options.autoformat === true ? {} : options.autoformat));

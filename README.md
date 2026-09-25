@@ -52,7 +52,8 @@ Sulu, and many Symfony projects with it, ship CKEditor 5. Its license got strict
 | [`packages/react`](packages/react) | `@primavista/react` | `<Editor value onChange onBlur />`, a thin mount wrapper. React 17 to 19. |
 | [`packages/sulu`](packages/sulu) | `@primavista/sulu` | Sulu flavour: `suluPlugins()`, `<sulu-link>`, CKEditor-compatible preset, Sulu theme, `enter_mode` helpers. |
 | [`bundles/ux-bundle`](bundles/ux-bundle) | `primavista/ux-bundle` | Symfony bundle: `PrimavistaType` form type plus a Stimulus controller. |
-| [`bundles/sulu-bundle`](bundles/sulu-bundle) | `primavista/sulu-bundle` | Sulu bundle: registers Primavista as the `text_editor` adapter of Sulu Admin, no change to Sulu needed. |
+| [`bundles/sulu-bundle`](bundles/sulu-bundle) | `primavista/sulu-bundle` | Sulu bundle: registers Primavista as the `text_editor` adapter of Sulu Admin and sanitizes its values on save, no change to Sulu needed. |
+| [`libs/html-sanitizer`](libs/html-sanitizer) | `primavista/html-sanitizer` | `symfony/html-sanitizer` rules for exactly the markup Primavista emits, used by both bundles. |
 | [`demo`](demo) | | Symfony app that renders both bindings on one page. Target of the browser tests. |
 | [`pages`](pages) | | Static demo published to [GitHub Pages](https://johanneswachter.dev/primavista/). |
 | [`e2e`](e2e) | | Playwright suite against the demo. |
@@ -66,6 +67,7 @@ Requirements: Node 20+, pnpm 10, PHP 8.4, Composer.
 pnpm install
 pnpm build                      # core, react, sulu, bundle controller, demo island
 pnpm test                       # Vitest: core, react and sulu
+(cd libs/html-sanitizer && composer install && composer test && composer phpstan)
 (cd bundles/ux-bundle && composer install && composer test && composer phpstan)
 (cd bundles/sulu-bundle && composer install && composer test && composer phpstan)
 (cd demo && composer install)

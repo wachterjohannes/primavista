@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace Primavista\UxBundle\Tests\HtmlSanitizer;
+namespace Primavista\HtmlSanitizer\Tests;
 
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
-use Primavista\UxBundle\HtmlSanitizer\PrimavistaSanitizerConfig;
+use Primavista\HtmlSanitizer\PrimavistaSanitizerConfig;
 use Symfony\Component\HtmlSanitizer\HtmlSanitizer;
 
 final class PrimavistaSanitizerConfigTest extends TestCase
@@ -91,6 +91,40 @@ final class PrimavistaSanitizerConfigTest extends TestCase
 
         self::assertSame($html, $sanitizer->sanitize($html));
         self::assertSame('<p>a</p>', $sanitizer->sanitize('<p><internal-link href="1" provider="page">a</internal-link></p>'));
+    }
+
+    /**
+     * @return iterable<string, array{list<string>, bool, bool, string, string}>
+     */
+    public static function narrowedMarkup(): iterable
+    {
+        $all = '<h1>1</h1><h2>2</h2><p style="text-align: center;"><strong>b</strong> <em>i</em> <span lang="fr">f</span> <a href="/x">a</a> <internal-link href="1" provider="page">l</internal-link></p><ul><li>u</li></ul><ol><li>o</li></ol><figure class="table"><table><tbody><tr><td style="text-align: right;" colspan="2">t</td></tr></tbody></table></figure>';
+
+        yield 'paragraphs only' => [[], false, false, $all, '12<p>b i f a l</p>uot'];
+        yield 'headings and bold' => [['h2', 'strong'], false, false, $all, '1<h2>2</h2><p><strong>b</strong> i f a l</p>uot'];
+        yield 'links bring the internal link' => [['a'], false, false, $all, '12<p>b i f <a href="/x">a</a> <internal-link href="1" provider="page">l</internal-link></p>uot'];
+        yield 'one list type brings li' => [['ol'], false, false, $all, '12<p>b i f a l</p><li>u</li><ol><li>o</li></ol>t'];
+        yield 'table without alignment' => [['table'], false, false, $all, '12<p>b i f a l</p>uo<figure class="table"><table><tbody><tr><td colspan="2">t</td></tr></tbody></table></figure>'];
+        yield 'alignment and language' => [['table'], true, true, $all, '12<p style="text-align: center;">b i <span lang="fr">f</span> a l</p>uo<figure class="table"><table><tbody><tr><td style="text-align: right;" colspan="2">t</td></tr></tbody></table></figure>'];
+    }
+
+    /**
+     * @param list<string> $elements
+     */
+    #[DataProvider('narrowedMarkup')]
+    public function testNarrowsToTheGivenElements(array $elements, bool $alignment, bool $language, string $html, string $expected): void
+    {
+        $sanitizer = new HtmlSanitizer(PrimavistaSanitizerConfig::create(elements: $elements, alignment: $alignment, language: $language));
+
+        self::assertSame($expected, $sanitizer->sanitize($html));
+    }
+
+    public function testRejectsUnknownElements(): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('Unknown elements "div"');
+
+        PrimavistaSanitizerConfig::create(elements: ['p', 'div']);
     }
 
     public function testDoesNotTruncateLongContent(): void

@@ -2,8 +2,8 @@
 
 declare(strict_types=1);
 
+use Primavista\HtmlSanitizer\PrimavistaSanitizerConfig;
 use Primavista\UxBundle\Form\PrimavistaType;
-use Primavista\UxBundle\HtmlSanitizer\PrimavistaSanitizerConfig;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
 use Symfony\Component\HtmlSanitizer\HtmlSanitizer;
 use Symfony\Component\HtmlSanitizer\HtmlSanitizerConfig;

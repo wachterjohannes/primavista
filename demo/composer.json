@@ -76,12 +76,25 @@
             "require": "8.1.*"
         }
     },
-    "repositories": [{
-        "name": "primavista",
-        "type": "path",
-        "url": "../bundles/ux-bundle",
-        "options": {
-            "symlink": true
+    "repositories": [
+        {
+            "name": "primavista",
+            "type": "path",
+            "url": "../bundles/ux-bundle",
+            "options": {
+                "symlink": true
+            }
+        },
+        {
+            "name": "primavista-html-sanitizer",
+            "type": "path",
+            "url": "../libs/html-sanitizer",
+            "options": {
+                "symlink": true,
+                "versions": {
+                    "primavista/html-sanitizer": "0.1.0"
+                }
+            }
         }
-    }]
+    ]
 }
