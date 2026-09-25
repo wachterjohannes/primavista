@@ -17,6 +17,7 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - run: pnpm build
+      - run: pnpm size
       - run: pnpm typecheck
       - run: pnpm test
       - name: Built controller is committed
