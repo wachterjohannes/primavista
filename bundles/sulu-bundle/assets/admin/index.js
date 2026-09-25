@@ -12,6 +12,7 @@ import {fieldRegistry, textEditorRegistry} from 'sulu-admin-bundle/containers';
 import {initializer} from 'sulu-admin-bundle/services';
 import PrimavistaTextEditor from './PrimavistaTextEditor';
 import TextEditor from './fields/TextEditor';
+import primavistaPluginRegistry from './pluginRegistry';
 
 const FIELD_TYPE_TEXT_EDITOR = 'text_editor';
 const ADAPTER = 'primavista';
@@ -37,4 +38,4 @@ initializer.addUpdateConfigHook('sulu_admin', (config: Object, initialized: bool
     fieldRegistry.add(FIELD_TYPE_TEXT_EDITOR, TextEditor);
 });
 
-export {ADAPTER, PrimavistaTextEditor, TextEditor};
+export {ADAPTER, PrimavistaTextEditor, TextEditor, primavistaPluginRegistry};

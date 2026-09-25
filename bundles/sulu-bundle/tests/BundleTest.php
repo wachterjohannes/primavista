@@ -51,6 +51,15 @@ final class BundleTest extends TestCase
         self::assertSame('<strong>a</strong>b', $sanitizers->get('mini')->sanitize('<strong>a</strong><em>b</em>'));
     }
 
+    public function testAllowsConfiguredTags(): void
+    {
+        $container = $this->container(['sanitize' => true, 'tags' => ['hr']], null);
+
+        $sanitizers = $container->get('primavista_sulu.text_editor_sanitizers');
+        self::assertInstanceOf(TextEditorSanitizers::class, $sanitizers);
+        self::assertSame('<p>a</p><hr />', $sanitizers->get(null)->sanitize('<p>a</p><hr>'));
+    }
+
     public function testSanitizingCanBeSwitchedOff(): void
     {
         $container = $this->container(['sanitize' => false], null);

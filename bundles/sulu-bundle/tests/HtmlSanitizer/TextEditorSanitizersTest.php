@@ -43,6 +43,15 @@ final class TextEditorSanitizersTest extends TestCase
         self::assertSame(self::normalize($html), self::normalize($sanitizers->get(null)->sanitize($html)));
     }
 
+    public function testAllowsAdditionalTagsOnEveryConfig(): void
+    {
+        $sanitizers = new TextEditorSanitizers(['mini' => ['enterMode' => 'br', 'tags' => ['strong'], 'attributes' => []]], ['blockquote', 'hr']);
+        $html = '<blockquote><p><strong>q</strong></p></blockquote><hr /><h2>x</h2>';
+
+        self::assertSame('<blockquote><p><strong>q</strong></p></blockquote><hr />x', $sanitizers->get('mini')->sanitize($html));
+        self::assertSame('<blockquote><p><strong>q</strong></p></blockquote><hr /><h2>x</h2>', $sanitizers->get(null)->sanitize($html));
+    }
+
     /**
      * @return iterable<string, array{string, string, string}>
      */

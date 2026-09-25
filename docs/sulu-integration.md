@@ -142,6 +142,8 @@ Open a page with a `text_editor` field and walk through what the screencast does
 | `config` (Sulu 3.1) | `suluPlugins({ config })`: `tags` and `attributes` switch plugins on, `enterMode` drives the value mapping |
 | `options.formats` (Sulu 3.0) | replaces the heading tags of the default config, default `h2` to `h6`. Headings outside the list are demoted to paragraphs on load, as CKEditor did. |
 | `options.enter_mode = br` | `suluValueToHtml` and `htmlToSuluValue` from `@primavista/sulu`, same algorithm as Sulu's `utils.js` |
+| `options.autoformat`, `options.word_count`, `options.word_count_limit` | Primavista's own params: typing shortcuts and the word count bar, see the bundle README |
+| `primavistaPluginRegistry` | plugins added in the admin build, appended to every editor, `suluPlugins({ plugins })`. The server allows their tags through `primavista_sulu.tags` |
 | CKEditor markup | `suluPreset()` from `@primavista/sulu`: `figure.table`, `thead`, `&nbsp;`, theme `sulu` |
 
 Tag keys map to plugins as in Sulu 3.1: `h1` to `h6` to the heading select, `strong`, `i`, `u`, `s`, `sub`, `sup`, `code` to the inline formats, `ul` and `ol` to the list buttons, `a` to both link plugins, `table` to tables. Attribute `style` adds alignment (`align` from an earlier draft of the pull request still works), `lang` the language menu.

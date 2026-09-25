@@ -34,6 +34,9 @@ final class PrimavistaSanitizerConfigTest extends TestCase
         yield 'table with head section' => ['<table><thead><tr><th>h</th><th>i</th></tr></thead><tbody><tr><td>1</td><td>2</td></tr></tbody></table>'];
         yield 'CKEditor table wrapper' => ['<figure class="table"><table><tbody><tr><td>x</td></tr></tbody></table></figure>'];
         yield 'empty paragraph as nbsp' => ['<p>&nbsp;</p>'];
+        yield 'block quote' => ['<blockquote><p>q</p><p style="text-align: right;">r</p></blockquote>'];
+        yield 'code block' => ['<pre><code>let a = 1;\nlet b = "&lt;";</code></pre>'];
+        yield 'horizontal rule' => ['<p>a</p><hr /><p>b</p>'];
     }
 
     #[DataProvider('emittedMarkup')]
@@ -70,7 +73,7 @@ final class PrimavistaSanitizerConfigTest extends TestCase
         yield 'classes and ids' => ['<p class="x" id="y">a</p>', '<p>a</p>'];
         yield 'figure class forced' => ['<figure class="evil"><table><tbody><tr><td>x</td></tr></tbody></table></figure>', '<figure class="table"><table><tbody><tr><td>x</td></tr></tbody></table></figure>'];
         yield 'unknown tags keep their text' => ['<p>a</p><iframe src="https://evil.example">x</iframe><div>b</div><img src="x" onerror="alert(1)"><marquee>c</marquee>', '<p>a</p>bc'];
-        yield 'legacy formatting keeps its text' => ['<p><b>x</b> <i>y</i> <font color="red">z</font></p><blockquote>q</blockquote>', '<p>x y z</p>q'];
+        yield 'legacy formatting keeps its text' => ['<p><b>x</b> <i>y</i> <font color="red">z</font></p><div>q</div>', '<p>x y z</p>q'];
         yield 'svg' => ['<p>a<svg><script>alert(1)</script></svg></p>', '<p>a</p>'];
         yield 'script and template' => ['<p>a</p><script>alert(1)</script><template><p>b</p></template><noscript>c</noscript>', '<p>a</p>'];
         yield 'embeds' => ['<p>a</p><object data="x">o</object><embed src="x"><form><textarea>t</textarea><select><option>s</option></select><button>b</button></form>', '<p>a</p>'];
@@ -101,6 +104,8 @@ final class PrimavistaSanitizerConfigTest extends TestCase
         $all = '<h1>1</h1><h2>2</h2><p style="text-align: center;"><strong>b</strong> <em>i</em> <span lang="fr">f</span> <a href="/x">a</a> <internal-link href="1" provider="page">l</internal-link></p><ul><li>u</li></ul><ol><li>o</li></ol><figure class="table"><table><tbody><tr><td style="text-align: right;" colspan="2">t</td></tr></tbody></table></figure>';
 
         yield 'paragraphs only' => [[], false, false, $all, '12<p>b i f a l</p>uot'];
+        yield 'quote, code and rule' => [['blockquote', 'pre', 'hr'], false, false, '<blockquote><p>q</p></blockquote><pre><code>c</code></pre><hr><h2>x</h2>', '<blockquote><p>q</p></blockquote><pre><code>c</code></pre><hr />x'];
+        yield 'quote, code and rule off' => [['h2'], false, false, '<blockquote><p>q</p></blockquote><pre><code>c</code></pre><hr><h2>x</h2>', '<p>q</p>c<h2>x</h2>'];
         yield 'headings and bold' => [['h2', 'strong'], false, false, $all, '1<h2>2</h2><p><strong>b</strong> i f a l</p>uot'];
         yield 'links bring the internal link' => [['a'], false, false, $all, '12<p>b i f <a href="/x">a</a> <internal-link href="1" provider="page">l</internal-link></p>uot'];
         yield 'one list type brings li' => [['ol'], false, false, $all, '12<p>b i f a l</p><li>u</li><ol><li>o</li></ol>t'];

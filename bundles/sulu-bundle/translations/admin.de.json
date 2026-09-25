@@ -58,5 +58,8 @@
     "sulu_admin.primavista.toolbar.language.remove": "Sprache entfernen",
     "sulu_admin.primavista.wordCount.words": "Wörter",
     "sulu_admin.primavista.wordCount.characters": "Zeichen",
-    "sulu_admin.primavista.wordCount.overLimit": "Über dem Limit"
+    "sulu_admin.primavista.wordCount.overLimit": "Über dem Limit",
+    "sulu_admin.primavista.toolbar.blockquote": "Zitat",
+    "sulu_admin.primavista.toolbar.code-block": "Codeblock",
+    "sulu_admin.primavista.toolbar.horizontal-rule": "Trennlinie"
 }

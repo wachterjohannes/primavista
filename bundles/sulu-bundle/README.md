@@ -57,6 +57,43 @@ npm run build
 
 `--install-links` makes npm copy the bundle instead of linking it, linked bundles do not build with Sulu's webpack config. `--legacy-peer-deps` is needed once the skeleton's lockfile is gone. After updating the bundle or the tarballs, run `rm -rf node_modules/sulu-primavista-bundle node_modules/@primavista` before `npm install`.
 
+## Property params
+
+The `text_editor` property takes three params on top of Sulu's own:
+
+```xml
+<property name="article" type="text_editor">
+    <params>
+        <param name="autoformat" value="true"/>
+        <param name="word_count" value="true"/>
+        <param name="word_count_limit" value="500"/>
+    </params>
+</property>
+```
+
+`autoformat` turns Markdown typed at the start of a line into headings, lists and quotes, limited to what the config allows. `word_count` shows words and characters below the content, `words` or `characters` shows one of them, `word_count_limit` marks the bar when the count passes the number without blocking input.
+
+## Plugins beyond the config
+
+Sulu 3.1 configs switch on `blockquote`, `pre` (code block) and `hr` by tag. Sulu 3.0 has no such config, there the admin JavaScript adds plugins to every editor, the way `ckeditorPluginRegistry` did for CKEditor:
+
+```js
+// assets/admin/app.js
+import {primavistaPluginRegistry} from 'sulu-primavista-bundle';
+import {blockquote, horizontalRule} from '@primavista/core';
+
+primavistaPluginRegistry.add(() => blockquote());
+primavistaPluginRegistry.add(() => horizontalRule());
+```
+
+The factory receives `{config, options}` of the property. The server has to allow the markup too, or the next save strips it:
+
+```yaml
+# config/packages/primavista_sulu.yaml
+primavista_sulu:
+    tags: [blockquote, hr]
+```
+
 Translations for the toolbar and the link forms ship with the bundle in `translations/admin.{en,de}.json`. Add other languages in your project's `translations/admin.<locale>.json` under `sulu_admin.primavista.*`.
 
 ## How it works
@@ -79,6 +116,7 @@ Each property gets the rules of its text editor config: with Sulu 3.1 the config
 | `ul`, `ol` | the list and `li`, `ol` with `start` |
 | `a` | `<a href target title rel>` and `<sulu-link href provider target title sulu-validation-state>` |
 | `table` | `figure.table`, `table`, `thead`, `tbody`, `tr`, `th` and `td` with `colspan` and `rowspan` |
+| `blockquote`, `pre`, `hr` | `<blockquote>` around blocks, `<pre><code>`, `<hr>`. Not in Sulu's configs, add the tag to yours |
 | attribute `style` | `style="text-align: …"` with `left`, `center`, `right` or `justify` on blocks and cells |
 | attribute `lang` | `<span lang>` |
 

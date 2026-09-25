@@ -33,6 +33,12 @@ export interface CleanPastedHtmlOptions {
   alignment?: boolean | ReadonlyArray<Alignment>;
   /** Keep text parts in another language than the pasted document as `<span lang>`. */
   language?: boolean;
+  /** Keep `<blockquote>` around its blocks. Otherwise it is a plain container. */
+  blockquote?: boolean;
+  /** Keep `<pre>` as a code block. Otherwise its lines become a paragraph with line breaks. */
+  codeBlock?: boolean;
+  /** Keep `<hr>`. Otherwise it is dropped. */
+  horizontalRule?: boolean;
 }
 
 interface Schema {
@@ -44,6 +50,9 @@ interface Schema {
   tables: boolean;
   alignment: ReadonlySet<string>;
   language: boolean;
+  blockquote: boolean;
+  codeBlock: boolean;
+  horizontalRule: boolean;
 }
 
 interface Context {
@@ -84,7 +93,7 @@ function frameFor(kind: Frame['kind'], element: HTMLElement, parent: Frame | nul
 
 /** Removed together with their content. */
 const DROPPED_TAGS = new Set([
-  'audio', 'base', 'button', 'canvas', 'col', 'colgroup', 'embed', 'frame', 'head', 'hr', 'iframe', 'img', 'input',
+  'audio', 'base', 'button', 'canvas', 'col', 'colgroup', 'embed', 'frame', 'head', 'iframe', 'img', 'input',
   'link', 'map', 'math', 'meta', 'noscript', 'object', 'option', 'picture', 'script', 'select', 'source', 'style',
   'svg', 'template', 'textarea', 'title', 'track', 'video', 'xml',
 ]);
@@ -97,7 +106,7 @@ const CONTAINER_TAGS = new Set([
 
 const BLOCK_TAGS = new Set([
   ...CONTAINER_TAGS,
-  'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'li', 'ol', 'p', 'pre', 'table', 'tbody', 'td', 'tfoot', 'th', 'thead', 'tr', 'ul',
+  'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'hr', 'li', 'ol', 'p', 'pre', 'table', 'tbody', 'td', 'tfoot', 'th', 'thead', 'tr', 'ul',
 ]);
 
 const TAG_FORMATS: Readonly<Record<string, InlineFormat>> = {
@@ -147,6 +156,9 @@ export function cleanPastedHtml(html: string, options: CleanPastedHtmlOptions = 
       tables: options.tables ?? true,
       alignment: setOf(options.alignment ?? true, [...ALIGNMENTS] as Alignment[]),
       language: options.language ?? false,
+      blockquote: options.blockquote ?? false,
+      codeBlock: options.codeBlock ?? false,
+      horizontalRule: options.horizontalRule ?? false,
     },
     defaultLang: normalizeLang(doc.documentElement.getAttribute('lang')) ?? normalizeLang(doc.body.getAttribute('lang')),
   };
@@ -184,7 +196,9 @@ function walk(ctx: Context, node: Node, frame: Frame, state: State): void {
   if (tag === 'br') emitLineBreak(ctx, element, frame, next);
   else if (/^h[1-6]$/.test(tag)) block(ctx, element, ctx.schema.headings ? tag : 'p', frame, next);
   else if (tag === 'p') block(ctx, element, 'p', frame, next);
-  else if (tag === 'pre') block(ctx, element, 'p', frame, { ...next, pre: true });
+  else if (tag === 'pre') block(ctx, element, ctx.schema.codeBlock ? 'pre' : 'p', frame, { ...next, pre: true });
+  else if (tag === 'hr') rule(ctx, frame);
+  else if (tag === 'blockquote' && ctx.schema.blockquote) quote(ctx, element, frame, next);
   else if (tag === 'ul' || tag === 'ol') list(ctx, element, tag, frame, next);
   else if (tag === 'li') listItem(ctx, element, frame, next);
   else if (tag === 'table') table(ctx, element, frame, next);
@@ -213,7 +227,8 @@ function isDropped(element: HTMLElement, tag: string, style: Record<string, stri
 
 function nextState(ctx: Context, element: HTMLElement, tag: string, style: Record<string, string>, state: State): State {
   const formats = new Set(state.formats);
-  const tagFormat = TAG_FORMATS[tag];
+  // `<code>` inside `<pre>` is the code block itself, not inline code.
+  const tagFormat = state.pre && tag === 'code' ? undefined : TAG_FORMATS[tag];
   if (tagFormat) formats.add(tagFormat);
   // Google Docs wraps the whole clipboard content in `<b id="docs-internal-guid-…">`, which is not bold.
   if (element.id.startsWith('docs-internal-guid')) formats.delete('bold');
@@ -378,6 +393,24 @@ function block(ctx: Context, element: HTMLElement, tag: string, frame: Frame, st
     default:
       return;
   }
+}
+
+/** A block quote around whole blocks, loose inline content inside becomes a paragraph. */
+function quote(ctx: Context, element: HTMLElement, frame: Frame, state: State): void {
+  if (frame.kind !== 'flow') {
+    container(ctx, element, frame, state);
+    return;
+  }
+  const created = ctx.doc.createElement('blockquote');
+  frame.element.appendChild(created);
+  frame.paragraph = null;
+  walkChildren(ctx, element, frameFor('flow', created, frame, true), state);
+}
+
+function rule(ctx: Context, frame: Frame): void {
+  if (!ctx.schema.horizontalRule || frame.kind !== 'flow') return;
+  frame.element.appendChild(ctx.doc.createElement('hr'));
+  frame.paragraph = null;
 }
 
 /** A `div` and friends: a paragraph if it only holds inline content, otherwise transparent. */
@@ -605,7 +638,7 @@ function tidy(output: HTMLElement): void {
   for (const element of Array.from(output.querySelectorAll('p, h1, h2, h3, h4, h5, h6'))) {
     if (isBlank(element.textContent)) element.remove();
   }
-  for (const element of Array.from(output.querySelectorAll('ul, ol, tr, table')).reverse()) {
+  for (const element of Array.from(output.querySelectorAll('ul, ol, tr, table, blockquote')).reverse()) {
     if (element.children.length === 0) element.remove();
   }
   for (const element of Array.from(output.querySelectorAll<HTMLElement>('p, h1, h2, h3, h4, h5, h6, li, td, th'))) {

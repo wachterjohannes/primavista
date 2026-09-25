@@ -9,8 +9,8 @@ use Sulu\Bundle\AdminBundle\Metadata\FormMetadata\FormMetadata;
 
 /**
  * Walks template data along its form metadata and sanitizes every
- * `text_editor` value: plain properties, block items, global block items and
- * image map hotspots. Block settings are not covered.
+ * `text_editor` value: plain properties, block items, global block items,
+ * block settings and image map hotspots.
  *
  * @internal
  */
@@ -61,13 +61,15 @@ final class TemplateWalker
 
         // An image map keeps its typed items under `hotspots`.
         if (\is_array($value['hotspots'] ?? null)) {
-            $value['hotspots'] = $this->sanitizeItems($types, $value['hotspots']);
+            $value['hotspots'] = $this->sanitizeItems($types, $value['hotspots'], null);
 
             return $value;
         }
 
-        // A block: a list of items, each with the key of its type.
-        return $this->sanitizeItems($types, $value);
+        // A block: a list of items, each with the key of its type and its settings.
+        $settingsFormKey = $field->findOption('settings_form_key')?->getValue();
+
+        return $this->sanitizeItems($types, $value, \is_string($settingsFormKey) ? $settingsFormKey : null);
     }
 
     /**
@@ -76,7 +78,7 @@ final class TemplateWalker
      *
      * @return array<mixed>
      */
-    private function sanitizeItems(array $types, array $items): array
+    private function sanitizeItems(array $types, array $items, ?string $settingsFormKey): array
     {
         foreach ($items as $index => $item) {
             if (!\is_array($item) || !\is_string($item['type'] ?? null)) {
@@ -89,8 +91,15 @@ final class TemplateWalker
             $form = $this->resolve($type);
             if (null !== $form) {
                 /** @var array<string, mixed> $item */
-                $items[$index] = $this->sanitizeFields($form, $item);
+                $item = $this->sanitizeFields($form, $item);
             }
+            $settingsForm = null !== $settingsFormKey && \is_array($item['settings'] ?? null) ? $this->mapper->settingsForm($settingsFormKey, $this->locale) : null;
+            if (null !== $settingsForm) {
+                /** @var array<string, mixed> $settings */
+                $settings = $item['settings'];
+                $item['settings'] = $this->sanitizeFields($settingsForm, $settings);
+            }
+            $items[$index] = $item;
         }
 
         return $items;

@@ -11,6 +11,9 @@ export const defaultTheme: EditorThemeClasses = {
     h6: 'pv-h6',
   },
   quote: 'pv-quote',
+  code: 'pv-code-block',
+  hr: 'pv-hr',
+  hrSelected: 'pv-hr--selected',
   list: {
     ul: 'pv-ul',
     ol: 'pv-ol',

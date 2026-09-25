@@ -8,6 +8,8 @@
  * Everything Sulu-specific about the editor itself (toolbar, sulu-link,
  * preset, theme, enter_mode) comes from @primavista/sulu.
  *
+ * The params "autoformat", "word_count" (true, "words" or "characters")
+ * and "word_count_limit" switch on the typing shortcuts and the status bar.
  * Works with Sulu 3.0 (deprecated "formats" and "enter_mode" params) and
  * with the text editor configs of Sulu 3.1 (sulu/sulu#9091), which arrive
  * as the "config" prop.
@@ -15,6 +17,7 @@
 import React, {Fragment} from 'react';
 import {action, isArrayLike, observable} from 'mobx';
 import {observer} from 'mobx-react';
+import {wordCount} from '@primavista/core';
 import {Editor} from '@primavista/react';
 import {
     htmlToSuluValue,
@@ -31,6 +34,7 @@ import {linkTypeRegistry} from 'sulu-admin-bundle/containers';
 import {ExternalLinkTypeOverlay} from 'sulu-admin-bundle/containers/Link';
 import {localizationStore} from 'sulu-admin-bundle/stores';
 import {translate} from 'sulu-admin-bundle/utils';
+import primavistaPluginRegistry from './pluginRegistry';
 import type {IObservableArray, IObservableValue} from 'mobx/lib/mobx';
 import type {TextEditorProps} from 'sulu-admin-bundle/containers/TextEditor/types';
 
@@ -98,6 +102,36 @@ class PrimavistaTextEditor extends React.Component<Props> {
         }));
     }
 
+    // A schema param of the property, `<param name="autoformat" value="true"/>`.
+    param(name: string): mixed {
+        const {options} = this.props;
+
+        return options && options[name] ? options[name].value : undefined;
+    }
+
+    get autoformat(): boolean {
+        const value = this.param('autoformat');
+
+        return value === true || value === 'true';
+    }
+
+    get wordCountOptions(): ?Object {
+        const value = this.param('word_count');
+        if (!(value === true || value === 'true' || value === 'words' || value === 'characters')) {
+            return undefined;
+        }
+        const wordCountOptions = {};
+        if (value === 'words' || value === 'characters') {
+            wordCountOptions.mode = value;
+        }
+        const limit = Number(this.param('word_count_limit'));
+        if (limit > 0) {
+            wordCountOptions.limit = limit;
+        }
+
+        return wordCountOptions;
+    }
+
     get formats(): ?Array<string> {
         const {options} = this.props;
         const unvalidatedValues = options && options.formats ? options.formats.value : [];
@@ -124,14 +158,21 @@ class PrimavistaTextEditor extends React.Component<Props> {
             .filter((key) => key !== 'external')
             .map((key) => ({key, label: linkTypeRegistry.getTitle(key)}));
 
-        return suluPlugins({
+        const plugins = suluPlugins({
             config: this.config,
             providers,
             languages: this.languages,
             openInternalLinkDialog: this.handleOpenInternalDialog,
             openExternalLinkDialog: this.handleOpenExternalDialog,
             describeInternalLink: ({provider, href}) => `${linkTypeRegistry.getTitle(provider)}: ${href}`,
+            autoformat: this.autoformat,
+            plugins: primavistaPluginRegistry.create({config: this.config, options: this.props.options || {}}),
         });
+        if (this.wordCountOptions) {
+            plugins.push(wordCount(this.wordCountOptions));
+        }
+
+        return plugins;
     }
 
     // Value mapping: Sulu stores undefined for an empty editor and, with

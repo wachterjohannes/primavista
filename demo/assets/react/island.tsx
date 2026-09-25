@@ -1,5 +1,5 @@
 import { Editor, type InternalLinkDialogState, type PrimavistaEditor, wordCount } from '@primavista/react';
-import { suluPlugins, suluPreset } from '@primavista/sulu';
+import { SULU_DEFAULT_CONFIG, suluPlugins, suluPreset } from '@primavista/sulu';
 import '@primavista/sulu/sulu.css';
 import { useMemo, useRef, useState } from 'react';
 import { createRoot } from 'react-dom/client';
@@ -32,6 +32,7 @@ function SuluLikeField({ initialHtml }: { initialHtml: string }) {
   const plugins = useMemo(
     () => [
       ...suluPlugins({
+        config: { ...SULU_DEFAULT_CONFIG, tags: [...SULU_DEFAULT_CONFIG.tags, 'blockquote', 'pre', 'hr'] },
         providers: [
           { key: 'page', label: 'Page' },
           { key: 'media', label: 'Media' },

@@ -49,10 +49,14 @@ final class TextEditorSanitizers implements TextEditorSanitizersInterface
     private array $sanitizers = [];
 
     /**
-     * @param array<string, TextEditorConfig> $configs `sulu_admin.text_editor_configs`, empty on Sulu 3.0
+     * @param array<string, TextEditorConfig> $configs        `sulu_admin.text_editor_configs`, empty on Sulu 3.0
+     * @param list<string>                    $additionalTags tags every config allows on top, `primavista_sulu.tags`,
+     *                                                        for plugins a project adds in the admin JavaScript on Sulu 3.0
      */
-    public function __construct(private readonly array $configs = [])
-    {
+    public function __construct(
+        private readonly array $configs = [],
+        private readonly array $additionalTags = [],
+    ) {
     }
 
     public function get(?string $configName, ?array $formats = null): HtmlSanitizerInterface
@@ -80,7 +84,10 @@ final class TextEditorSanitizers implements TextEditorSanitizersInterface
             );
         }
 
-        return self::createFromConfig(self::applyFormats($config, $formats));
+        $config = self::applyFormats($config, $formats);
+        $config['tags'] = array_values(array_unique([...$config['tags'], ...$this->additionalTags]));
+
+        return self::createFromConfig($config);
     }
 
     /**

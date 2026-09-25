@@ -19,8 +19,8 @@ use Symfony\Component\HtmlSanitizer\HtmlSanitizerInterface;
 /**
  * Sanitizes every `text_editor` value a save writes with the sanitizer of the
  * property's text editor config: the template's properties at the top level,
- * in sections, in blocks and global blocks, in image map hotspots, and the
- * excerpt description.
+ * in sections, in blocks, global blocks and block settings, in image map
+ * hotspots, and the excerpt description.
  *
  * Sulu saves pages, snippets and articles through its content data mappers,
  * not through Symfony forms, so this mapper runs after Sulu's
@@ -144,6 +144,18 @@ final class TextEditorSanitizingDataMapper implements DataMapperInterface
         $name = $tag?->getAttribute('global_block');
 
         return \is_string($name) ? $this->form('block', $name, $locale, ['ignore_global_blocks' => true]) : null;
+    }
+
+    /**
+     * The settings form of a block, `settings_form_key` on the block property.
+     *
+     * @internal used by the walker
+     */
+    public function settingsForm(string $key, string $locale): ?FormMetadata
+    {
+        $metadata = $this->metadataProviderRegistry->getMetadataProvider('form')->getMetadata($key, $locale, []);
+
+        return $metadata instanceof FormMetadata ? $metadata : null;
     }
 
     /**

@@ -30,9 +30,9 @@ final class PrimavistaSanitizerConfig
     /**
      * Elements a plugin adds, the vocabulary of `$elements`. `ul` and `ol`
      * bring `li`, `table` brings its sections, rows, cells and the `figure`
-     * wrapper, `a` brings the internal link.
+     * wrapper, `a` brings the internal link, `pre` brings the `code` inside it.
      */
-    public const ELEMENTS = ['h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'strong', 'em', 'u', 's', 'sub', 'sup', 'code', 'ul', 'ol', 'a', 'table'];
+    public const ELEMENTS = ['h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'strong', 'em', 'u', 's', 'sub', 'sup', 'code', 'ul', 'ol', 'a', 'table', 'blockquote', 'pre', 'hr'];
 
     private const HEADING_ELEMENTS = ['h1', 'h2', 'h3', 'h4', 'h5', 'h6'];
 
@@ -113,6 +113,15 @@ final class PrimavistaSanitizerConfig
             $config = $config
                 ->allowElement('a', ['href', 'target', 'title', 'rel'])
                 ->allowElement($internalLinkTag, ['href', 'provider', 'target', 'title', $validationAttribute]);
+        }
+        if ($enabled('blockquote')) {
+            $config = $config->allowElement('blockquote', ['dir']);
+        }
+        if ($enabled('pre')) {
+            $config = $config->allowElement('pre')->allowElement('code');
+        }
+        if ($enabled('hr')) {
+            $config = $config->allowElement('hr');
         }
         if ($language) {
             $config = $config->allowElement('span', ['lang']);

@@ -43,16 +43,21 @@ final class PrimavistaSuluBundle extends AbstractBundle
                     ->defaultTrue()
                     ->info('Sanitize text_editor values on save with the property\'s text editor config.')
                 ->end()
+                ->arrayNode('tags')
+                    ->info('Tags every text editor config allows on top, for plugins the admin JavaScript adds through primavistaPluginRegistry: blockquote, pre, hr.')
+                    ->scalarPrototype()->end()
+                ->end()
             ->end();
     }
 
     /**
-     * @param array{sanitize: bool} $config
+     * @param array{sanitize: bool, tags: list<string>} $config
      */
     public function loadExtension(array $config, ContainerConfigurator $container, ContainerBuilder $builder): void
     {
         $container->services()
             ->set('primavista_sulu.text_editor_sanitizers', TextEditorSanitizers::class)
+                ->args([[], $config['tags']])
             ->alias(TextEditorSanitizers::class, 'primavista_sulu.text_editor_sanitizers')
             ->alias(TextEditorSanitizersInterface::class, 'primavista_sulu.text_editor_sanitizers');
 

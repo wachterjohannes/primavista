@@ -130,6 +130,18 @@ describe('sulu plugins', () => {
     expect(ids(editor)).toEqual(['undo', 'redo', 'bold', 'italic', 'link', 'internal-link']);
   });
 
+  it('adds block quote, code block and horizontal rule for their tags', () => {
+    const config = { ...SULU_MINI_CONFIG, tags: ['blockquote', 'pre', 'hr'] };
+    const { editor } = mount({ initialHtml: '<blockquote><p>q</p></blockquote><pre><code>c</code></pre><hr>', plugins: suluPlugins({ providers, config }) });
+    expect(ids(editor)).toEqual(['undo', 'redo', 'blockquote', 'code-block', 'horizontal-rule']);
+    expect(editor.getHtml()).toBe('<blockquote><p>q</p></blockquote><pre><code>c</code></pre><hr>');
+  });
+
+  it('appends the plugins of the project before paste cleanup', () => {
+    const names = suluPlugins({ providers, plugins: [{ name: 'custom' }] }).map((p) => p.name);
+    expect(names.slice(-2)).toEqual(['custom', 'paste-cleanup']);
+  });
+
   it('adds alignment for the style attribute and the earlier align key', () => {
     for (const attribute of ['style', 'align']) {
       const names = suluPlugins({ providers, config: { ...SULU_MINI_CONFIG, attributes: [attribute] } }).map((p) => p.name);

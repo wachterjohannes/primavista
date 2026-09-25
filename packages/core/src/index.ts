@@ -13,6 +13,12 @@ export {
   type SerializedInternalLinkNode,
 } from './nodes/InternalLinkNode';
 export {
+  $createHorizontalRuleNode,
+  $isHorizontalRuleNode,
+  HorizontalRuleNode,
+  type SerializedHorizontalRuleNode,
+} from './nodes/HorizontalRuleNode';
+export {
   $createLanguageNode,
   $isLanguageNode,
   LanguageNode,

@@ -33,9 +33,9 @@ Sulu, and many Symfony projects with it, ship CKEditor 5. Its license got strict
 
 ## Features
 
-- **Everything is a plugin.** Bold, headings, lists, links, tables and alignment are plugins. Hosts add their own through the same interface.
+- **Everything is a plugin.** Bold, headings, lists, links, tables, alignment, block quotes, code blocks and horizontal rules are plugins. Hosts add their own through the same interface.
 - **Two bindings, one UI.** The core owns the toolbar. React and Stimulus only mount it, so both look and behave the same.
-- **Clean HTML.** No wrapper spans, no inline styles, no editor classes. `p`, `h1` to `h6`, `strong`, `em`, `u`, `s`, `code`, `sub`, `sup`, `a`, lists, tables, `br`. Alignment as `style="text-align"`, text parts in another language as `<span lang>`.
+- **Clean HTML.** No wrapper spans, no inline styles, no editor classes. `p`, `h1` to `h6`, `strong`, `em`, `u`, `s`, `code`, `sub`, `sup`, `a`, lists, tables, `br`, `blockquote`, `pre > code`, `hr`. Alignment as `style="text-align"`, text parts in another language as `<span lang>`.
 - **Paste cleanup.** Content pasted from Word, Google Docs, LibreOffice or a web page keeps only the markup the registered plugins produce. `font-weight: 700` becomes `strong`, Word's list paragraphs become real lists, `mso-*` styles, `<font>`, `<o:p>` and wrapper spans disappear.
 - **CMS links.** Internal links are stored as `<internal-link href="id?query#anchor" provider="page">`, with a dialog hook so the host shows its own resource picker. External links carry target, title and rel. A balloon under the link offers preview, edit and unlink.
 - **Sulu drop-in.** `composer require primavista/sulu-bundle` and one import in the admin build replace CKEditor, Sulu itself stays untouched. `@primavista/sulu` keeps every Sulu detail out of the core: `suluPlugins()` builds Sulu's toolbar from a text editor config (Sulu 3.0 params and the 3.1 configs), `<sulu-link>` replaces `<internal-link>`, `suluPreset()` writes CKEditor-compatible markup (`figure.table`, `thead`, `&nbsp;`), the Sulu theme matches the admin, `stripParagraphs` and `wrapParagraphs` cover `enter_mode: br`. Clicked through in a running Sulu Admin, see the [screencast](docs/sulu-integration.md#screencast) and [docs/sulu-integration.md](docs/sulu-integration.md).
@@ -98,7 +98,7 @@ editor.setHtml('<h1>Replaced</h1>');
 editor.destroy();
 ```
 
-`createEditor` takes a `plugins` array. Without it, `defaultPlugins()` is used: history, formatting (bold, italic, underline, strikethrough, subscript, superscript, code), headings, lists, links, alignment, tables (with merge and split) and autoformat. For a CMS add `internalLinks({ providers })`, for multilingual text `language({ languages })`, for a status bar with counts `wordCount()`.
+`createEditor` takes a `plugins` array. Without it, `defaultPlugins()` is used: history, formatting (bold, italic, underline, strikethrough, subscript, superscript, code), headings, lists, links, alignment, tables (with merge and split), paste cleanup and autoformat. For a CMS add `internalLinks({ providers })`, for multilingual text `language({ languages })`, for a status bar with counts `wordCount()`, for quotes, code and rules `blockquote()`, `codeBlock()` and `horizontalRule()`.
 
 ## Plugins
 
@@ -129,6 +129,14 @@ export const highlight: PrimavistaPlugin = {
 `isActive`, `isDisabled`, `isHidden` and `getValue` run inside `editor.read()`, so the `$` helpers work. Toolbar items are buttons, native selects or menus. `register(context)` runs once after mount and returns a cleanup function. `context.toolbar.openPanel()` shows a second toolbar row, `context.balloon.show()` a floating panel under an element in the content.
 
 A plugin declares what it offers in `allows` (`headings`, `lists`, `formats`, `alignments`), and every plugin gets the merged result as `context.allowed`. `autoformat` and paste cleanup follow it, so a replaced `headings({ levels: ['h2', 'h3'] })` also limits the typed shortcuts. Spreading a plugin keeps the declaration.
+
+### Block quote, code block, horizontal rule
+
+Three opt-in block plugins write the markup CKEditor's BlockQuote, CodeBlock and HorizontalLine plugins produce: `blockquote()` wraps whole blocks (`<blockquote><p>…</p></blockquote>`, Enter adds a paragraph inside, Enter on an empty last paragraph leaves the quote), `codeBlock()` stores `<pre><code>…</code></pre>` without highlighting or language, `horizontalRule()` inserts `<hr>`, which click selects and Backspace removes. `autoformat` picks up `> ` and ``` ``` ``` when the plugins are registered, paste cleanup keeps the elements only then.
+
+```ts
+plugins: [...defaultPlugins(), blockquote(), codeBlock(), horizontalRule()]
+```
 
 ### Autoformat
 
@@ -233,11 +241,11 @@ Activate it with `theme: 'brand'`. `@primavista/sulu/sulu.css` reproduces Sulu A
 
 | File | Size | Gzip |
 |---|---|---|
-| `bundles/ux-bundle/assets/dist/controller.js` (core, Lexical, tables, links, Markdown shortcuts, paste cleanup) | 440 KB | 137 KB |
-| `packages/core/dist/index.js` (Lexical external, not minified) | 107 KB | 26 KB |
+| `bundles/ux-bundle/assets/dist/controller.js` (core, Lexical, tables, links, Markdown shortcuts, paste cleanup, block plugins) | 445 KB | 138 KB |
+| `packages/core/dist/index.js` (Lexical external, not minified) | 118 KB | 28 KB |
 | `packages/sulu/dist/index.js` (not minified) | 5 KB | 2 KB |
 
-`pnpm size` checks these files against a budget after `pnpm build`, CI fails when one grows past it. What the controller contains is in decision 34 of [DECISIONS.md](DECISIONS.md), autoformat and paste cleanup added 26 KB and 11 KB (decisions 36 and 39).
+`pnpm size` checks these files against a budget after `pnpm build`, CI fails when one grows past it. What the controller contains is in decision 34 of [DECISIONS.md](DECISIONS.md), autoformat, paste cleanup and the block plugins added 26 KB, 11 KB and 5 KB (decisions 36, 39 and 43).
 
 ## Documentation
 

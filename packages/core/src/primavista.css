@@ -271,6 +271,30 @@
   font-size: 0.9em;
 }
 
+.pv-code-block {
+  margin: 0 0 0.75em;
+  padding: 0.75em 1em;
+  border-radius: 4px;
+  background: color-mix(in srgb, var(--pv-fg) 6%, transparent);
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.9em;
+  white-space: pre-wrap;
+  overflow-x: auto;
+  tab-size: 2;
+}
+
+.pv-hr {
+  margin: 1em 0;
+  border: 0;
+  border-top: 1px solid var(--pv-border);
+  cursor: default;
+}
+
+.pv-hr--selected {
+  outline: 2px solid var(--pv-accent);
+  outline-offset: 2px;
+}
+
 .pv-underline { text-decoration: underline; }
 .pv-strikethrough { text-decoration: line-through; }
 .pv-underline.pv-strikethrough { text-decoration: underline line-through; }

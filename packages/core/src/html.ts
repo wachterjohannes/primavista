@@ -2,6 +2,7 @@ import { $generateHtmlFromNodes, $generateNodesFromDOM } from '@lexical/html';
 import {
   $createParagraphNode,
   $getRoot,
+  $isDecoratorNode,
   $isElementNode,
   $isParagraphNode,
   type DOMExportOutput,
@@ -11,6 +12,7 @@ import {
   TextNode,
 } from 'lexical';
 import { $isTableCellNode, $isTableNode, $isTableRowNode, TableCellNode, TableNode, TableRowNode } from '@lexical/table';
+import { $isCodeNode, CodeNode } from '@lexical/code-core';
 import { InternalLinkNode } from './nodes/InternalLinkNode';
 import type { HtmlOptions } from './types';
 
@@ -28,7 +30,27 @@ export function createExportMap(options: Required<HtmlOptions>): DOMExportOutput
   map.set(TableNode, (_editor, node) => exportTableNode(node, options));
   map.set(TableRowNode, (_editor, node) => exportTableRowNode(node));
   map.set(TableCellNode, (_editor, node) => exportTableCellNode(node));
+  map.set(CodeNode, (_editor, node) => exportCodeNode(node));
   return map;
+}
+
+/** `<pre><code>` with newlines, the form CKEditor's code block stores, instead of Lexical's `<pre>` with `<br>`. */
+function exportCodeNode(node: LexicalNode): DOMExportOutput {
+  if (!$isCodeNode(node)) return { element: null };
+  return {
+    element: document.createElement('code'),
+    after: (generated) => {
+      if (!(generated instanceof HTMLElement)) return generated;
+      // Lexical swaps the generated element for the returned one, so the
+      // returned tree must not contain it.
+      const pre = document.createElement('pre');
+      const code = document.createElement('code');
+      code.append(...Array.from(generated.childNodes));
+      for (const br of Array.from(code.querySelectorAll('br'))) br.replaceWith(document.createTextNode('\n'));
+      pre.appendChild(code);
+      return pre;
+    },
+  };
 }
 
 /** Text format to element, innermost first. The paste cleanup nests in the same order. */
@@ -164,6 +186,7 @@ export function $loadHtml(editor: LexicalEditor, html: string): void {
   if (trimmed !== '') {
     const dom = new DOMParser().parseFromString(trimmed, 'text/html');
     normalizeLegacyTags(dom);
+    unwrapCodeInPre(dom);
     markCustomInlineElements(dom);
     liftCellAlignment(dom);
     const nodes = $generateNodesFromDOM(editor, dom);
@@ -184,6 +207,13 @@ function normalizeLegacyTags(dom: Document): void {
       replacement.replaceChildren(...Array.from(element.childNodes));
       element.replaceWith(replacement);
     }
+  }
+}
+
+/** `<pre><code>…</code></pre>` becomes `<pre>…</pre>`, otherwise the text inside would carry the inline code format. */
+function unwrapCodeInPre(dom: Document): void {
+  for (const code of Array.from(dom.body.querySelectorAll('pre > code'))) {
+    code.replaceWith(...Array.from(code.childNodes));
   }
 }
 
@@ -225,7 +255,7 @@ function wrapInlineNodesInParagraphs(nodes: LexicalNode[]): LexicalNode[] {
   const result: LexicalNode[] = [];
   let paragraph: ReturnType<typeof $createParagraphNode> | null = null;
   for (const node of nodes) {
-    const isBlock = $isElementNode(node) && !node.isInline();
+    const isBlock = ($isElementNode(node) || $isDecoratorNode(node)) && !node.isInline();
     if (isBlock) {
       paragraph = null;
       result.push(node);

@@ -12,9 +12,12 @@ import { alignment } from './alignment';
 
 export { alignment, type Alignment, type AlignmentOptions } from './alignment';
 export { autoformat, type AutoformatOptions } from './autoformat';
+export { blockquote } from './blockquote';
+export { codeBlock } from './codeBlock';
 export { formatting, type FormattingOptions, type InlineFormat } from './formatting';
 export { headings, type HeadingsOptions } from './headings';
 export { history, type HistoryOptions } from './history';
+export { horizontalRule } from './horizontalRule';
 export {
   internalLinks,
   parseHref,

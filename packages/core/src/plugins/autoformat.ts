@@ -1,19 +1,22 @@
+import { CodeNode } from '@lexical/code-core';
 import { ListItemNode, ListNode } from '@lexical/list';
 import {
   BOLD_ITALIC_STAR,
   BOLD_STAR,
+  CODE,
   type ElementTransformer,
   HEADING,
   INLINE_CODE,
   ITALIC_STAR,
   ORDERED_LIST,
+  QUOTE,
   registerMarkdownShortcuts,
   STRIKETHROUGH,
   type TextFormatTransformer,
   type Transformer,
   UNORDERED_LIST,
 } from '@lexical/markdown';
-import { HeadingNode, type HeadingTagType } from '@lexical/rich-text';
+import { HeadingNode, type HeadingTagType, QuoteNode } from '@lexical/rich-text';
 import type { LexicalEditor } from 'lexical';
 import type { PluginAllows, PrimavistaPlugin } from '../types';
 import type { InlineFormat } from './formatting';
@@ -63,6 +66,8 @@ function autoformatTransformers(editor: LexicalEditor, allowed: PluginAllows, op
       if (types.includes('ul')) transformers.push(UNORDERED_LIST);
       if (types.includes('ol')) transformers.push(FIRST_ORDERED_LIST);
     }
+    if (editor.hasNodes([QuoteNode])) transformers.push(QUOTE);
+    if (editor.hasNodes([CodeNode])) transformers.push(CODE);
   }
   if (options.inline ?? true) {
     const formats = allowed.formats ?? [];

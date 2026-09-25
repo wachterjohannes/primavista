@@ -1,9 +1,12 @@
 import {
   alignment,
   autoformat,
+  blockquote,
+  codeBlock,
   formatting,
   headings,
   history,
+  horizontalRule,
   internalLinks,
   language,
   links,
@@ -138,14 +141,22 @@ export interface SuluPluginsOptions {
    * default, Sulu's CKEditor setup did not load its Autoformat plugin.
    */
   autoformat?: boolean | AutoformatOptions;
+  /**
+   * Plugins of the project, appended after the config-driven ones and before
+   * paste cleanup. Sulu 3.0 has no config to name a tag, so this is the way
+   * to add `blockquote()` or a custom plugin there.
+   */
+  plugins?: ReadonlyArray<PrimavistaPlugin>;
 }
 
 /**
  * The plugin list of Sulu's `text_editor` field for a config. Every tag and
  * attribute of the config switches on the plugin that produces it, in the
  * order of Sulu's CKEditor toolbar: heading, inline formats, lists, links,
- * alignment, language, table. Paste cleanup comes last and lets pasted
- * content keep only what the config allows.
+ * alignment, language, table, then the tags Sulu's CKEditor never shipped
+ * but projects added as plugins: `blockquote`, `pre` (code block) and `hr`.
+ * Paste cleanup comes last and lets pasted content keep only what the config
+ * allows.
  */
 export function suluPlugins(options: SuluPluginsOptions): PrimavistaPlugin[] {
   const config = options.config ?? SULU_DEFAULT_CONFIG;
@@ -175,7 +186,11 @@ export function suluPlugins(options: SuluPluginsOptions): PrimavistaPlugin[] {
   if (attributes.has('style') || attributes.has('align')) plugins.push(alignment());
   if (attributes.has('lang')) plugins.push(language(options.languages ? { languages: options.languages } : {}));
   if (tags.has('table')) plugins.push(tables());
+  if (tags.has('blockquote')) plugins.push(blockquote());
+  if (tags.has('pre')) plugins.push(codeBlock());
+  if (tags.has('hr')) plugins.push(horizontalRule());
   if (options.autoformat) plugins.push(autoformat(options.autoformat === true ? {} : options.autoformat));
+  plugins.push(...(options.plugins ?? []));
 
   plugins.push(pasteCleanup());
 

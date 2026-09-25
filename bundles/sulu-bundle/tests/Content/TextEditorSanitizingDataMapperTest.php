@@ -88,6 +88,21 @@ final class TextEditorSanitizingDataMapperTest extends TestCase
         ], $localized->getTemplateData()['map']);
     }
 
+    public function testSanitizesBlockSettings(): void
+    {
+        [, $localized] = $this->map([
+            'blocks' => [
+                ['type' => 'text', 'text' => '<p>a</p>', 'settings' => ['note' => '<p>n</p>'.self::SCRIPT, 'flag' => true]],
+                ['type' => 'text', 'text' => '<p>b</p>'],
+            ],
+        ]);
+
+        self::assertSame([
+            ['type' => 'text', 'text' => '<p>a</p>', 'settings' => ['note' => '<p>n</p>', 'flag' => true]],
+            ['type' => 'text', 'text' => '<p>b</p>'],
+        ], $localized->getTemplateData()['blocks']);
+    }
+
     public function testSanitizesTheExcerptDescription(): void
     {
         $localized = new TemplateDimensionContent('en', 'default');
@@ -186,12 +201,14 @@ final class TextEditorSanitizingDataMapperTest extends TestCase
         $blockForms->addForm('quote', self::form([self::field('title', 'text_line'), self::field('text', 'text_editor')]));
 
         $excerptForm = self::form([self::field('excerpt/title', 'text_line'), self::field('excerpt/description', 'text_editor')]);
+        $settingsForm = self::form([self::field('note', 'text_editor'), self::field('flag', 'checkbox')]);
 
-        $provider = new class($typedForm, $blockForms, $excerptForm) implements MetadataProviderInterface {
+        $provider = new class($typedForm, $blockForms, $excerptForm, $settingsForm) implements MetadataProviderInterface {
             public function __construct(
                 private readonly TypedFormMetadata $metadata,
                 private readonly TypedFormMetadata $blockForms,
                 private readonly FormMetadata $excerptForm,
+                private readonly FormMetadata $settingsForm,
             ) {
             }
 
@@ -200,6 +217,7 @@ final class TextEditorSanitizingDataMapperTest extends TestCase
                 return match ($key) {
                     'block' => $this->blockForms,
                     'content_excerpt' => $this->excerptForm,
+                    'block_settings' => $this->settingsForm,
                     default => $this->metadata,
                 };
             }
@@ -282,6 +300,12 @@ final class TextEditorSanitizingDataMapperTest extends TestCase
     {
         $field = new FieldMetadata($name);
         $field->setType($fieldType);
+        if ('block' === $fieldType) {
+            $option = new OptionMetadata();
+            $option->setName('settings_form_key');
+            $option->setValue('block_settings');
+            $field->addOption($option);
+        }
         foreach ($types as $key => $type) {
             $type->setKey($key);
             $field->addType($type);

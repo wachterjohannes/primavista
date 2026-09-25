@@ -6,6 +6,7 @@ import {lexical} from '@primavista/core';
 import {linkTypeRegistry} from 'sulu-admin-bundle/containers';
 import {localizationStore} from 'sulu-admin-bundle/stores';
 import PrimavistaTextEditor from '../PrimavistaTextEditor';
+import primavistaPluginRegistry from '../pluginRegistry';
 
 const {$getRoot, $isTextNode, $isElementNode} = lexical;
 
@@ -32,6 +33,7 @@ const linkOptions = {
 };
 
 beforeEach(() => {
+    primavistaPluginRegistry.clear();
     linkTypeRegistry.clear();
     linkTypeRegistry.add('page', PageOverlay, 'sulu_page.page', linkOptions);
     linkTypeRegistry.add('media', MediaOverlay, 'sulu_media.media', linkOptions);
@@ -100,6 +102,31 @@ test('Render the Sulu toolbar with the sulu theme and translated labels', () => 
     const headings = Array.from(element.querySelectorAll('[data-pv-item="block-type"] option'))
         .map((option) => option.value);
     expect(headings).toEqual(['paragraph', 'h2', 'h3', 'h4', 'h5', 'h6']);
+});
+
+test('Switch on autoformat and the word count through params and add registered plugins', () => {
+    primavistaPluginRegistry.add(() => ({
+        name: 'custom',
+        toolbar: [{id: 'custom', label: 'Custom', onClick: () => {}}],
+    }));
+    const {wrapper, element} = mountEditor({
+        options: {
+            autoformat: {name: 'autoformat', value: true},
+            word_count: {name: 'word_count', value: 'words'},
+            word_count_limit: {name: 'word_count_limit', value: '2'},
+        },
+        value: '<p>one two three</p>',
+    });
+
+    const names = wrapper.instance().plugins.map((plugin) => plugin.name);
+    expect(names).toEqual(expect.arrayContaining(['autoformat', 'custom', 'word-count']));
+    expect(element.querySelector('[data-pv-item="custom"]')).not.toBeNull();
+    expect(element.querySelector('.pv-word-count')).not.toBeNull();
+    expect(element.querySelector('.pv-word-count--over')).not.toBeNull();
+
+    const plain = mountEditor({value: '<p>x</p>'}).wrapper.instance().plugins.map((plugin) => plugin.name);
+    expect(plain).not.toContain('autoformat');
+    expect(plain).not.toContain('word-count');
 });
 
 test('Respect the formats option', () => {

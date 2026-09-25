@@ -1,9 +1,11 @@
 import { $insertDataTransferForRichText } from '@lexical/clipboard';
+import { CodeNode } from '@lexical/code-core';
 import { LinkNode } from '@lexical/link';
 import { ListNode } from '@lexical/list';
-import { HeadingNode } from '@lexical/rich-text';
+import { HeadingNode, QuoteNode } from '@lexical/rich-text';
 import { TableNode } from '@lexical/table';
 import { $getSelection, COMMAND_PRIORITY_LOW, PASTE_COMMAND, PASTE_TAG, type PasteCommandType } from 'lexical';
+import { HorizontalRuleNode } from '../nodes/HorizontalRuleNode';
 import { InternalLinkNode } from '../nodes/InternalLinkNode';
 import { LanguageNode } from '../nodes/LanguageNode';
 import { cleanPastedHtml, type CleanPastedHtmlOptions } from '../paste';
@@ -29,6 +31,9 @@ export function pasteCleanup(): PrimavistaPlugin {
         tables: editor.hasNodes([TableNode]),
         language: editor.hasNodes([LanguageNode]),
         alignment: allowed.alignments ?? [],
+        blockquote: editor.hasNodes([QuoteNode]),
+        codeBlock: editor.hasNodes([CodeNode]),
+        horizontalRule: editor.hasNodes([HorizontalRuleNode]),
       };
       if (editor.hasNodes([InternalLinkNode])) {
         schema.internalLink = { tag: InternalLinkNode.tagName, validationAttribute: InternalLinkNode.validationAttribute };

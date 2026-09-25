@@ -58,5 +58,8 @@
     "sulu_admin.primavista.toolbar.language.remove": "Remove language",
     "sulu_admin.primavista.wordCount.words": "Words",
     "sulu_admin.primavista.wordCount.characters": "Characters",
-    "sulu_admin.primavista.wordCount.overLimit": "Over the limit"
+    "sulu_admin.primavista.wordCount.overLimit": "Over the limit",
+    "sulu_admin.primavista.toolbar.blockquote": "Block quote",
+    "sulu_admin.primavista.toolbar.code-block": "Code block",
+    "sulu_admin.primavista.toolbar.horizontal-rule": "Horizontal rule"
 }

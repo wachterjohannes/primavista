@@ -1,4 +1,4 @@
-import { createEditor, internalLinks, defaultPlugins, wordCount, type PrimavistaEditor } from '@primavista/core';
+import { blockquote, codeBlock, createEditor, defaultPlugins, horizontalRule, internalLinks, wordCount, type PrimavistaEditor } from '@primavista/core';
 
 /*
  * The framework-free core, mounted by hand. A select switches themes by
@@ -34,6 +34,9 @@ function mount(theme: string): void {
         ],
         defaultTarget: '_self',
       }),
+      blockquote(),
+      codeBlock(),
+      horizontalRule(),
       wordCount(),
     ],
   });
