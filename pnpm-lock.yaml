@@ -69,6 +69,9 @@ importers:
 
   packages/core:
     dependencies:
+      '@lexical/clipboard':
+        specifier: ^0.51.0
+        version: 0.51.0(typescript@5.9.3)
       '@lexical/history':
         specifier: ^0.51.0
         version: 0.51.0(typescript@5.9.3)

@@ -36,6 +36,7 @@ Sulu, and many Symfony projects with it, ship CKEditor 5. Its license got strict
 - **Everything is a plugin.** Bold, headings, lists, links, tables and alignment are plugins. Hosts add their own through the same interface.
 - **Two bindings, one UI.** The core owns the toolbar. React and Stimulus only mount it, so both look and behave the same.
 - **Clean HTML.** No wrapper spans, no inline styles, no editor classes. `p`, `h1` to `h6`, `strong`, `em`, `u`, `s`, `code`, `sub`, `sup`, `a`, lists, tables, `br`. Alignment as `style="text-align"`, text parts in another language as `<span lang>`.
+- **Paste cleanup.** Content pasted from Word, Google Docs, LibreOffice or a web page keeps only the markup the registered plugins produce. `font-weight: 700` becomes `strong`, Word's list paragraphs become real lists, `mso-*` styles, `<font>`, `<o:p>` and wrapper spans disappear.
 - **CMS links.** Internal links are stored as `<internal-link href="id?query#anchor" provider="page">`, with a dialog hook so the host shows its own resource picker. External links carry target, title and rel. A balloon under the link offers preview, edit and unlink.
 - **Sulu drop-in.** `composer require primavista/sulu-bundle` and one import in the admin build replace CKEditor, Sulu itself stays untouched. `@primavista/sulu` keeps every Sulu detail out of the core: `suluPlugins()` builds Sulu's toolbar from a text editor config (Sulu 3.0 params and the 3.1 configs), `<sulu-link>` replaces `<internal-link>`, `suluPreset()` writes CKEditor-compatible markup (`figure.table`, `thead`, `&nbsp;`), the Sulu theme matches the admin, `stripParagraphs` and `wrapParagraphs` cover `enter_mode: br`. Clicked through in a running Sulu Admin, see the [screencast](docs/sulu-integration.md#screencast) and [docs/sulu-integration.md](docs/sulu-integration.md).
 - **Typing shortcuts and counts.** `autoformat()` turns `## `, `- `, `1. `, `**bold**` and friends into formatting while typing, limited to what the toolbar offers. `wordCount()` shows words and characters below the content with an optional soft limit.
@@ -173,6 +174,12 @@ internalLinks({
 
 `state` carries the current values, `mode` (`create` or `edit`), the selected text and `collapsed`. With a collapsed selection `apply` inserts `text` (or the URL) as link text. Without `openDialog` a compact form appears in the toolbar. The demo's React island shows a host dialog.
 
+## Paste cleanup
+
+`pasteCleanup()` handles Lexical's paste command before the rich text handler, runs the clipboard's `text/html` through `cleanPastedHtml` and lets Lexical import the result. What survives follows the editor: headings, lists, links, internal links, tables and `<span lang>` only when their plugin is registered, inline formats, list types and alignments as the plugins declare them in `allows`. With `formatting({ formats: ['bold'] })` pasted italics become plain text, with `lists({ types: ['ul'] })` a pasted `<ol>` becomes a `<ul>`. HTML that equals the clipboard's plain text is left to Lexical, which reads that equality as an iOS paste.
+
+The cleaner maps `font-weight`, `font-style`, `text-decoration` and `vertical-align` to `strong`, `em`, `u`, `s`, `sup` and `sub`, ignores Google Docs' `<b id="docs-internal-guid-…">` wrapper and the underline style inside links, and drops classes, ids, other styles, comments, images and scripts. Word's list paragraphs (`mso-list: l0 level1 lfo1`) become nested `ul` and `ol`, the marker decides the type. Empty paragraphs are removed, `text-align: left` too, because it is the default. `lang` stays only where it differs from the language of the pasted document. Plain text and content copied between Primavista editors take Lexical's usual path. `cleanPastedHtml(html, options)` is exported for use outside the editor.
+
 ## React
 
 ```tsx
@@ -224,11 +231,11 @@ Activate it with `theme: 'brand'`. `@primavista/sulu/sulu.css` reproduces Sulu A
 
 | File | Size | Gzip |
 |---|---|---|
-| `bundles/ux-bundle/assets/dist/controller.js` (core, Lexical, tables, links) | 404 KB | 126 KB |
-| `packages/core/dist/index.js` (Lexical external, not minified) | 78 KB | 18 KB |
-| `packages/sulu/dist/index.js` (not minified) | 4 KB | 2 KB |
+| `bundles/ux-bundle/assets/dist/controller.js` (core, Lexical, tables, links, Markdown shortcuts, paste cleanup) | 440 KB | 137 KB |
+| `packages/core/dist/index.js` (Lexical external, not minified) | 107 KB | 26 KB |
+| `packages/sulu/dist/index.js` (not minified) | 5 KB | 2 KB |
 
-`pnpm size` checks these files against a budget after `pnpm build`, CI fails when one grows past it. What the controller contains is in decision 34 of [DECISIONS.md](DECISIONS.md).
+`pnpm size` checks these files against a budget after `pnpm build`, CI fails when one grows past it. What the controller contains is in decision 34 of [DECISIONS.md](DECISIONS.md), autoformat and paste cleanup added 26 KB and 11 KB (decisions 36 and 39).
 
 ## Documentation
 

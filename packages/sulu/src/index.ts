@@ -8,6 +8,7 @@ import {
   language,
   links,
   lists,
+  pasteCleanup,
   tables,
   type AutoformatOptions,
   type EditorOptions,
@@ -143,7 +144,8 @@ export interface SuluPluginsOptions {
  * The plugin list of Sulu's `text_editor` field for a config. Every tag and
  * attribute of the config switches on the plugin that produces it, in the
  * order of Sulu's CKEditor toolbar: heading, inline formats, lists, links,
- * alignment, language, table.
+ * alignment, language, table. Paste cleanup comes last and lets pasted
+ * content keep only what the config allows.
  */
 export function suluPlugins(options: SuluPluginsOptions): PrimavistaPlugin[] {
   const config = options.config ?? SULU_DEFAULT_CONFIG;
@@ -173,6 +175,8 @@ export function suluPlugins(options: SuluPluginsOptions): PrimavistaPlugin[] {
   if (attributes.has('lang')) plugins.push(language(options.languages ? { languages: options.languages } : {}));
   if (tags.has('table')) plugins.push(tables());
   if (options.autoformat) plugins.push(autoformat(options.autoformat === true ? {} : options.autoformat));
+
+  plugins.push(pasteCleanup());
 
   return plugins;
 }

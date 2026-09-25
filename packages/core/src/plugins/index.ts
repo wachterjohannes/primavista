@@ -6,6 +6,7 @@ import { history } from './history';
 import { language } from './language';
 import { links } from './links';
 import { lists } from './lists';
+import { pasteCleanup } from './pasteCleanup';
 import { tables } from './tables';
 import { alignment } from './alignment';
 
@@ -26,6 +27,7 @@ export {
 export { language, $getLanguageAtSelection, $setLanguage, type Language, type LanguageOptions } from './language';
 export { links, type LinkDialogState, type LinkValues, type LinksOptions } from './links';
 export { lists, type ListsOptions, type ListTag } from './lists';
+export { pasteCleanup } from './pasteCleanup';
 export { tables, type TablesOptions } from './tables';
 export {
   wordCount,
@@ -40,8 +42,9 @@ export {
 
 /**
  * The standard set: history, inline formatting, headings, lists, links,
- * alignment, tables and autoformat. `language` and `wordCount` are opt-in.
+ * alignment, tables, paste cleanup and autoformat. `language` and
+ * `wordCount` are opt-in.
  */
 export function defaultPlugins(): PrimavistaPlugin[] {
-  return [history(), formatting(), headings(), lists(), links(), alignment(), tables(), autoformat()];
+  return [history(), formatting(), headings(), lists(), links(), alignment(), tables(), pasteCleanup(), autoformat()];
 }

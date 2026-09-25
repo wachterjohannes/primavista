@@ -3,6 +3,7 @@ export * from './plugins';
 export { icons, type IconName } from './icons';
 export { defaultTheme, mergeThemes } from './theme';
 export { PRIMAVISTA_SET_HTML_TAG } from './html';
+export { cleanPastedHtml, type CleanPastedHtmlOptions } from './paste';
 export {
   $createInternalLinkNode,
   $isExternalLinkNode,

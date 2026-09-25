@@ -44,6 +44,10 @@ interface PrimavistaPlugin {
 
 Toolbar items are buttons, native selects or menus. Their state callbacks run inside `editor.read()`. See the repository README for a full example and for the link dialog contract.
 
+## Paste cleanup
+
+`pasteCleanup()` is part of `defaultPlugins()`. It cleans HTML pasted from Word, Google Docs, LibreOffice and web pages down to the markup the registered plugins produce, with Word lists as real lists and inline styles such as `font-weight: 700` as `strong`. Pass the same formats as to `formatting()`, and `alignment: false` without `alignment()`. The cleaner itself is exported as `cleanPastedHtml(html, options)`.
+
 ## Storage helpers
 
 `internalLinks` stores links to host resources as `<internal-link href="id?query#anchor" provider="page">`. The tag and the validation attribute are options, `@primavista/sulu` sets them to Sulu's `<sulu-link>` format and adds the Sulu preset, theme and `enter_mode` helpers. `InternalLinkNode`, `$isInternalLinkNode`, `$getLinkAtSelection` and `registerLinkBalloon` are exported for plugin authors.

@@ -121,6 +121,27 @@ test.describe('Symfony UX binding', () => {
     await expect(content(editor).locator('mark, .pv-highlight')).toHaveCount(1);
   });
 
+  test('cleans HTML pasted from Word', async ({ page }) => {
+    const editor = uxEditor(page);
+    await selectAllIn(editor);
+    await page.keyboard.press('Backspace');
+    const word =
+      `<html xmlns:o="urn:schemas-microsoft-com:office:office"><body lang=DE-AT><!--StartFragment-->` +
+      `<p class=MsoNormal><b>Fett</b> und <span style='font-style:italic;mso-bidi-font-style:normal'>kursiv</span><o:p></o:p></p>` +
+      `<p class=MsoNormal><o:p>&nbsp;</o:p></p>` +
+      `<p class=MsoListParagraphCxSpFirst style='text-indent:-18.0pt;mso-list:l0 level1 lfo1'><![if !supportLists]><span style='font-family:Symbol'>` +
+      `<span style='mso-list:Ignore'>·<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;</span></span></span><![endif]>Punkt<o:p></o:p></p>` +
+      `<!--EndFragment--></body></html>`;
+    // A real paste event with a real DataTransfer, the clipboard itself is out of reach in headless Chromium.
+    await content(editor).evaluate((element, html) => {
+      const data = new DataTransfer();
+      data.setData('text/html', html);
+      data.setData('text/plain', 'Fett und kursiv\nPunkt');
+      element.dispatchEvent(new ClipboardEvent('paste', { clipboardData: data, bubbles: true, cancelable: true }));
+    }, word);
+    await expect(page.getByTestId('ux-textarea')).toHaveValue('<p><strong>Fett</strong> und <em>kursiv</em></p><ul><li>Punkt</li></ul>');
+  });
+
   test('has no console errors', async ({ page }) => {
     const errors: string[] = [];
     page.on('console', (message) => {

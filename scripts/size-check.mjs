@@ -1,7 +1,8 @@
 /*
  * Reports raw and gzip sizes of the built files and fails when one grows
  * past its budget. Run after `pnpm build`. The budgets sit about 10 % above
- * the sizes of decision 34, raise them on purpose, not to make CI green.
+ * the sizes after decisions 34, 36 and 39 (terser, autoformat, paste
+ * cleanup), raise them on purpose, not to make CI green.
  */
 import { existsSync, readFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
@@ -12,9 +13,9 @@ const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 
 /** Repo relative file → budget in KB (1024 bytes). */
 const BUDGETS = [
-  { file: 'bundles/ux-bundle/assets/dist/controller.js', raw: 444, gzip: 138 },
+  { file: 'bundles/ux-bundle/assets/dist/controller.js', raw: 485, gzip: 151 },
   { file: 'bundles/ux-bundle/assets/dist/primavista.css', raw: 10.2, gzip: 2.8 },
-  { file: 'packages/core/dist/index.js', raw: 86, gzip: 19.5 },
+  { file: 'packages/core/dist/index.js', raw: 118, gzip: 28.5 },
   { file: 'packages/react/dist/index.js', raw: 3.1, gzip: 1.05 },
   { file: 'packages/sulu/dist/index.js', raw: 4.8, gzip: 1.7 },
   { file: 'demo/assets/build/react-island.js', raw: 636, gzip: 200 },
