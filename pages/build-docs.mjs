@@ -93,7 +93,7 @@ function page(doc, body) {
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>${doc.title} · Primavista</title>
-  <link rel="icon" href="../assets/logo.svg">
+  <link rel="icon" type="image/svg+xml" href="../assets/favicon.svg">
   <link rel="stylesheet" href="../site.css">
   <link rel="stylesheet" href="../docs.css">
 </head>
