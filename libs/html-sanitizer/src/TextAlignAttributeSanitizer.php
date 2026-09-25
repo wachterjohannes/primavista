@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Primavista\UxBundle\HtmlSanitizer;
+namespace Primavista\HtmlSanitizer;
 
 use Symfony\Component\HtmlSanitizer\HtmlSanitizerConfig;
 use Symfony\Component\HtmlSanitizer\Visitor\AttributeSanitizer\AttributeSanitizerInterface;

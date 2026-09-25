@@ -63,13 +63,42 @@ Translations for the toolbar and the link forms ship with the bundle in `transla
 
 - `assets/admin/index.js` registers an update config hook under `sulu_admin`, the same list Sulu fills its registries from once the admin config has loaded. Right after Sulu's registrations it adds `PrimavistaTextEditor` to `textEditorRegistry` and replaces the `text_editor` entry of `fieldRegistry` with a copy of Sulu's field that passes `adapter="primavista"`. Sulu's field hard-codes `ckeditor5` and the registry refuses a second registration, so the entry is dropped first. That is the only place where the bundle reaches into Sulu.
 - `assets/admin/PrimavistaTextEditor.js` builds the plugin list with `suluPlugins()` from `@primavista/sulu`, renders Sulu's `LinkTypeOverlay` and `ExternalLinkTypeOverlay` when the editor asks for a link dialog, maps the value with `suluValueToHtml` and `htmlToSuluValue`, and translates through Sulu's translator with the `sulu_admin.primavista.` prefix.
-- The PHP bundle only registers the translation files.
+- The PHP bundle registers the translation files and sanitizes on save, see below.
+
+## Sanitizing
+
+Sulu saves content through its API, not through Symfony forms, so a request that skips the editor could store any HTML. The bundle therefore sanitizes every `text_editor` value when a page, snippet or article is saved: at the top level, in sections, in blocks, nested blocks and global blocks, in image map hotspots, and the excerpt description. Block settings are not covered. It hooks into Sulu's content data mappers after the template and excerpt data are written, and only touches the properties the request carries. The admin form posts every property, so the first save of a document after the upgrade rewrites all of its editor values.
+
+Each property gets the rules of its text editor config: with Sulu 3.1 the config its `config` param names in `sulu_admin.text_editor.configs`, with Sulu 3.0 Sulu's `default` config with the headings of its `formats` param. The server then allows what the toolbar offers:
+
+| Config key | Allowed markup |
+|---|---|
+| always | `p`, `br`, `dir` on blocks |
+| `h1` to `h6` | the heading |
+| `strong`, `i`, `u`, `s`, `sub`, `sup`, `code` | the format, `i` as `<em>` and `<i>`, `strong` also as `<b>` for content written with CKEditor |
+| `ul`, `ol` | the list and `li`, `ol` with `start` |
+| `a` | `<a href target title rel>` and `<sulu-link href provider target title sulu-validation-state>` |
+| `table` | `figure.table`, `table`, `thead`, `tbody`, `tr`, `th` and `td` with `colspan` and `rowspan` |
+| attribute `style` | `style="text-align: …"` with `left`, `center`, `right` or `justify` on blocks and cells |
+| attribute `lang` | `<span lang>` |
+
+Scripts, event handlers, `javascript:` URLs and every other style go. Unknown elements lose their tag and keep their text. A config registered only in the admin JavaScript is unknown on the server, its properties get everything Primavista can write. The rules come from `primavista/html-sanitizer`, which the UX bundle uses too.
+
+To store values as posted:
+
+```yaml
+# config/packages/primavista_sulu.yaml
+primavista_sulu:
+    sanitize: false
+```
+
+`Primavista\SuluBundle\HtmlSanitizer\TextEditorSanitizersInterface` is a service, `get($configName)` returns the sanitizer of a config for your own entities. Decorate it to allow the markup of custom plugins.
 
 ## Tests
 
 `assets/admin/tests/PrimavistaTextEditor.test.js` is a Jest test written for Sulu's test setup (Enzyme, jsdom). It runs inside a Sulu checkout or a project with Sulu's Jest configuration, with `lexical|@lexical|@preact` added to `transformIgnorePatterns`. See `docs/sulu-integration.md` in the repository.
 
-The PHP side has its own suite:
+The PHP side has its own suite, with `sulu/sulu` as a dev dependency for the data mapper test:
 
 ```sh
 composer install

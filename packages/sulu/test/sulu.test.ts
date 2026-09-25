@@ -130,6 +130,14 @@ describe('sulu plugins', () => {
     expect(ids(editor)).toEqual(['undo', 'redo', 'bold', 'italic', 'link', 'internal-link']);
   });
 
+  it('adds alignment for the style attribute and the earlier align key', () => {
+    for (const attribute of ['style', 'align']) {
+      const names = suluPlugins({ providers, config: { ...SULU_MINI_CONFIG, attributes: [attribute] } }).map((p) => p.name);
+      expect(names).toContain('alignment');
+    }
+    expect(suluPlugins({ providers, config: SULU_MINI_CONFIG }).map((p) => p.name)).not.toContain('alignment');
+  });
+
   it('adds autoformat only on request', () => {
     expect(suluPlugins({ providers }).map((p) => p.name)).not.toContain('autoformat');
     expect(suluPlugins({ providers, autoformat: true }).map((p) => p.name)).toContain('autoformat');
@@ -173,7 +181,7 @@ describe('sulu plugins', () => {
     expect(suluConfigFromLegacyOptions({})).toEqual(SULU_DEFAULT_CONFIG);
     expect(suluConfigFromLegacyOptions({ formats: ['h1', 'h2', 'table'], enterMode: 'br' })).toEqual({
       enterMode: 'br',
-      attributes: ['align'],
+      attributes: ['style'],
       tags: ['strong', 'i', 'u', 's', 'sub', 'sup', 'ul', 'ol', 'a', 'table', 'code', 'h1', 'h2'],
     });
     expect(suluConfigFromLegacyOptions({ formats: [] }).tags).toEqual(SULU_DEFAULT_CONFIG.tags);
