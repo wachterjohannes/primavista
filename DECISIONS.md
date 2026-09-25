@@ -91,5 +91,4 @@ Decisions from the kickoff interview on 2026-09-24. See `RESEARCH.md` for the ba
 
 - GitHub organization and final name. The `primavista` GitHub account is taken, npm and Packagist are free. Name may still change. Not a concern while the project runs locally.
 - Media upload and mention hooks: own event system or existing conventions.
-- A manual click-through inside a running Sulu Admin. The automated Sulu checks passed, the browser session inside Sulu is still to do.
 - Publishing: npm scope `@primavista` and Packagist vendor `primavista` are free, the GitHub account is not.

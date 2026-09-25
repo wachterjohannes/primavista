@@ -61,19 +61,19 @@ Closed on 2026-09-24, second iteration: internal links with providers, dialog se
 
 Prototype at that time: bold, italic, underline, strikethrough, heading select h1 to h4, ul, ol, link with URL panel, table with header row and row and column operations, undo and redo, plugin API, `value`/`onChange`/`onBlur` React contract.
 
-Missing, in order of pain:
+Every item of the original gap list is done. Kept for the record, with where it landed:
 
-1. **Internal links** as `<sulu-link>` with provider, UUID, query, anchor, target, title and validation state. Needs a custom Lexical node with import and export rules, a dropdown per link type, and a way for Sulu to plug its overlays in. The `openDialog` hook on the links plugin is the seam, but the node type does not exist yet.
-2. **External link fields**: target, title, rel, `mailto:` composer. The prototype only asks for a URL.
-3. **Link balloon**: edit, unlink and preview under the link instead of a toolbar panel. Buttons disabled inside a link.
-4. **Validation state styling** for `sulu-validation-state="unpublished|removed"`. Attribute must survive the round trip.
-5. **Alignment** (left, center, right, justify) on blocks. CKEditor writes `style="text-align:…"`. Sulu projects depend on that.
-6. **Subscript, superscript, inline code**: the core supports the formats, the default toolbar hides them. Configuration only.
-7. **Merge and split table cells**. Row and column tools exist. Merge exists in Lexical, the toolbar item does not.
-8. **`enter_mode: br`** conversion, or a decision to drop it in 3.0.
-9. **`formats` option** driving the heading select. The plugin has `levels`, the adapter has to map it.
-10. **Empty value contract**: `undefined` instead of `""`, and no reload on `""`.
-11. **Locale observable** passed to link overlays, not needed by the core.
-12. **Heading `h1` opt-in** and default `h2` to `h6`. Prototype defaults to `h1` to `h4`.
+1. **Internal links** as `<sulu-link>` with provider, UUID, query, anchor, target, title and validation state: `InternalLinkNode` in the core, `suluLinks()` in `@primavista/sulu`.
+2. **External link fields** (target, title, rel, `mailto:`): `links()` with Sulu's `ExternalLinkTypeOverlay` in the adapter.
+3. **Link balloon** with edit, unlink and preview: the core's balloon API.
+4. **Validation state styling** for `sulu-validation-state`: `sulu.css`.
+5. **Alignment** as `style="text-align: …"`: `alignment()`.
+6. **Subscript, superscript, inline code**: `formatting()`, switched on per config tag.
+7. **Merge and split table cells**: `tables()`.
+8. **`enter_mode: br`**: `suluValueToHtml()` and `htmlToSuluValue()`.
+9. **`formats` param**: `suluConfigFromLegacyOptions()`.
+10. **Empty value contract**: the adapter reports `undefined` for an empty document.
+11. **Locale observable** for the link overlays: the adapter.
+12. **Heading `h1` opt-in** and default `h2` to `h6`: `SULU_DEFAULT_CONFIG` and the `formats` rule.
 
 Nice to have, not used by Sulu today: paste from Word cleanup, autoformat shortcuts, word count. All three exist now: `pasteCleanup` is part of `suluPlugins()`, autoformat and word count are opt-in (`suluPlugins({ autoformat: true })`, `wordCount()`), see decisions 37 and 39 in `DECISIONS.md`.
