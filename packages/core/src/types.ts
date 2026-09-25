@@ -105,6 +105,21 @@ export interface PluginContext {
   contentElement: HTMLElement;
   toolbar: ToolbarApi;
   balloon: BalloonApi;
+  /** What the structural plugins of this editor declared in `allows`, merged. */
+  allowed: PluginAllows;
+}
+
+/**
+ * What a plugin offers to the user, declared as plain data so other plugins
+ * can follow it: `autoformat` only converts `## ` when `h2` is listed, paste
+ * cleanup only keeps `<ol>` when `ol` is. A key stays undefined when no plugin
+ * declares it, which the readers treat as "nothing".
+ */
+export interface PluginAllows {
+  headings?: ReadonlyArray<'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'h6'>;
+  lists?: ReadonlyArray<'ul' | 'ol'>;
+  formats?: ReadonlyArray<'bold' | 'italic' | 'underline' | 'strikethrough' | 'subscript' | 'superscript' | 'code'>;
+  alignments?: ReadonlyArray<'left' | 'center' | 'right' | 'justify'>;
 }
 
 /**
@@ -122,6 +137,8 @@ export interface PrimavistaPlugin {
   register?: (context: PluginContext) => (() => void) | void;
   /** Toolbar items in display order. */
   toolbar?: ReadonlyArray<ToolbarItem>;
+  /** What this plugin offers, see `PluginAllows`. Spreading a plugin keeps it. */
+  allows?: PluginAllows;
 }
 
 /** Knobs for the HTML the editor emits. Defaults match CKEditor's plain output. */

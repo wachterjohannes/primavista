@@ -72,3 +72,9 @@
 .pv-editor.pv-theme-sulu .pv-table {
   width: 100%;
 }
+
+.pv-editor.pv-theme-sulu .pv-word-count {
+  --pv-word-count-over: #cf3838;
+  background: #ffffff;
+  color: #6e6e6e;
+}

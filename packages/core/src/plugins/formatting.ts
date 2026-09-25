@@ -28,6 +28,7 @@ export function formatting(options: FormattingOptions = {}): PrimavistaPlugin {
   const formats = options.formats ?? DEFAULT_FORMATS;
   return {
     name: 'formatting',
+    allows: { formats },
     toolbar: formats.map((format): ToolbarButton => {
       const meta = LABELS[format];
       return {

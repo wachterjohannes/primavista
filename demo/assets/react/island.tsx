@@ -1,4 +1,4 @@
-import { Editor, type InternalLinkDialogState, type PrimavistaEditor } from '@primavista/react';
+import { Editor, type InternalLinkDialogState, type PrimavistaEditor, wordCount } from '@primavista/react';
 import { suluPlugins, suluPreset } from '@primavista/sulu';
 import '@primavista/sulu/sulu.css';
 import { useMemo, useRef, useState } from 'react';
@@ -20,7 +20,8 @@ const RESOURCES: Record<string, Array<{ id: string; title: string }>> = {
 /**
  * Mirrors how Sulu Admin uses the field: a controlled component with value,
  * onChange and onBlur, the plugin list from `@primavista/sulu`, and the
- * host's own overlay for internal links.
+ * host's own overlay for internal links. Autoformat and the word count are
+ * opt-in extras a Sulu project could switch on.
  */
 function SuluLikeField({ initialHtml }: { initialHtml: string }) {
   const [value, setValue] = useState(initialHtml);
@@ -29,8 +30,8 @@ function SuluLikeField({ initialHtml }: { initialHtml: string }) {
   const editorRef = useRef<PrimavistaEditor | null>(null);
 
   const plugins = useMemo(
-    () =>
-      suluPlugins({
+    () => [
+      ...suluPlugins({
         providers: [
           { key: 'page', label: 'Page' },
           { key: 'media', label: 'Media' },
@@ -41,7 +42,10 @@ function SuluLikeField({ initialHtml }: { initialHtml: string }) {
           const item = RESOURCES[provider]?.find((r) => r.id === id);
           return item ? `${provider}: ${item.title}` : `${provider}: ${href}`;
         },
+        autoformat: true,
       }),
+      wordCount({ limit: 100 }),
+    ],
     [],
   );
 

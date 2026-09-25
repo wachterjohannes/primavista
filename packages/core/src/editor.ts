@@ -12,6 +12,7 @@ import { mergeRegister } from '@lexical/utils';
 import { createBalloon } from './balloon';
 import { $isDocumentEmpty, $loadHtml, $serializeToHtml, createExportMap, SET_HTML_TAG } from './html';
 import { defaultPlugins } from './plugins';
+import { collectAllowed } from './plugins/allowed';
 import { collectThemeClassNames, defaultTheme, mergeThemes } from './theme';
 import { createToolbar } from './toolbar';
 import type { EditorEventMap, EditorOptions, HtmlOptions, PrimavistaEditor, PrimavistaPlugin } from './types';
@@ -150,9 +151,10 @@ export function createEditor(container: HTMLElement, options: EditorOptions = {}
     ),
   );
 
+  const allowed = collectAllowed(plugins);
   const pluginCleanups: Array<() => void> = [];
   for (const plugin of plugins) {
-    const cleanup = plugin.register?.({ editor: lexical, translate, container: element, contentElement, toolbar, balloon });
+    const cleanup = plugin.register?.({ editor: lexical, translate, container: element, contentElement, toolbar, balloon, allowed });
     if (cleanup) pluginCleanups.push(cleanup);
   }
   toolbar.refresh();

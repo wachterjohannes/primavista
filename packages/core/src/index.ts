@@ -33,6 +33,7 @@ export type {
   ToolbarMenuOption,
   EditorEventMap,
   EditorOptions,
+  PluginAllows,
   PluginContext,
   PrimavistaEditor,
   PrimavistaPlugin,

@@ -30,6 +30,7 @@ export function alignment(options: AlignmentOptions = {}): PrimavistaPlugin {
   const alignments = options.alignments ?? ALL;
   return {
     name: 'alignment',
+    allows: { alignments },
     toolbar: alignments.map(
       (value): ToolbarButton => ({
         id: `align-${value}`,

@@ -1,5 +1,6 @@
 import {
   alignment,
+  autoformat,
   formatting,
   headings,
   history,
@@ -8,6 +9,7 @@ import {
   links,
   lists,
   tables,
+  type AutoformatOptions,
   type EditorOptions,
   type HeadingsOptions,
   type InlineFormat,
@@ -130,6 +132,11 @@ export interface SuluPluginsOptions {
   openExternalLinkDialog?: (state: LinkDialogState) => void;
   /** Label of the balloon under an internal link. Defaults to `provider: href`. */
   describeInternalLink?: InternalLinksOptions['describe'];
+  /**
+   * Markdown-style typing shortcuts, limited to what the config allows. Off by
+   * default, Sulu's CKEditor setup did not load its Autoformat plugin.
+   */
+  autoformat?: boolean | AutoformatOptions;
 }
 
 /**
@@ -165,6 +172,7 @@ export function suluPlugins(options: SuluPluginsOptions): PrimavistaPlugin[] {
   if (attributes.has('align')) plugins.push(alignment());
   if (attributes.has('lang')) plugins.push(language(options.languages ? { languages: options.languages } : {}));
   if (tags.has('table')) plugins.push(tables());
+  if (options.autoformat) plugins.push(autoformat(options.autoformat === true ? {} : options.autoformat));
 
   return plugins;
 }

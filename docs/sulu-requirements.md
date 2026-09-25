@@ -76,4 +76,4 @@ Missing, in order of pain:
 11. **Locale observable** passed to link overlays, not needed by the core.
 12. **Heading `h1` opt-in** and default `h2` to `h6`. Prototype defaults to `h1` to `h4`.
 
-Nice to have, not used by Sulu today: paste from Word cleanup, autoformat shortcuts, word count.
+Nice to have, not used by Sulu today: paste from Word cleanup, autoformat shortcuts, word count. Autoformat and word count exist now as opt-in plugins (`suluPlugins({ autoformat: true })`, `wordCount()`), see decision 37 in `DECISIONS.md`.

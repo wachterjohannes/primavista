@@ -1,7 +1,7 @@
 /*
  * Demonstrates the plugin system across the Stimulus boundary. The app adds
- * internal links with its own providers and a highlight button without
- * touching the bundle. The event hands over the core module, so the plugin
+ * internal links with its own providers, a word count and a highlight button
+ * without touching the bundle. The event hands over the core module, so the plugin
  * uses the same Lexical instance as the editor.
  */
 document.addEventListener('primavista:pre-connect', (event) => {
@@ -16,6 +16,8 @@ document.addEventListener('primavista:pre-connect', (event) => {
         ],
         defaultTarget: '_self',
     }));
+
+    plugins.push(core.wordCount());
 
     plugins.push({
         name: 'demo-highlight',

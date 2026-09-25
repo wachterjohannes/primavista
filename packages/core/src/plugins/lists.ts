@@ -50,6 +50,7 @@ export function lists(options: ListsOptions = {}): PrimavistaPlugin {
   return {
     name: 'lists',
     nodes: [ListNode, ListItemNode],
+    allows: { lists: types },
     register: ({ editor }) => registerList(editor),
     toolbar: types.map((type) => buttons[type]),
   };

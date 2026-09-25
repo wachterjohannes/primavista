@@ -23,6 +23,7 @@ export function headings(options: HeadingsOptions = {}): PrimavistaPlugin {
   return {
     name: 'headings',
     nodes: [HeadingNode],
+    allows: { headings: levels },
     register: ({ editor }) =>
       demote
         ? editor.registerNodeTransform(HeadingNode, (node) => {
