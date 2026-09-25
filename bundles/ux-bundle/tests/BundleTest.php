@@ -8,6 +8,7 @@ use Primavista\UxBundle\Form\PrimavistaType;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 use Symfony\Component\AssetMapper\AssetMapperInterface;
 use Symfony\Component\Form\FormFactoryInterface;
+use Symfony\Component\HtmlSanitizer\HtmlSanitizerInterface;
 
 final class BundleTest extends KernelTestCase
 {
@@ -21,6 +22,27 @@ final class BundleTest extends KernelTestCase
 
         self::assertSame('primavista--ux-bundle--editor', $view->vars['attr']['data-controller']);
         self::assertSame('<p>x</p>', $view->vars['value']);
+    }
+
+    public function testSanitizesSubmittedHtmlWithThePrimavistaSanitizer(): void
+    {
+        self::bootKernel();
+        $factory = self::getContainer()->get('test.form_factory');
+        \assert($factory instanceof FormFactoryInterface);
+
+        $form = $factory->create(PrimavistaType::class);
+        $form->submit('<p style="text-align: right;">a <internal-link href="1" provider="page">b</internal-link></p><img src="x" onerror="alert(1)">');
+
+        self::assertSame('<p style="text-align: right;">a <internal-link href="1" provider="page">b</internal-link></p>', $form->getData());
+    }
+
+    public function testSanitizerIsRegisteredByName(): void
+    {
+        self::bootKernel();
+        $sanitizer = self::getContainer()->get('test.primavista_sanitizer');
+        \assert($sanitizer instanceof HtmlSanitizerInterface);
+
+        self::assertSame('<p>a</p>', $sanitizer->sanitize('<p onclick="alert(1)">a</p>'));
     }
 
     public function testControllerAssetsAreMapped(): void

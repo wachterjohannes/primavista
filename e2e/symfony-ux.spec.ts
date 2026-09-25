@@ -41,6 +41,17 @@ test.describe('Symfony UX binding', () => {
     await expect(content(uxEditor(page)).locator('strong')).toHaveText('Bold words');
   });
 
+  test('keeps internal links and alignment through the server-side sanitizer', async ({ page }) => {
+    await page.getByTestId('ux-submit').click();
+    await expect(page.getByTestId('ux-submitted')).toHaveText(UX_INITIAL_HTML);
+
+    const editor = uxEditor(page);
+    await replaceContent(editor, 'Centered');
+    await toolbarButton(editor, 'align-center').click();
+    await page.getByTestId('ux-submit').click();
+    await expect(page.getByTestId('ux-submitted')).toHaveText('<p style="text-align: center;">Centered</p>');
+  });
+
   test('switches headings, lists and links from the toolbar', async ({ page }) => {
     const editor = uxEditor(page);
     const textarea = page.getByTestId('ux-textarea');

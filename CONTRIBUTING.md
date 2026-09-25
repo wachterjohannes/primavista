@@ -30,7 +30,7 @@ pnpm e2e
 
 ## Ground rules
 
-- A change to the emitted HTML needs a round-trip test in `packages/core/test/html.test.ts`.
+- A change to the emitted HTML needs a round-trip test in `packages/core/test/html.test.ts`. A new element or attribute also goes into `PrimavistaSanitizerConfig` in `bundles/ux-bundle` and its test, otherwise the server drops it.
 - A new toolbar item needs a unit test and, if it touches the DOM in a way jsdom cannot cover, a Playwright test.
 - Keep the plugin interface stable. Host systems build on it.
 - Files in the repository are written in English.

@@ -165,11 +165,10 @@ use Primavista\UxBundle\Form\PrimavistaType;
 $builder->add('body', PrimavistaType::class, [
     'placeholder' => 'Start writing…',
     'theme' => 'dark',
-    'sanitize_html' => true,
 ]);
 ```
 
-The field renders a textarea with the Stimulus controller `primavista--ux-bundle--editor`. The controller mounts the editor next to it and keeps the textarea value in sync, so the form posts plain HTML. Apps hook in through `primavista:pre-connect` (add plugins, the event carries the core module) and `primavista:connect` (the editor instance). Details in the [bundle README](bundles/ux-bundle/README.md).
+The field renders a textarea with the Stimulus controller `primavista--ux-bundle--editor`. The controller mounts the editor next to it and keeps the textarea value in sync, so the form posts plain HTML. On submit, `symfony/html-sanitizer` drops everything the editor does not emit itself: scripts, event handlers, `javascript:` URLs, foreign styles and unknown elements. The browser ships no sanitizer, the server is the trust boundary. Apps hook in through `primavista:pre-connect` (add plugins, the event carries the core module) and `primavista:connect` (the editor instance). Details in the [bundle README](bundles/ux-bundle/README.md).
 
 ## Themes
 

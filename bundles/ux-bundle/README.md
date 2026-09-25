@@ -16,20 +16,51 @@ use Primavista\UxBundle\Form\PrimavistaType;
 $builder->add('body', PrimavistaType::class, [
     'label' => 'Body',
     'placeholder' => 'Start writing…',
-    'sanitize_html' => true,
 ]);
 ```
 
-`PrimavistaType` extends `TextareaType`. The submitted value is an HTML string. `sanitize_html` comes from Symfony's form component and runs `symfony/html-sanitizer` on the submitted value. Relative links are dropped by the default sanitizer, so CMS content usually needs:
+`PrimavistaType` extends `TextareaType`. The submitted value is an HTML string.
+
+## Sanitizing
+
+The server is the trust boundary: anyone can post to the form without the editor. `PrimavistaType` therefore sanitizes on submit by default, with the `primavista` sanitizer the bundle registers next to the ones from `framework.html_sanitizer`. It keeps exactly the markup the editor emits:
+
+- `p`, `h1` to `h6`, `br`, `strong`, `em`, `u`, `s`, `code`, `sub`, `sup`
+- `ul`, `ol` with `start`, `li`
+- `a` with `href`, `target`, `title`, `rel`. Absolute `http`, `https`, `mailto` and `tel` URLs and relative URLs.
+- `internal-link` with `href`, `provider`, `target`, `title`, `validation-state`. The href is a resource id and may not carry a scheme.
+- `span` with `lang`
+- `table`, `thead`, `tbody`, `tr`, `th` and `td` with `colspan` and `rowspan`, `figure` with a forced `class="table"`
+- `style` on blocks and cells, only as `text-align: left|center|right|justify`, and `dir` on blocks
+
+Everything else goes: scripts, embeds and foreign namespaces with their content, event handlers, `javascript:` URLs, other inline styles, classes. Unknown elements lose their tag but keep their text, so `<b>`, `<i>` or `<div>` from content written before Primavista survive a save that only touched another field. The sanitizer writes its own serialization (`<br />`, entity-encoded characters in attributes), which the editor reads back unchanged.
+
+Options, all from Symfony's form component:
+
+```php
+$builder->add('body', PrimavistaType::class, ['sanitize_html' => false]);    // store the value as posted
+$builder->add('body', PrimavistaType::class, ['sanitizer' => 'app_content']); // a sanitizer from framework.html_sanitizer
+```
+
+The defaults apply while FrameworkBundle's `html_sanitizer` is enabled. With the split `symfony/*` packages that happens as soon as `symfony/html-sanitizer` is installed, which the bundle requires. With the monolithic `symfony/symfony` package, or after `framework: { html_sanitizer: false }`, nothing is sanitized and the value is stored as posted. The same sanitizer is available as the Twig filter `sanitize_html('primavista')` and for autowiring as `HtmlSanitizerInterface $primavista`, the name FrameworkBundle would give it. Fields that set `sanitize_html: true` themselves now get this sanitizer instead of `default`.
+
+Custom plugins that add markup, or `internalLinks({ tag, validationAttribute })` with other names, need their own sanitizer. Build it from the same rules and pass its name as `sanitizer`:
 
 ```yaml
-framework:
-    html_sanitizer:
-        sanitizers:
-            default:
-                allow_relative_links: true
-                allow_relative_medias: true
+services:
+    app.sanitizer_config.content:
+        class: Symfony\Component\HtmlSanitizer\HtmlSanitizerConfig
+        factory: [Primavista\UxBundle\HtmlSanitizer\PrimavistaSanitizerConfig, create]
+        arguments: ['cms-link', 'cms-state']
+        calls:
+            - [allowElement, ['mark'], true]
+    app.sanitizer.content:
+        class: Symfony\Component\HtmlSanitizer\HtmlSanitizer
+        arguments: ['@app.sanitizer_config.content']
+        tags: [{ name: html_sanitizer, sanitizer: app_content }]
 ```
+
+`PrimavistaSanitizerConfig` needs no Twig and no bundle, only `symfony/html-sanitizer`. `PrimavistaSanitizerConfig::create('sulu-link', 'sulu-validation-state')` covers Sulu's `<sulu-link>`.
 
 ## Controller
 

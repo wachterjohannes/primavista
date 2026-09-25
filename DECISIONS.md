@@ -56,6 +56,9 @@ Decisions from the kickoff interview on 2026-09-24. See `RESEARCH.md` for the ba
 ## Bundle size (2026-09-24, sixth iteration)
 
 34. **The controller stays one file, terser runs after esbuild.** Measured with an esbuild metafile: the controller was already minified and already picked Lexical's production builds (`process.env.NODE_ENV` defined, `production` export condition), there are no duplicated packages and no dev code left. esbuild's output is 618 KB unminified. A second pass with terser (`compress.passes: 2`) brings it from 405.1 KB to 403.6 KB minified and from 130.9 KB to 125.6 KB gzip (109.5 KB to 103.9 KB brotli). `@primavista/react` declares `sideEffects: false`, core and sulu already did. What the 404 KB contain, minified: `lexical` 197 KB, `@lexical/table` 62 KB, own code 42 KB, `@lexical/link`, `@lexical/list` and `@lexical/html` 19 KB each, `@lexical/rich-text` 15 KB, `@lexical/utils` 12 KB, `@lexical/extension` with its signals 13 KB, the rest under 9 KB each. The re-exports of decision 12 cost 48 KB minified and 18 KB gzip (`lexical` 15 KB, `lexicalLink` and `lexicalUtils` 34 KB, because they keep all of `@lexical/html` and `@lexical/utils`). They stay, they are the only way to write plugins for the UX bundle. Bundler builds do not pay for them, the React island tree-shakes them away. `pnpm size` checks the built files against budgets about 10 % above these sizes and runs in CI. The 80 KB from the kickoff are out of reach without dropping features: rejected were lazy-loading the table plugin (a second file breaks the single self-contained file of decision 11), trimming the re-exports (breaks plugin authors), building Lexical from its TypeScript sources (430 KB, the error messages come back) and a minified stylesheet (9 KB, the readable file documents the `--pv-*` variables).
+## Sanitizing (2026-09-24, seventh iteration)
+
+35. **The server is the trust boundary.** A browser sanitizer protects nothing, because anyone can post to the form without the editor. The editor exports a closed set of tags and attributes and no client-side sanitizer ships. `primavista/ux-bundle` requires `symfony/html-sanitizer` and registers the sanitizer `primavista`, built by `PrimavistaSanitizerConfig::create()`, that allows exactly that markup and blocks the rest: blocks, text formats, lists with `start`, links with `href target title rel`, `<internal-link>` with its attributes, `<span lang>`, tables with `colspan` and `rowspan`, `figure.table` and `dir`. `style` survives only as one `text-align` declaration with a value the alignment plugin writes. `PrimavistaType` defaults to `sanitize_html: true` with that sanitizer whenever FrameworkBundle's `html_sanitizer` is enabled. The helper takes the internal link's tag and validation attribute, so the same rules cover `<sulu-link>`. The sanitizer serializes on its own (`<br />`, entity-encoded attribute characters), the stored markup is equivalent but not byte-identical to the editor's. Rejected: a suggested dependency, which would leave a field that accepts HTML unsanitized because a package was missing, and prepending the rules into `framework.html_sanitizer`, which cannot express the `text-align` rule without a separate service and would duplicate the PHP helper.
 
 ## Rejected
 
@@ -68,12 +71,13 @@ Decisions from the kickoff interview on 2026-09-24. See `RESEARCH.md` for the ba
 - **Web Component as the core.** Shadow DOM would isolate host CSS, which Sulu does not want, and complicates form integration.
 - **A standalone `InternalLinkNode` element class.** Would need its own wrap, split and unwrap logic. Subclassing `LinkNode` gets that from Lexical.
 - **Editing links from the toolbar button.** Sulu users know the balloon, and a button that both creates and edits hides which one it does.
+- **A client-side sanitizer such as DOMPurify.** More bundle size for a check an attacker skips by posting directly. See 34.
 
 ## Open
 
 - GitHub organization and final name. The `primavista` GitHub account is taken, npm and Packagist are free. Name may still change. Not a concern while the project runs locally.
-- Sanitizing: browser, server via `symfony/html-sanitizer`, or both.
 - Media upload and mention hooks: own event system or existing conventions.
 - A manual click-through inside a running Sulu Admin. The automated Sulu checks passed, the browser session inside Sulu is still to do.
 - Publishing to npm and Packagist.
+- Server-side sanitizing inside Sulu. Sulu saves content through its own API, not through Symfony forms, and `primavista/sulu-bundle` cannot reuse `PrimavistaSanitizerConfig` without depending on the UX bundle.
 - Publishing: npm scope `@primavista` and Packagist vendor `primavista` are free, the GitHub account is not.

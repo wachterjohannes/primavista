@@ -46,6 +46,7 @@ final class TestKernel extends Kernel
                 'strict_variables' => true,
             ]);
             $container->setAlias('test.form_factory', 'form.factory')->setPublic(true);
+            $container->setAlias('test.primavista_sanitizer', 'html_sanitizer.sanitizer.primavista')->setPublic(true);
         });
     }
 
