@@ -188,7 +188,7 @@ cp -R /path/to/primavista/packages/{core,react,sulu} node_modules/@primavista/  
 npx jest tests/js/primavista
 ```
 
-Sulu's Jest needs `lexical|@lexical|@preact|` in `transformIgnorePatterns`, because Lexical ships ESM only.
+Sulu's Jest needs `lexical|@lexical|@preact|@primavista|` in `transformIgnorePatterns`, because Lexical and the built packages ship ESM only. The built core needs Lexical's packages next to it (`npm install --no-save lexical @lexical/rich-text @lexical/list @lexical/link @lexical/table @lexical/history @lexical/markdown @lexical/clipboard @lexical/selection @lexical/utils @lexical/html @lexical/code-core`), and npm prunes the copied `@primavista` folders on every install, so copy them last.
 
 ## What Sulu could offer
 
