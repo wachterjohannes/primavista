@@ -116,6 +116,10 @@ export interface SchemaElement {
   tag: string;
   /** Attributes the element may carry. Paste cleanup and sanitizers keep these and drop the rest. */
   attributes?: ReadonlyArray<string>;
+  /** Only elements with this class count. Needed to claim a common tag such as `span`. */
+  className?: string;
+  /** Only elements with all of these attributes count. */
+  requires?: ReadonlyArray<string>;
 }
 
 /**
