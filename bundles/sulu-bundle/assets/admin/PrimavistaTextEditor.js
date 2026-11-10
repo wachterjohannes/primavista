@@ -31,8 +31,9 @@ import {
 import '@primavista/core/primavista.css';
 import '@primavista/sulu/sulu.css';
 import {linkTypeRegistry} from 'sulu-admin-bundle/containers';
+import CKEditor5 from 'sulu-admin-bundle/containers/CKEditor5';
 import {ExternalLinkTypeOverlay} from 'sulu-admin-bundle/containers/Link';
-import {localizationStore} from 'sulu-admin-bundle/stores';
+import {localizationStore, userStore} from 'sulu-admin-bundle/stores';
 import {translate} from 'sulu-admin-bundle/utils';
 import primavistaPluginRegistry from './pluginRegistry';
 import type {IObservableArray, IObservableValue} from 'mobx/lib/mobx';
@@ -94,8 +95,20 @@ class PrimavistaTextEditor extends React.Component<Props> {
         return value === 'br' || value === 'p' ? value : undefined;
     }
 
-    // The languages the "lang" attribute offers: the system's localizations.
+    // The languages the "lang" attribute offers. Sulu 3.0.10 and later publish the
+    // `sulu_admin.text_editor.content_locales` setting, language codes without a
+    // country, on its CKEditor5 container. Without it the system's localizations
+    // are offered.
     get languages(): Array<{code: string, label: string}> {
+        const contentLocales = CKEditor5.contentLocales;
+        if (contentLocales && contentLocales.length) {
+            const names = new Intl.DisplayNames(userStore.systemLocale ? [userStore.systemLocale] : undefined, {
+                type: 'language',
+            });
+
+            return contentLocales.map((code) => ({code, label: names.of(code) || code}));
+        }
+
         return localizationStore.localizations.map((localization) => ({
             code: localization.locale.replace('_', '-'),
             label: localization.locale,

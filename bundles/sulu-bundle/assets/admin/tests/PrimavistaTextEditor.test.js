@@ -4,6 +4,7 @@ import {observable} from 'mobx';
 import {mount} from 'enzyme';
 import {lexical} from '@primavista/core';
 import {linkTypeRegistry} from 'sulu-admin-bundle/containers';
+import CKEditor5 from 'sulu-admin-bundle/containers/CKEditor5';
 import {localizationStore} from 'sulu-admin-bundle/stores';
 import PrimavistaTextEditor from '../PrimavistaTextEditor';
 import primavistaPluginRegistry from '../pluginRegistry';
@@ -176,6 +177,27 @@ test('Take the text editor config of Sulu 3.1 and offer the localizations as lan
     element.querySelector('.pv-menu [data-pv-option="de-AT"]').click();
     // A single paragraph with inline markup keeps the comment markers, as Sulu's utils.js wrote them.
     expect(changeSpy).toHaveBeenLastCalledWith('<!--p--><span lang="de-AT">one two</span><!--/p-->');
+});
+
+test('Offer the content locales of Sulu 3.0.10 instead of the localizations', () => {
+    localizationStore.setLocalizations([
+        {country: 'AT', default: '1', language: 'de', locale: 'de_AT', shadow: ''},
+    ]);
+    CKEditor5.contentLocales = ['en', 'fr'];
+    try {
+        const {editor, element} = mountEditor({
+            config: {attributes: ['lang'], enterMode: 'p', tags: ['a', 'strong']},
+            value: '<p>one two</p>',
+        });
+
+        selectAll(editor);
+        element.querySelector('[data-pv-item="language"]').click();
+        const languages = Array.from(element.querySelectorAll('.pv-menu [data-pv-option]'))
+            .map((option) => option.getAttribute('data-pv-option'));
+        expect(languages).toEqual(['en', 'fr', 'remove']);
+    } finally {
+        CKEditor5.contentLocales = [];
+    }
 });
 
 test('Convert paragraphs for enter_mode br', () => {
