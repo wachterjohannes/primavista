@@ -116,7 +116,7 @@ npm run build
 - The adapter builds its plugins with `suluPlugins()` from a text editor config. Sulu 3.1 (pull request 9091) passes the resolved config as a prop. On Sulu 3.0 the adapter derives it from the deprecated `formats` and `enter_mode` params with `suluConfigFromLegacyOptions()`, the same rules Sulu 3.1 applies.
 - Link dialogs: `internalLinks` asks for a dialog, the adapter renders Sulu's `LinkTypeOverlay` for the provider (`linkTypeRegistry.getOverlay(key)`) and calls `apply` on confirm. External links go through `ExternalLinkTypeOverlay`, `mailto:` subject and body included.
 - Translations: every toolbar and form string goes through Sulu's `translate()` with the `sulu_admin.primavista.` prefix. The bundle ships English and German.
-- Languages: with `attributes: {lang: true}` in a Sulu 3.1 config the toolbar gets a language menu. Its entries are the system's localizations from `localizationStore`.
+- Languages: with `attributes: {lang: true}` in a Sulu 3.1 config the toolbar gets a language menu. Its entries are the `sulu_admin.text_editor.content_locales` of Sulu 3.0.10 and later, language codes without a country. Without that setting they are the system's localizations from `localizationStore`.
 - Sanitizing: `TextEditorSanitizingDataMapper` runs after Sulu's `TemplateDataMapper` and sanitizes every `text_editor` value of the save, inside blocks too, with the allowlist of the property's config from `sulu_admin.text_editor_configs`. Sulu 3.0 falls back to the `default` config and the `formats` param.
 
 ## 3. Checklist in the browser

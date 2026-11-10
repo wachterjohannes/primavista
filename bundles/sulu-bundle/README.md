@@ -4,7 +4,7 @@ Primavista as the text editor of Sulu Admin 3. The bundle registers the adapter 
 
 What you get: the toolbar Sulu's CKEditor setup had (heading, bold, italic, underline, strikethrough, sub, sup, lists, external and internal link, alignment, table, code), Sulu's own link overlays for pages, media and every other registered link type, validation states on internal links, `enter_mode: br`, the `formats` param, and the same stored HTML as before (`<sulu-link>`, `figure.table`, `&nbsp;`). Existing content opens unchanged.
 
-The adapter also understands the text editor configs of Sulu 3.1 (`sulu_admin.text_editor.configs`, sulu/sulu#9091): `tags` and `attributes` switch plugins on and off, `lang` adds a language menu fed by the system's localizations.
+The adapter also understands the text editor configs of Sulu 3.1 (`sulu_admin.text_editor.configs`, sulu/sulu#9091): `tags` and `attributes` switch plugins on and off, `lang` adds a language menu fed by `sulu_admin.text_editor.content_locales` (Sulu 3.0.10 and later) or the system's localizations.
 
 ## Installation
 
