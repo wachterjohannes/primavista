@@ -1,16 +1,16 @@
 import type { PluginSchema, PrimavistaPlugin, SchemaElement } from '../types';
 
-/** Merges the `schema` of the given plugins. The same tag from two plugins unites its attributes. */
+/** Merges the `schema` of the given plugins. The same tag from two plugins unites its attributes and keeps the first kind. */
 export function collectSchema(plugins: ReadonlyArray<PrimavistaPlugin>): Required<PluginSchema> {
-  const byTag = new Map<string, Set<string>>();
+  const byTag = new Map<string, { kind: NonNullable<SchemaElement['kind']>; attributes: Set<string> }>();
   for (const plugin of plugins) {
     for (const element of plugin.schema?.elements ?? []) {
-      const attributes = byTag.get(element.tag) ?? new Set<string>();
-      for (const name of element.attributes ?? []) attributes.add(name);
-      byTag.set(element.tag, attributes);
+      const entry = byTag.get(element.tag) ?? { kind: element.kind ?? 'inline', attributes: new Set<string>() };
+      for (const name of element.attributes ?? []) entry.attributes.add(name);
+      byTag.set(element.tag, entry);
     }
   }
-  const elements: SchemaElement[] = [...byTag].map(([tag, attributes]) => ({ tag, attributes: [...attributes] }));
+  const elements: SchemaElement[] = [...byTag].map(([tag, { kind, attributes }]) => ({ tag, kind, attributes: [...attributes] }));
   return { elements };
 }
 

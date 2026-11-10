@@ -2,7 +2,10 @@ import {
   BLUR_COMMAND,
   COMMAND_PRIORITY_LOW,
   createEditor as createLexicalEditor,
+  $getSelection,
+  $isRangeSelection,
   FOCUS_COMMAND,
+  FORMAT_TEXT_COMMAND,
   HISTORIC_TAG,
   type Klass,
   type LexicalNode,
@@ -10,7 +13,7 @@ import {
 import { registerRichText } from '@lexical/rich-text';
 import { mergeRegister } from '@lexical/utils';
 import { createBalloon } from './balloon';
-import { $isDocumentEmpty, $loadHtml, $serializeToHtml, createExportMap, SET_HTML_TAG } from './html';
+import { $insertHtml, $isDocumentEmpty, $loadHtml, $serializeToHtml, createExportMap, SET_HTML_TAG } from './html';
 import { defaultPlugins } from './plugins';
 import { collectAllowed } from './plugins/allowed';
 import { collectSchema } from './plugins/schema';
@@ -37,7 +40,7 @@ export function createEditor(container: HTMLElement, options: EditorOptions = {}
   const nodes = dedupeNodes(plugins.flatMap((p) => p.nodes ?? []));
   assertSameLexical(plugins);
   const schema = collectSchema(plugins);
-  const inlineTags = schema.elements.map((element) => element.tag);
+  const inlineTags = schema.elements.filter((element) => element.kind === 'inline').map((element) => element.tag);
 
   const lexical = createLexicalEditor({
     namespace: options.namespace ?? 'primavista',
@@ -175,6 +178,26 @@ export function createEditor(container: HTMLElement, options: EditorOptions = {}
     getHtml: () => serialize(),
     setHtml,
     isEmpty: () => lexical.read(() => $isDocumentEmpty()),
+    insertText: (text) => {
+      lexical.update(
+        () => {
+          const selection = $getSelection();
+          if ($isRangeSelection(selection)) selection.insertText(text);
+        },
+        { discrete: true },
+      );
+    },
+    insertHtml: (html) => {
+      lexical.update(() => $insertHtml(lexical, html, inlineTags), { discrete: true });
+    },
+    getSelectedText: () =>
+      lexical.read(() => {
+        const selection = $getSelection();
+        return $isRangeSelection(selection) ? selection.getTextContent() : '';
+      }),
+    toggleFormat: (format) => {
+      lexical.dispatchCommand(FORMAT_TEXT_COMMAND, format);
+    },
     focus: () => lexical.focus(undefined, { defaultSelection: 'rootEnd' }),
     blur: () => lexical.blur(),
     setEditable: (editable) => lexical.setEditable(editable),

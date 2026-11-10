@@ -51,8 +51,8 @@ describe('inlineElement', () => {
   it('reports its markup through getSchema', () => {
     expect(getSchema([mark, abbr])).toEqual({
       elements: [
-        { tag: 'mark', attributes: [] },
-        { tag: 'abbr', attributes: ['title'] },
+        { tag: 'mark', kind: 'inline', attributes: [] },
+        { tag: 'abbr', kind: 'inline', attributes: ['title'] },
       ],
     });
   });

@@ -142,6 +142,25 @@ const abbr = inlineElement({ name: 'abbr', tag: 'abbr', attributes: ['title'], t
 
 `attributes` lists what is kept when HTML is loaded or pasted, `className` writes a class on every element, `toolbar: false` registers the element without a button. A plugin declares the markup it writes in `schema`, and `getSchema(plugins)` returns the merged list as JSON for a server-side sanitizer. Paste cleanup keeps exactly these elements. `examples/inline-helper` is a complete extension.
 
+### Blocks and placeholders without Lexical
+
+`blockElement()` wraps whole blocks, like `blockquote()` does: `<aside><p>…</p></aside>`. The button wraps the selected blocks or unwraps them, loose text inside becomes a paragraph, Enter on an empty last paragraph leaves the element. `voidElement()` is a block without content, such as `<div data-widget="newsletter"></div>`. A click selects it, Backspace removes it, the button inserts it with the `defaults` as attributes. `render` fills the element in the editor, for example with a preview, and the exported HTML stays the bare element.
+
+```ts
+import { blockElement, voidElement } from '@primavista/core';
+
+const note = blockElement({ name: 'note', tag: 'aside', className: 'note', toolbar: { label: 'Note' } });
+const newsletter = voidElement({
+  name: 'newsletter',
+  tag: 'div',
+  defaults: { 'data-widget': 'newsletter' },
+  render: (element) => { element.textContent = 'Newsletter sign-up'; },
+  toolbar: { label: 'Newsletter' },
+});
+```
+
+Both declare their element in `schema` with `kind: 'block'` or `'void'`, so paste cleanup keeps them. For actions on the content the editor has `insertText(text)`, `insertHtml(html)`, `getSelectedText()` and `toggleFormat('bold')`, all undoable. `examples/block-helper` is a complete extension.
+
 ### Block quote, code block, horizontal rule
 
 Three opt-in block plugins write the markup CKEditor's BlockQuote, CodeBlock and HorizontalLine plugins produce: `blockquote()` wraps whole blocks (`<blockquote><p>…</p></blockquote>`, Enter adds a paragraph inside, Enter on an empty last paragraph leaves the quote), `codeBlock()` stores `<pre><code>…</code></pre>` without highlighting or language, `horizontalRule()` inserts `<hr>`, which click selects and Backspace removes. `autoformat` picks up `> ` and ``` ``` ``` when the plugins are registered, paste cleanup keeps the elements only then.

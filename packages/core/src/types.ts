@@ -111,9 +111,14 @@ export interface PluginContext {
   schema: Required<PluginSchema>;
 }
 
-/** An element a plugin writes, beyond what the built-in plugins cover. Inline only. */
+/** An element a plugin writes, beyond what the built-in plugins cover. */
 export interface SchemaElement {
   tag: string;
+  /**
+   * `inline` sits inside text, `block` wraps whole blocks, `void` is a block
+   * without content. Defaults to `inline`.
+   */
+  kind?: 'inline' | 'block' | 'void';
   /** Attributes the element may carry. Paste cleanup and sanitizers keep these and drop the rest. */
   attributes?: ReadonlyArray<string>;
 }
@@ -212,6 +217,17 @@ export interface PrimavistaEditor {
   /** Replaces the document. Does not emit `change` and is not undoable. */
   setHtml(html: string): void;
   isEmpty(): boolean;
+  /** Inserts plain text at the selection, replacing a selected range. Undoable. */
+  insertText(text: string): void;
+  /**
+   * Inserts HTML at the selection, parsed with the editor's own import rules,
+   * so elements no plugin knows are reduced to their content. Undoable.
+   */
+  insertHtml(html: string): void;
+  /** The plain text of the current selection, empty when nothing is selected. */
+  getSelectedText(): string;
+  /** Toggles an inline format on the selection, as the toolbar button does. */
+  toggleFormat(format: 'bold' | 'italic' | 'underline' | 'strikethrough' | 'subscript' | 'superscript' | 'code'): void;
   focus(): void;
   blur(): void;
   setEditable(editable: boolean): void;

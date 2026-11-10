@@ -12,6 +12,7 @@ import { alignment } from './alignment';
 
 export { alignment, type Alignment, type AlignmentOptions } from './alignment';
 export { autoformat, type AutoformatOptions } from './autoformat';
+export { blockElement, type BlockElementOptions } from './blockElement';
 export { blockquote } from './blockquote';
 export { codeBlock } from './codeBlock';
 export { formatting, type FormattingOptions, type InlineFormat } from './formatting';
@@ -20,6 +21,7 @@ export { history, type HistoryOptions } from './history';
 export { horizontalRule } from './horizontalRule';
 export { inlineElement, type InlineElementOptions } from './inlineElement';
 export { getSchema } from './schema';
+export { voidElement, type VoidElementOptions } from './voidElement';
 export {
   internalLinks,
   parseHref,

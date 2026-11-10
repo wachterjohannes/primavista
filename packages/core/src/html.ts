@@ -2,6 +2,8 @@ import { $generateHtmlFromNodes, $generateNodesFromDOM } from '@lexical/html';
 import {
   $createParagraphNode,
   $getRoot,
+  $getSelection,
+  $isRangeSelection,
   $isDecoratorNode,
   $isElementNode,
   $isParagraphNode,
@@ -176,6 +178,24 @@ function cleanExportedDom(container: HTMLElement, themeClassNames: ReadonlySet<s
     }
     if (element.getAttribute('style') === '') element.removeAttribute('style');
   }
+}
+
+/**
+ * Must run inside `editor.update()`. Inserts HTML at the selection, or at the
+ * end of the document without one. Block content lands between blocks, inline
+ * content inside the current paragraph.
+ */
+export function $insertHtml(editor: LexicalEditor, html: string, inlineTags: ReadonlyArray<string> = []): void {
+  const dom = new DOMParser().parseFromString(html.trim(), 'text/html');
+  normalizeLegacyTags(dom);
+  markCustomInlineElements(dom, inlineTags);
+  const nodes = $generateNodesFromDOM(editor, dom);
+  const selection = $getSelection();
+  if ($isRangeSelection(selection)) {
+    selection.insertNodes(nodes);
+    return;
+  }
+  $getRoot().append(...wrapInlineNodesInParagraphs(nodes));
 }
 
 /** Must run inside `editor.update()`. Replaces the whole document. */

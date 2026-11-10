@@ -40,7 +40,7 @@ export interface CleanPastedHtmlOptions {
   codeBlock?: boolean;
   /** Keep `<hr>`. Otherwise it is dropped. */
   horizontalRule?: boolean;
-  /** Inline elements from the plugins' `schema`, kept with their listed attributes. */
+  /** Elements from the plugins' `schema`, kept with their listed attributes. */
   elements?: ReadonlyArray<SchemaElement>;
 }
 
@@ -56,7 +56,7 @@ interface Schema {
   blockquote: boolean;
   codeBlock: boolean;
   horizontalRule: boolean;
-  elements: ReadonlyMap<string, ReadonlyArray<string>>;
+  elements: ReadonlyMap<string, { attributes: ReadonlyArray<string>; kind: NonNullable<SchemaElement['kind']> }>;
 }
 
 interface Context {
@@ -163,7 +163,9 @@ export function cleanPastedHtml(html: string, options: CleanPastedHtmlOptions = 
       blockquote: options.blockquote ?? false,
       codeBlock: options.codeBlock ?? false,
       horizontalRule: options.horizontalRule ?? false,
-      elements: new Map((options.elements ?? []).map((element) => [element.tag, element.attributes ?? []])),
+      elements: new Map(
+        (options.elements ?? []).map((element) => [element.tag, { attributes: element.attributes ?? [], kind: element.kind ?? 'inline' }]),
+      ),
     },
     defaultLang: normalizeLang(doc.documentElement.getAttribute('lang')) ?? normalizeLang(doc.body.getAttribute('lang')),
   };
@@ -552,15 +554,28 @@ function internalLink(ctx: Context, element: HTMLElement, frame: Frame, state: S
   walkChildren(ctx, element, frameFor('text', created, frame), state);
 }
 
-/** An inline element a plugin declared in its schema. Only the listed attributes survive. */
+/** An element a plugin declared in its schema. Only the listed attributes survive. */
 function schemaElement(ctx: Context, element: HTMLElement, tag: string, frame: Frame, state: State): void {
-  const target = inlineTarget(ctx, frame, state);
-  if (!target) return;
+  const spec = ctx.schema.elements.get(tag);
+  if (!spec) return;
   const created = ctx.doc.createElement(tag);
-  for (const name of ctx.schema.elements.get(tag) ?? []) {
+  for (const name of spec.attributes) {
     const value = element.getAttribute(name)?.trim();
     if (value) created.setAttribute(name, value);
   }
+  if (spec.kind !== 'inline') {
+    // Blocks and placeholders only fit between blocks. Elsewhere only the content stays.
+    if (frame.kind !== 'flow') {
+      if (spec.kind === 'block') container(ctx, element, frame, state);
+      return;
+    }
+    frame.element.appendChild(created);
+    frame.paragraph = null;
+    if (spec.kind === 'block') walkChildren(ctx, element, frameFor('flow', created, frame, true), state);
+    return;
+  }
+  const target = inlineTarget(ctx, frame, state);
+  if (!target) return;
   // Same reason as for internal links: Lexical treats unknown elements as blocks.
   created.style.display = 'inline';
   target.appendChild(created);
