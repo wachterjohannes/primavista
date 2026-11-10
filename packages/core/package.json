@@ -32,24 +32,24 @@
     "typecheck": "tsc --noEmit -p tsconfig.json"
   },
   "dependencies": {
-    "@lexical/clipboard": "^0.51.0",
-    "@lexical/code-core": "^0.51.0",
-    "@lexical/history": "^0.51.0",
-    "@lexical/html": "^0.51.0",
-    "@lexical/link": "^0.51.0",
-    "@lexical/list": "^0.51.0",
-    "@lexical/markdown": "^0.51.0",
-    "@lexical/rich-text": "^0.51.0",
-    "@lexical/selection": "^0.51.0",
-    "@lexical/table": "^0.51.0",
-    "@lexical/utils": "^0.51.0",
-    "lexical": "^0.51.0"
+    "@lexical/clipboard": "^0.53.0",
+    "@lexical/code-core": "^0.53.0",
+    "@lexical/history": "^0.53.0",
+    "@lexical/html": "^0.53.0",
+    "@lexical/link": "^0.53.0",
+    "@lexical/list": "^0.53.0",
+    "@lexical/markdown": "^0.53.0",
+    "@lexical/rich-text": "^0.53.0",
+    "@lexical/selection": "^0.53.0",
+    "@lexical/table": "^0.53.0",
+    "@lexical/utils": "^0.53.0",
+    "lexical": "^0.53.0"
   },
   "devDependencies": {
-    "jsdom": "^30.1.1",
-    "tsup": "^8.5.1",
-    "typescript": "^5.9.0",
-    "vitest": "^5.0.1"
+    "jsdom": "^31.0.0",
+    "tsup": "^9.0.0",
+    "typescript": "^6.0.3",
+    "vitest": "^5.1.0"
   },
   "keywords": [
     "wysiwyg",

@@ -42,4 +42,5 @@ declare class export_default extends Controller<HTMLTextAreaElement> {
     private dispatchEvent;
 }
 
-export { type ConnectDetail, type PreConnectDetail, export_default as default };
+export { export_default as default };
+export type { ConnectDetail, PreConnectDetail };

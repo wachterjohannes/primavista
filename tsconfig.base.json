@@ -9,6 +9,7 @@
     "noImplicitOverride": true,
     "exactOptionalPropertyTypes": true,
     "isolatedModules": true,
+    "noUncheckedSideEffectImports": false,
     "esModuleInterop": true,
     "skipLibCheck": true,
     "declaration": true,

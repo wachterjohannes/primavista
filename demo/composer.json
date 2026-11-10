@@ -11,17 +11,17 @@
         "symfony/asset-mapper": "8.1.*",
         "symfony/console": "8.1.*",
         "symfony/dotenv": "8.1.*",
-        "symfony/flex": "^2",
+        "symfony/flex": "^2.12",
         "symfony/form": "8.1.*",
         "symfony/framework-bundle": "8.1.*",
         "symfony/html-sanitizer": "8.1.*",
         "symfony/runtime": "8.1.*",
-        "symfony/stimulus-bundle": "^3.5",
+        "symfony/stimulus-bundle": "^3.7",
         "symfony/twig-bundle": "8.1.*",
         "symfony/validator": "8.1.*",
         "symfony/yaml": "8.1.*",
-        "twig/extra-bundle": "^2.12|^3.0",
-        "twig/twig": "^2.12|^3.0"
+        "twig/extra-bundle": "^2.12|^3.29",
+        "twig/twig": "^2.12|^3.30"
     },
     "config": {
         "allow-plugins": {
