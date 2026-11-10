@@ -127,7 +127,10 @@ final class TextEditorSanitizersTest extends TestCase
         return $result;
     }
 
-    private const ELEMENTS = ['mark' => ['attributes' => []], 'abbr' => ['attributes' => ['title']]];
+    private const ELEMENTS = [
+        ['tag' => 'mark', 'class' => null, 'attributes' => [], 'label' => null],
+        ['tag' => 'abbr', 'class' => null, 'attributes' => ['title'], 'label' => null],
+    ];
 
     public function testDeclaredElementsAreAllowedWithTheirAttributes(): void
     {

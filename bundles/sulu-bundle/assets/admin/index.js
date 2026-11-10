@@ -43,18 +43,32 @@ initializer.addUpdateConfigHook('sulu_admin', (config: Object, initialized: bool
 // PrimavistaAdmin. Each becomes an inline element plugin. With Sulu 3.1
 // configs a config offers it only when it lists the tag, the sanitizer on the
 // server follows the same rule.
-initializer.addUpdateConfigHook('primavista', (config: Object, initialized: boolean) => {
-    if (initialized) {
+initializer.addUpdateConfigHook('primavista', (config: ?Object, initialized: boolean) => {
+    // Sulu calls the hook with undefined when no Admin class sends this key,
+    // which is every project without primavista_sulu.elements.
+    if (initialized || !config || !Array.isArray(config.elements)) {
         return;
     }
 
-    (config.elements || []).forEach(({tag, attributes, label}: {tag: string, attributes: Array<string>, label: string}) => {
+    config.elements.forEach(({tag, class: className, attributes, label}: {
+        tag: string,
+        class: ?string,
+        attributes: Array<string>,
+        label: string,
+    }) => {
+        const name = className ? tag + '-' + className : tag;
         primavistaPluginRegistry.add(({config: textEditorConfig}) => {
             if (textEditorConfig && Array.isArray(textEditorConfig.tags) && !textEditorConfig.tags.includes(tag)) {
                 return undefined;
             }
 
-            return inlineElement({name: tag, tag, attributes, toolbar: {label}});
+            return inlineElement({
+                name,
+                tag,
+                attributes,
+                ...(className ? {className} : {}),
+                toolbar: {label},
+            });
         });
     });
 });

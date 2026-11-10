@@ -95,19 +95,23 @@ primavista_sulu:
 
 ### Inline elements without JavaScript
 
-A plain inline element such as `<mark>` or `<abbr title>` needs no plugin. Declare it once in the bundle config. The sanitizer allows it with the listed attributes, and the admin adds a toolbar button that wraps or unwraps the selection:
+A plain inline element such as `<mark>` needs no plugin. Declare it once in the bundle config. The sanitizer allows it with the listed attributes, and the admin adds a toolbar button that wraps or unwraps the selection:
 
 ```yaml
 # config/packages/primavista_sulu.yaml
 primavista_sulu:
     elements:
-        mark: ~
-        abbr:
-            attributes: [title]
-            label: Abbreviation
+        - { tag: mark }
+        - { tag: mark, class: green, label: Green highlight }
+        - { tag: abbr, attributes: [title] }
+        - { tag: span, class: lead }
 ```
 
-The label defaults to the tag and can be translated with `sulu_admin.primavista.toolbar.<tag>`. On Sulu 3.0 every text editor gets the elements. With the text editor configs of Sulu 3.1 a config offers an element only when its `tags` list the tag, on the server and in the admin. The bundle sends the list to the admin through a `sulu.admin` service under the config key `primavista`, which `index.js` reads with an update config hook.
+`class` is written on every element and required when content loads, so other elements of the tag stay untouched. Common tags such as `span`, `div` or `a` need a class, the config is rejected otherwise. Event handlers, `style` and `class` are not allowed as attributes, and tags such as `script` or `iframe` are refused. The sanitizer allows `class` on the tag as a whole, since it cannot tell the elements apart by value.
+
+`attributes` are kept when content loads, pastes or saves. The toolbar button does not set them yet, so `abbr` with `title` keeps existing titles but cannot create new ones.
+
+The label defaults to the tag and can be translated with `sulu_admin.primavista.toolbar.<tag>`, or `<tag>-<class>` when a class is set. On Sulu 3.0 every text editor gets the elements. With the text editor configs of Sulu 3.1 a config offers an element only when its `tags` list the tag, on the server and in the admin. The bundle sends the list to the admin through a `sulu.admin` service under the config key `primavista`, which `index.js` reads with an update config hook.
 
 Translations for the toolbar and the link forms ship with the bundle in `translations/admin.{en,de}.json`. Add other languages in your project's `translations/admin.<locale>.json` under `sulu_admin.primavista.*`.
 

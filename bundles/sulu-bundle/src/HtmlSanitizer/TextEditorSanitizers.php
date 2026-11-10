@@ -21,7 +21,7 @@ use Symfony\Component\HtmlSanitizer\HtmlSanitizerInterface;
  * `i` key allows `<i>` next to the editor's `<em>`, and `strong` allows `<b>`.
  *
  * @phpstan-type TextEditorConfig array{enterMode: string, tags: list<string>, attributes: list<string>}
- * @phpstan-type ElementConfig array{attributes: list<string>, label?: string|null}
+ * @phpstan-type ElementConfig array{tag: string, class: string|null, attributes: list<string>, label: string|null}
  */
 final class TextEditorSanitizers implements TextEditorSanitizersInterface
 {
@@ -53,7 +53,7 @@ final class TextEditorSanitizers implements TextEditorSanitizersInterface
      * @param array<string, TextEditorConfig> $configs        `sulu_admin.text_editor_configs`, empty on Sulu 3.0
      * @param list<string>                    $additionalTags tags every config allows on top, `primavista_sulu.tags`,
      *                                                        for plugins a project adds in the admin JavaScript on Sulu 3.0
-     * @param array<string, ElementConfig>    $elements       inline elements `primavista_sulu.elements` declares with
+     * @param list<ElementConfig>               $elements       inline elements `primavista_sulu.elements` declares with
      *                                                        their attributes. With Sulu 3.1 configs a config allows an
      *                                                        element only when it lists the tag, on Sulu 3.0 every config does.
      */
@@ -103,9 +103,10 @@ final class TextEditorSanitizers implements TextEditorSanitizersInterface
      */
     private function withElements(HtmlSanitizerConfig $config, ?array $tags): HtmlSanitizerConfig
     {
-        foreach ($this->elements as $tag => $element) {
-            if (null === $tags || \in_array($tag, $tags, true)) {
-                $config = $config->allowElement($tag, $element['attributes']);
+        foreach ($this->elements as $element) {
+            if (null === $tags || \in_array($element['tag'], $tags, true)) {
+                // The class is allowed on the tag as a whole, a sanitizer cannot tell the element by it.
+                $config = $config->allowElement($element['tag'], [...$element['attributes'], ...(null === $element['class'] ? [] : ['class'])]);
             }
         }
 
