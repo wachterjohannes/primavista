@@ -1,16 +1,25 @@
 import type { PluginSchema, PrimavistaPlugin, SchemaElement } from '../types';
 
-/** Merges the `schema` of the given plugins. The same tag from two plugins unites its attributes. */
+/**
+ * Merges the `schema` of the given plugins. Entries with the same tag, class
+ * and required attributes unite their attributes.
+ */
 export function collectSchema(plugins: ReadonlyArray<PrimavistaPlugin>): Required<PluginSchema> {
-  const byTag = new Map<string, Set<string>>();
+  const byKey = new Map<string, { element: SchemaElement; attributes: Set<string> }>();
   for (const plugin of plugins) {
     for (const element of plugin.schema?.elements ?? []) {
-      const attributes = byTag.get(element.tag) ?? new Set<string>();
-      for (const name of element.attributes ?? []) attributes.add(name);
-      byTag.set(element.tag, attributes);
+      const key = JSON.stringify([element.tag, element.className ?? null, [...(element.requires ?? [])].sort()]);
+      const entry = byKey.get(key) ?? { element, attributes: new Set<string>() };
+      for (const name of element.attributes ?? []) entry.attributes.add(name);
+      byKey.set(key, entry);
     }
   }
-  const elements: SchemaElement[] = [...byTag].map(([tag, attributes]) => ({ tag, attributes: [...attributes] }));
+  const elements: SchemaElement[] = [...byKey.values()].map(({ element, attributes }) => ({
+    tag: element.tag,
+    attributes: [...attributes],
+    ...(element.className ? { className: element.className } : {}),
+    ...(element.requires ? { requires: element.requires } : {}),
+  }));
   return { elements };
 }
 
