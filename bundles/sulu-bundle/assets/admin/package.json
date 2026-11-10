@@ -9,7 +9,7 @@
     "@primavista/core": "^0.1.0",
     "@primavista/react": "^0.1.0",
     "@primavista/sulu": "^0.1.0",
-    "lexical": "^0.51.0"
+    "lexical": "^0.53.0"
   },
   "peerDependencies": {
     "mobx": "^4.0.0",

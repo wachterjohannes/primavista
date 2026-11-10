@@ -35,7 +35,7 @@ Until the packages are on npm, add the built Primavista packages as tarballs nex
         "@primavista/core": "file:../../primavista/primavista-core-0.1.0.tgz",
         "@primavista/react": "file:../../primavista/primavista-react-0.1.0.tgz",
         "@primavista/sulu": "file:../../primavista/primavista-sulu-0.1.0.tgz",
-        "lexical": "^0.51.0",
+        "lexical": "^0.53.0",
         "sulu-primavista-bundle": "file:../../vendor/primavista/sulu-bundle/assets/admin"
     }
 }
