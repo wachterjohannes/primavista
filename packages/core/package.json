@@ -16,6 +16,66 @@
       "import": "./dist/index.js",
       "require": "./dist/index.cjs"
     },
+    "./lexical": {
+      "types": "./dist/lexical/index.d.ts",
+      "import": "./dist/lexical/index.js",
+      "require": "./dist/lexical/index.cjs"
+    },
+    "./lexical/clipboard": {
+      "types": "./dist/lexical/clipboard.d.ts",
+      "import": "./dist/lexical/clipboard.js",
+      "require": "./dist/lexical/clipboard.cjs"
+    },
+    "./lexical/code-core": {
+      "types": "./dist/lexical/code-core.d.ts",
+      "import": "./dist/lexical/code-core.js",
+      "require": "./dist/lexical/code-core.cjs"
+    },
+    "./lexical/history": {
+      "types": "./dist/lexical/history.d.ts",
+      "import": "./dist/lexical/history.js",
+      "require": "./dist/lexical/history.cjs"
+    },
+    "./lexical/html": {
+      "types": "./dist/lexical/html.d.ts",
+      "import": "./dist/lexical/html.js",
+      "require": "./dist/lexical/html.cjs"
+    },
+    "./lexical/link": {
+      "types": "./dist/lexical/link.d.ts",
+      "import": "./dist/lexical/link.js",
+      "require": "./dist/lexical/link.cjs"
+    },
+    "./lexical/list": {
+      "types": "./dist/lexical/list.d.ts",
+      "import": "./dist/lexical/list.js",
+      "require": "./dist/lexical/list.cjs"
+    },
+    "./lexical/markdown": {
+      "types": "./dist/lexical/markdown.d.ts",
+      "import": "./dist/lexical/markdown.js",
+      "require": "./dist/lexical/markdown.cjs"
+    },
+    "./lexical/rich-text": {
+      "types": "./dist/lexical/rich-text.d.ts",
+      "import": "./dist/lexical/rich-text.js",
+      "require": "./dist/lexical/rich-text.cjs"
+    },
+    "./lexical/selection": {
+      "types": "./dist/lexical/selection.d.ts",
+      "import": "./dist/lexical/selection.js",
+      "require": "./dist/lexical/selection.cjs"
+    },
+    "./lexical/table": {
+      "types": "./dist/lexical/table.d.ts",
+      "import": "./dist/lexical/table.js",
+      "require": "./dist/lexical/table.cjs"
+    },
+    "./lexical/utils": {
+      "types": "./dist/lexical/utils.d.ts",
+      "import": "./dist/lexical/utils.js",
+      "require": "./dist/lexical/utils.cjs"
+    },
     "./primavista.css": "./dist/primavista.css",
     "./package.json": "./package.json",
     "./themes/*": "./dist/themes/*"

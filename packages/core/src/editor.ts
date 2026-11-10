@@ -15,6 +15,7 @@ import { defaultPlugins } from './plugins';
 import { collectAllowed } from './plugins/allowed';
 import { collectThemeClassNames, defaultTheme, mergeThemes } from './theme';
 import { createToolbar } from './toolbar';
+import { assertSameLexical } from './lexicalGuard';
 import type { EditorEventMap, EditorOptions, HtmlOptions, PrimavistaEditor, PrimavistaPlugin } from './types';
 
 /**
@@ -33,6 +34,7 @@ export function createEditor(container: HTMLElement, options: EditorOptions = {}
   };
   const themeClassNames = collectThemeClassNames(theme);
   const nodes = dedupeNodes(plugins.flatMap((p) => p.nodes ?? []));
+  assertSameLexical(plugins);
 
   const lexical = createLexicalEditor({
     namespace: options.namespace ?? 'primavista',

@@ -105,9 +105,8 @@ editor.destroy();
 A plugin declares Lexical nodes, theme classes, toolbar items and a `register` hook:
 
 ```ts
-import { lexical, type PrimavistaPlugin } from '@primavista/core';
-
-const { $getSelection, $isRangeSelection, FORMAT_TEXT_COMMAND } = lexical;
+import type { PrimavistaPlugin } from '@primavista/core';
+import { $getSelection, $isRangeSelection, FORMAT_TEXT_COMMAND } from '@primavista/core/lexical';
 
 export const highlight: PrimavistaPlugin = {
   name: 'highlight',
@@ -168,7 +167,7 @@ countText('Some plain text');    // the same rules on a string
 
 Characters include spaces but not the breaks between blocks, an emoji is one character. Every Chinese or Japanese ideograph and kana counts as one word, the way word processors count. Over the limit the bar gets `pv-word-count--over` and a polite live region announces it once, the counts themselves are not announced on every keystroke. Labels translate through `wordCount.words`, `wordCount.characters` and `wordCount.overLimit`.
 
-With a bundler, import from `lexical` directly. In the Symfony UX build the core re-exports `lexical`, `lexicalLink` and `lexicalUtils`, because the controller ships its own copy of Lexical.
+Import Lexical through the core, never install it yourself. `@primavista/core/lexical` re-exports `lexical`, and `@primavista/core/lexical/link`, `/list`, `/table`, `/utils` and the other `@lexical/*` packages follow the same pattern. They hand out the core's own copy, so an extension has no `lexical` in its `dependencies` and a Lexical update does not touch it. A node class from another copy makes `createEditor` throw, `LEXICAL_VERSION` names the version the core was built with. In the Symfony UX build there is no bundler to resolve a subpath, so the core re-exports `lexical`, `lexicalLink` and `lexicalUtils` as namespaces and the controller ships its own copy of Lexical.
 
 ## Link dialogs
 
