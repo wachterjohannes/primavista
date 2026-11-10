@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Primavista\SuluBundle\Tests;
 
 use PHPUnit\Framework\TestCase;
+use Primavista\SuluBundle\Admin\PrimavistaAdmin;
 use Primavista\SuluBundle\Content\TextEditorSanitizingDataMapper;
 use Primavista\SuluBundle\HtmlSanitizer\TextEditorSanitizers;
 use Sulu\Bundle\AdminBundle\Metadata\MetadataProviderRegistry;
@@ -58,6 +59,31 @@ final class BundleTest extends TestCase
         $sanitizers = $container->get('primavista_sulu.text_editor_sanitizers');
         self::assertInstanceOf(TextEditorSanitizers::class, $sanitizers);
         self::assertSame('<p>a</p><hr />', $sanitizers->get(null)->sanitize('<p>a</p><hr>'));
+    }
+
+    public function testElementsReachTheSanitizerAndTheAdminConfig(): void
+    {
+        $container = $this->container(['sanitize' => true, 'elements' => ['mark' => ['label' => 'Highlight'], 'abbr' => ['attributes' => ['title']]]], null);
+
+        $sanitizers = $container->get('primavista_sulu.text_editor_sanitizers');
+        self::assertInstanceOf(TextEditorSanitizers::class, $sanitizers);
+        self::assertSame('<p><mark>a</mark></p>', $sanitizers->get(null)->sanitize('<p><mark>a</mark></p>'));
+
+        $admin = $container->get('primavista_sulu.admin');
+        self::assertInstanceOf(PrimavistaAdmin::class, $admin);
+        self::assertSame('primavista', $admin->getConfigKey());
+        self::assertSame(
+            ['elements' => [
+                ['tag' => 'mark', 'attributes' => [], 'label' => 'Highlight'],
+                ['tag' => 'abbr', 'attributes' => ['title'], 'label' => 'abbr'],
+            ]],
+            $admin->getConfig(),
+        );
+    }
+
+    public function testNoAdminConfigWithoutElements(): void
+    {
+        self::assertFalse($this->container(['sanitize' => true], null)->hasDefinition('primavista_sulu.admin'));
     }
 
     public function testSanitizingCanBeSwitchedOff(): void

@@ -93,6 +93,22 @@ primavista_sulu:
     tags: [blockquote, hr]
 ```
 
+### Inline elements without JavaScript
+
+A plain inline element such as `<mark>` or `<abbr title>` needs no plugin. Declare it once in the bundle config. The sanitizer allows it with the listed attributes, and the admin adds a toolbar button that wraps or unwraps the selection:
+
+```yaml
+# config/packages/primavista_sulu.yaml
+primavista_sulu:
+    elements:
+        mark: ~
+        abbr:
+            attributes: [title]
+            label: Abbreviation
+```
+
+The label defaults to the tag and can be translated with `sulu_admin.primavista.toolbar.<tag>`. On Sulu 3.0 every text editor gets the elements. With the text editor configs of Sulu 3.1 a config offers an element only when its `tags` list the tag, on the server and in the admin. The bundle sends the list to the admin through a `sulu.admin` service under the config key `primavista`, which `index.js` reads with an update config hook.
+
 Translations for the toolbar and the link forms ship with the bundle in `translations/admin.{en,de}.json`. Add other languages in your project's `translations/admin.<locale>.json` under `sulu_admin.primavista.*`.
 
 ## How it works

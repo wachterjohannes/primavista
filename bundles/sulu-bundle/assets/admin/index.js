@@ -8,6 +8,7 @@
  * else (link overlays, validation states, enter_mode, translations) goes
  * through Sulu's public registries and stores.
  */
+import {inlineElement} from '@primavista/core';
 import {fieldRegistry, textEditorRegistry} from 'sulu-admin-bundle/containers';
 import {initializer} from 'sulu-admin-bundle/services';
 import PrimavistaTextEditor from './PrimavistaTextEditor';
@@ -36,6 +37,26 @@ initializer.addUpdateConfigHook('sulu_admin', (config: Object, initialized: bool
         delete fieldRegistry.options[FIELD_TYPE_TEXT_EDITOR];
     }
     fieldRegistry.add(FIELD_TYPE_TEXT_EDITOR, TextEditor);
+});
+
+// The elements of `primavista_sulu.elements` arrive under the key of
+// PrimavistaAdmin. Each becomes an inline element plugin. With Sulu 3.1
+// configs a config offers it only when it lists the tag, the sanitizer on the
+// server follows the same rule.
+initializer.addUpdateConfigHook('primavista', (config: Object, initialized: boolean) => {
+    if (initialized) {
+        return;
+    }
+
+    (config.elements || []).forEach(({tag, attributes, label}: {tag: string, attributes: Array<string>, label: string}) => {
+        primavistaPluginRegistry.add(({config: textEditorConfig}) => {
+            if (textEditorConfig && Array.isArray(textEditorConfig.tags) && !textEditorConfig.tags.includes(tag)) {
+                return undefined;
+            }
+
+            return inlineElement({name: tag, tag, attributes, toolbar: {label}});
+        });
+    });
 });
 
 export {ADAPTER, PrimavistaTextEditor, TextEditor, primavistaPluginRegistry};

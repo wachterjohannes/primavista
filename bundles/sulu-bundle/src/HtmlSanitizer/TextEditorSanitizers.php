@@ -21,6 +21,7 @@ use Symfony\Component\HtmlSanitizer\HtmlSanitizerInterface;
  * `i` key allows `<i>` next to the editor's `<em>`, and `strong` allows `<b>`.
  *
  * @phpstan-type TextEditorConfig array{enterMode: string, tags: list<string>, attributes: list<string>}
+ * @phpstan-type ElementConfig array{attributes: list<string>, label?: string|null}
  */
 final class TextEditorSanitizers implements TextEditorSanitizersInterface
 {
@@ -52,10 +53,14 @@ final class TextEditorSanitizers implements TextEditorSanitizersInterface
      * @param array<string, TextEditorConfig> $configs        `sulu_admin.text_editor_configs`, empty on Sulu 3.0
      * @param list<string>                    $additionalTags tags every config allows on top, `primavista_sulu.tags`,
      *                                                        for plugins a project adds in the admin JavaScript on Sulu 3.0
+     * @param array<string, ElementConfig>    $elements       inline elements `primavista_sulu.elements` declares with
+     *                                                        their attributes. With Sulu 3.1 configs a config allows an
+     *                                                        element only when it lists the tag, on Sulu 3.0 every config does.
      */
     public function __construct(
         private readonly array $configs = [],
         private readonly array $additionalTags = [],
+        private readonly array $elements = [],
     ) {
     }
 
@@ -78,16 +83,33 @@ final class TextEditorSanitizers implements TextEditorSanitizersInterface
         // Allow everything Primavista can write rather than strip what the
         // editor offered, the markup is still free of anything executable.
         if (null === $config) {
-            return self::withLegacyElements(
-                PrimavistaSanitizerConfig::create(self::LINK_TAG, self::VALIDATION_ATTRIBUTE),
-                array_keys(self::LEGACY_ELEMENTS),
+            return $this->withElements(
+                self::withLegacyElements(
+                    PrimavistaSanitizerConfig::create(self::LINK_TAG, self::VALIDATION_ATTRIBUTE),
+                    array_keys(self::LEGACY_ELEMENTS),
+                ),
+                null,
             );
         }
 
         $config = self::applyFormats($config, $formats);
         $config['tags'] = array_values(array_unique([...$config['tags'], ...$this->additionalTags]));
 
-        return self::createFromConfig($config);
+        return $this->withElements(self::createFromConfig($config), [] === $this->configs ? null : $config['tags']);
+    }
+
+    /**
+     * @param list<string>|null $tags the tags of the config, null allows every declared element
+     */
+    private function withElements(HtmlSanitizerConfig $config, ?array $tags): HtmlSanitizerConfig
+    {
+        foreach ($this->elements as $tag => $element) {
+            if (null === $tags || \in_array($tag, $tags, true)) {
+                $config = $config->allowElement($tag, $element['attributes']);
+            }
+        }
+
+        return $config;
     }
 
     /**

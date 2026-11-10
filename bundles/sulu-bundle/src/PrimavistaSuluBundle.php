@@ -4,9 +4,11 @@ declare(strict_types=1);
 
 namespace Primavista\SuluBundle;
 
+use Primavista\SuluBundle\Admin\PrimavistaAdmin;
 use Primavista\SuluBundle\Content\TextEditorSanitizingDataMapper;
 use Primavista\SuluBundle\HtmlSanitizer\TextEditorSanitizers;
 use Primavista\SuluBundle\HtmlSanitizer\TextEditorSanitizersInterface;
+use Sulu\Bundle\AdminBundle\Admin\Admin;
 use Sulu\Content\Application\ContentDataMapper\DataMapper\DataMapperInterface;
 use Symfony\Component\Config\Definition\Configurator\DefinitionConfigurator;
 use Symfony\Component\DependencyInjection\Compiler\CompilerPassInterface;
@@ -43,6 +45,22 @@ final class PrimavistaSuluBundle extends AbstractBundle
                     ->defaultTrue()
                     ->info('Sanitize text_editor values on save with the property\'s text editor config.')
                 ->end()
+                ->arrayNode('elements')
+                    ->info('Inline elements the editor offers as a toolbar button, for example mark or abbr. The sanitizer allows them with the listed attributes and the admin builds the plugin, no JavaScript needed.')
+                    ->useAttributeAsKey('tag')
+                    ->arrayPrototype()
+                        ->children()
+                            ->arrayNode('attributes')
+                                ->info('Attributes the element may carry, for example title.')
+                                ->scalarPrototype()->end()
+                            ->end()
+                            ->scalarNode('label')
+                                ->defaultNull()
+                                ->info('Toolbar label. Translate it with the key sulu_admin.primavista.toolbar.<tag>. Defaults to the tag.')
+                            ->end()
+                        ->end()
+                    ->end()
+                ->end()
                 ->arrayNode('tags')
                     ->info('Tags every text editor config allows on top, for plugins the admin JavaScript adds through primavistaPluginRegistry: blockquote, pre, hr.')
                     ->scalarPrototype()->end()
@@ -51,15 +69,22 @@ final class PrimavistaSuluBundle extends AbstractBundle
     }
 
     /**
-     * @param array{sanitize: bool, tags: list<string>} $config
+     * @param array{sanitize: bool, tags: list<string>, elements: array<string, array{attributes: list<string>, label: string|null}>} $config
      */
     public function loadExtension(array $config, ContainerConfigurator $container, ContainerBuilder $builder): void
     {
         $container->services()
             ->set('primavista_sulu.text_editor_sanitizers', TextEditorSanitizers::class)
-                ->args([[], $config['tags']])
+                ->args([[], $config['tags'], $config['elements']])
             ->alias(TextEditorSanitizers::class, 'primavista_sulu.text_editor_sanitizers')
             ->alias(TextEditorSanitizersInterface::class, 'primavista_sulu.text_editor_sanitizers');
+
+        if ($config['elements'] !== [] && class_exists(Admin::class)) {
+            $container->services()
+                ->set('primavista_sulu.admin', PrimavistaAdmin::class)
+                    ->args([$config['elements']])
+                    ->tag('sulu.admin');
+        }
 
         if (!$config['sanitize'] || !interface_exists(DataMapperInterface::class)) {
             return;
