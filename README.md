@@ -12,7 +12,7 @@
 <p align="center">
   <a href="https://github.com/wachterjohannes/primavista/actions/workflows/ci.yml"><img src="https://github.com/wachterjohannes/primavista/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="MIT license"></a>
-  <img src="https://img.shields.io/badge/core-Lexical%200.51-6d28d9.svg" alt="Lexical 0.51">
+  <img src="https://img.shields.io/badge/core-Lexical%200.53-6d28d9.svg" alt="Lexical 0.53">
   <img src="https://img.shields.io/badge/Symfony%20UX-AssetMapper%20ready-000.svg" alt="Symfony UX">
 </p>
 

@@ -18,7 +18,7 @@ const BUDGETS = [
   { file: 'packages/core/dist/index.js', raw: 130, gzip: 31 },
   { file: 'packages/react/dist/index.js', raw: 3.1, gzip: 1.05 },
   { file: 'packages/sulu/dist/index.js', raw: 5.5, gzip: 1.9 },
-  { file: 'demo/assets/build/react-island.js', raw: 636, gzip: 200 },
+  { file: 'demo/assets/build/react-island.js', raw: 636, gzip: 202 },
 ];
 
 const kb = (bytes) => (bytes / 1024).toFixed(2);
