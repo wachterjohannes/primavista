@@ -123,6 +123,10 @@ export interface SchemaElement {
   kind?: 'inline' | 'block' | 'void';
   /** Attributes the element may carry. Paste cleanup and sanitizers keep these and drop the rest. */
   attributes?: ReadonlyArray<string>;
+  /** Only elements with this class count. Needed to claim a common tag such as `span`. */
+  className?: string;
+  /** Only elements with all of these attributes count. */
+  requires?: ReadonlyArray<string>;
 }
 
 /**
@@ -219,11 +223,12 @@ export interface PrimavistaEditor {
   /** Replaces the document. Does not emit `change` and is not undoable. */
   setHtml(html: string): void;
   isEmpty(): boolean;
-  /** Inserts plain text at the selection, replacing a selected range. Undoable. */
+  /** Inserts plain text at the selection, replacing a selected range. Without a selection it goes to the end of the document. Undoable. */
   insertText(text: string): void;
   /**
-   * Inserts HTML at the selection, parsed with the editor's own import rules,
-   * so elements no plugin knows are reduced to their content. Undoable.
+   * Inserts HTML at the selection, or at the end without one, parsed with the
+   * editor's own import rules, so elements no plugin knows are reduced to
+   * their content. Undoable.
    */
   insertHtml(html: string): void;
   /** The plain text of the current selection, empty when nothing is selected. */

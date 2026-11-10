@@ -2,6 +2,7 @@ import {
   BLUR_COMMAND,
   COMMAND_PRIORITY_LOW,
   createEditor as createLexicalEditor,
+  $getRoot,
   $getSelection,
   $isRangeSelection,
   FOCUS_COMMAND,
@@ -16,6 +17,8 @@ import { createBalloon } from './balloon';
 import { $insertHtml, $isDocumentEmpty, $loadHtml, $serializeToHtml, createExportMap, SET_HTML_TAG } from './html';
 import { defaultPlugins } from './plugins';
 import { collectAllowed } from './plugins/allowed';
+import { InternalLinkNode, registerInternalLinkClass } from './nodes/InternalLinkNode';
+import { matchSelector } from './nodes/match';
 import { collectSchema } from './plugins/schema';
 import { collectThemeClassNames, defaultTheme, mergeThemes } from './theme';
 import { createToolbar } from './toolbar';
@@ -40,7 +43,9 @@ export function createEditor(container: HTMLElement, options: EditorOptions = {}
   const nodes = dedupeNodes(plugins.flatMap((p) => p.nodes ?? []));
   assertSameLexical(plugins);
   const schema = collectSchema(plugins);
-  const inlineTags = schema.elements.filter((element) => element.kind === 'inline').map((element) => element.tag);
+  const inlineTags = schema.elements
+    .filter((element) => element.kind === 'inline')
+    .map((element) => matchSelector({ tag: element.tag, className: element.className, requires: element.requires }));
 
   const lexical = createLexicalEditor({
     namespace: options.namespace ?? 'primavista',
@@ -54,6 +59,9 @@ export function createEditor(container: HTMLElement, options: EditorOptions = {}
         throw error;
       }),
   });
+  for (const node of nodes) {
+    if (node.prototype instanceof InternalLinkNode) registerInternalLinkClass(lexical, node as typeof InternalLinkNode);
+  }
 
   const element = document.createElement('div');
   element.className = 'pv-editor';
@@ -177,7 +185,9 @@ export function createEditor(container: HTMLElement, options: EditorOptions = {}
       lexical.update(
         () => {
           const selection = $getSelection();
+          // Without a selection the text goes to the end, like `insertHtml`.
           if ($isRangeSelection(selection)) selection.insertText(text);
+          else $getRoot().selectEnd().insertText(text);
         },
         { discrete: true },
       );

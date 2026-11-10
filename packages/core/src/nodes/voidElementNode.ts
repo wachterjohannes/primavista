@@ -11,6 +11,7 @@ import {
   type SerializedLexicalNode,
   type Spread,
 } from 'lexical';
+import { elementMatches, type ElementMatch } from './match';
 
 export type SerializedVoidElementNode = Spread<{ attributes: Record<string, string> }, SerializedLexicalNode>;
 
@@ -20,6 +21,8 @@ export interface VoidElementSpec {
   tag: string;
   attributes: ReadonlyArray<string>;
   fixed: Readonly<Record<string, string>>;
+  /** Which elements of the tag this node claims. */
+  match: ElementMatch;
   /** Fills the element in the editor, for example a preview of an embed. The exported HTML stays `<tag attributes>`. */
   render?: ((element: HTMLElement, attributes: Readonly<Record<string, string>>) => void) | undefined;
 }
@@ -64,7 +67,7 @@ export function createVoidElementNode(spec: VoidElementSpec): {
     }
 
     static override importDOM(): DOMConversionMap | null {
-      return { [spec.tag]: () => ({ conversion: convert, priority: 1 }) };
+      return { [spec.tag]: (element: HTMLElement) => (elementMatches(element, spec.match) ? { conversion: convert, priority: 1 } : null) };
     }
 
     constructor(attributes: Record<string, string> = {}, key?: NodeKey) {

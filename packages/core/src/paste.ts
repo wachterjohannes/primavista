@@ -2,6 +2,7 @@ import { FORMAT_TAGS } from './html';
 import type { Alignment } from './plugins/alignment';
 import { DEFAULT_FORMATS, type InlineFormat } from './plugins/formatting';
 import type { ListTag } from './plugins/lists';
+import { elementMatches } from './nodes/match';
 import type { SchemaElement } from './types';
 
 /**
@@ -56,7 +57,7 @@ interface Schema {
   blockquote: boolean;
   codeBlock: boolean;
   horizontalRule: boolean;
-  elements: ReadonlyMap<string, { attributes: ReadonlyArray<string>; kind: NonNullable<SchemaElement['kind']> }>;
+  elements: ReadonlyMap<string, ReadonlyArray<SchemaElement>>;
 }
 
 interface Context {
@@ -163,9 +164,7 @@ export function cleanPastedHtml(html: string, options: CleanPastedHtmlOptions = 
       blockquote: options.blockquote ?? false,
       codeBlock: options.codeBlock ?? false,
       horizontalRule: options.horizontalRule ?? false,
-      elements: new Map(
-        (options.elements ?? []).map((element) => [element.tag, { attributes: element.attributes ?? [], kind: element.kind ?? 'inline' }]),
-      ),
+      elements: groupElements(options.elements ?? []),
     },
     defaultLang: normalizeLang(doc.documentElement.getAttribute('lang')) ?? normalizeLang(doc.body.getAttribute('lang')),
   };
@@ -213,7 +212,7 @@ function walk(ctx: Context, node: Node, frame: Frame, state: State): void {
   else if (tag === 'td' || tag === 'th') cell(ctx, element, tag, frame, next);
   else if (tag === 'a') link(ctx, element, frame, next);
   else if (ctx.schema.internalLink && tag === ctx.schema.internalLink.tag) internalLink(ctx, element, frame, next);
-  else if (ctx.schema.elements.has(tag)) schemaElement(ctx, element, tag, frame, next);
+  else if (schemaSpecFor(ctx, element, tag)) schemaElement(ctx, element, schemaSpecFor(ctx, element, tag), frame, next);
   else if (CONTAINER_TAGS.has(tag)) container(ctx, element, frame, next);
   // Everything else is a wrapper: span, font, b, i, o:p, tbody and unknown elements.
   else walkChildren(ctx, element, frame, next);
@@ -554,24 +553,36 @@ function internalLink(ctx: Context, element: HTMLElement, frame: Frame, state: S
   walkChildren(ctx, element, frameFor('text', created, frame), state);
 }
 
+function groupElements(elements: ReadonlyArray<SchemaElement>): ReadonlyMap<string, ReadonlyArray<SchemaElement>> {
+  const byTag = new Map<string, SchemaElement[]>();
+  for (const element of elements) byTag.set(element.tag, [...(byTag.get(element.tag) ?? []), element]);
+  return byTag;
+}
+
+/** The schema entry whose tag, class and required attributes fit the element. */
+function schemaSpecFor(ctx: Context, element: HTMLElement, tag: string): SchemaElement | undefined {
+  return ctx.schema.elements.get(tag)?.find((spec) => elementMatches(element, spec));
+}
+
 /** An element a plugin declared in its schema. Only the listed attributes survive. */
-function schemaElement(ctx: Context, element: HTMLElement, tag: string, frame: Frame, state: State): void {
-  const spec = ctx.schema.elements.get(tag);
+function schemaElement(ctx: Context, element: HTMLElement, spec: SchemaElement | undefined, frame: Frame, state: State): void {
   if (!spec) return;
-  const created = ctx.doc.createElement(tag);
-  for (const name of spec.attributes) {
+  const kind = spec.kind ?? 'inline';
+  const created = ctx.doc.createElement(spec.tag);
+  for (const name of spec.attributes ?? []) {
     const value = element.getAttribute(name)?.trim();
     if (value) created.setAttribute(name, value);
   }
-  if (spec.kind !== 'inline') {
+  if (spec.className) created.classList.add(spec.className);
+  if (kind !== 'inline') {
     // Blocks and placeholders only fit between blocks. Elsewhere only the content stays.
     if (frame.kind !== 'flow') {
-      if (spec.kind === 'block') container(ctx, element, frame, state);
+      if (kind === 'block') container(ctx, element, frame, state);
       return;
     }
     frame.element.appendChild(created);
     frame.paragraph = null;
-    if (spec.kind === 'block') walkChildren(ctx, element, frameFor('flow', created, frame, true), state);
+    if (kind === 'block') walkChildren(ctx, element, frameFor('flow', created, frame, true), state);
     return;
   }
   const target = inlineTarget(ctx, frame, state);

@@ -67,7 +67,7 @@ describe('voidElement', () => {
     const preview = voidElement({
       name: 'preview',
       tag: 'div',
-      attributes: ['data-id'],
+      requires: ['data-id'],
       render: (element, attributes) => {
         element.textContent = `Preview ${attributes['data-id']}`;
       },
@@ -87,11 +87,35 @@ describe('voidElement', () => {
   });
 });
 
+describe('matching', () => {
+  it('keeps the text of a div that is not a placeholder', () => {
+    const editor = setup();
+    editor.setHtml('<div><p>important text</p></div><div data-widget="newsletter"></div>');
+    expect(editor.getHtml()).toBe('<p>important text</p><div data-widget="newsletter"></div>');
+    paste(editor, { 'text/html': '<div><p>pasted text</p></div>', 'text/plain': 'pasted text' });
+    expect(editor.getHtml()).toContain('pasted text');
+  });
+
+  it('refuses to claim a generic block tag without a class or attribute', () => {
+    expect(() => blockElement({ name: 'x', tag: 'div' })).toThrow(/other content uses too/);
+    expect(() => voidElement({ name: 'y', tag: 'div' })).toThrow(/other content uses too/);
+  });
+
+  it('tells block helpers with the same tag apart by class', () => {
+    const info = blockElement({ name: 'info', tag: 'aside', className: 'info', toolbar: false });
+    const warn = blockElement({ name: 'warn', tag: 'aside', className: 'warn', toolbar: false });
+    const editor = setup([...defaultPlugins(), info, warn]);
+    const html = '<aside class="info"><p>a</p></aside><aside class="warn"><p>b</p></aside>';
+    editor.setHtml(html);
+    expect(editor.getHtml()).toBe(html);
+  });
+});
+
 describe('schema kinds', () => {
   it('reports the kind of every element', () => {
     expect(getSchema([aside, newsletter]).elements).toEqual([
       { tag: 'aside', kind: 'block', attributes: ['data-tone'] },
-      { tag: 'div', kind: 'void', attributes: ['data-widget'] },
+      { tag: 'div', kind: 'void', attributes: ['data-widget'], requires: ['data-widget'] },
     ]);
   });
 });
@@ -106,6 +130,13 @@ describe('editor commands', () => {
     expect(editor.getHtml()).toBe('<p>Bye </p>');
     editor.insertHtml('<strong>now</strong>');
     expect(editor.getHtml()).toBe('<p>Bye <strong>now</strong></p>');
+  });
+
+  it('inserts text at the end without a selection', () => {
+    const editor = setup();
+    editor.setHtml('<p>Hello</p>');
+    editor.insertText(' there');
+    expect(editor.getHtml()).toBe('<p>Hello there</p>');
   });
 
   it('toggles a format on the selection', () => {

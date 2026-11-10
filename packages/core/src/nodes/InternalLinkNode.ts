@@ -222,7 +222,13 @@ export function $createInternalLinkNode(
   return new klass(href, attributes);
 }
 
-/** A subclass with its own element name and validation attribute, one per `internalLinks()` call. */
+const classByEditor = new WeakMap<LexicalEditor, typeof InternalLinkNode>();
+
+/**
+ * A subclass with its own element name and validation attribute, one per
+ * `internalLinks()` call. The plugin registers it for its editor with
+ * `registerInternalLinkClass`.
+ */
 export function createInternalLinkNodeClass(options: { tag?: string | undefined; validationAttribute?: string | undefined }): typeof InternalLinkNode {
   // Lexical wants getType, clone and importJSON overridden in every subclass.
   return class extends InternalLinkNode {
@@ -243,10 +249,14 @@ export function createInternalLinkNodeClass(options: { tag?: string | undefined;
   };
 }
 
+/** Remembers which internal link class an editor uses, for paste cleanup and HTML import. */
+export function registerInternalLinkClass(editor: LexicalEditor, klass: typeof InternalLinkNode): void {
+  classByEditor.set(editor, klass);
+}
+
 /** The internal link class an editor registered, or null without the plugin. */
 export function internalLinkClassOf(editor: LexicalEditor): typeof InternalLinkNode | null {
-  const registered = editor._nodes.get(InternalLinkNode.getType());
-  return registered ? (registered.klass as typeof InternalLinkNode) : null;
+  return classByEditor.get(editor) ?? null;
 }
 
 export function $isInternalLinkNode(node: LexicalNode | null | undefined): node is InternalLinkNode {

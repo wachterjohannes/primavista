@@ -63,7 +63,7 @@ final class BundleTest extends TestCase
 
     public function testElementsReachTheSanitizerAndTheAdminConfig(): void
     {
-        $container = $this->container(['sanitize' => true, 'elements' => ['mark' => ['label' => 'Highlight'], 'abbr' => ['attributes' => ['title']]]], null);
+        $container = $this->container(['sanitize' => true, 'elements' => [['tag' => 'mark', 'label' => 'Highlight'], ['tag' => 'abbr', 'attributes' => ['title']]]], null);
 
         $sanitizers = $container->get('primavista_sulu.text_editor_sanitizers');
         self::assertInstanceOf(TextEditorSanitizers::class, $sanitizers);
@@ -74,11 +74,44 @@ final class BundleTest extends TestCase
         self::assertSame('primavista', $admin->getConfigKey());
         self::assertSame(
             ['elements' => [
-                ['tag' => 'mark', 'attributes' => [], 'label' => 'Highlight'],
-                ['tag' => 'abbr', 'attributes' => ['title'], 'label' => 'abbr'],
+                ['tag' => 'mark', 'class' => null, 'attributes' => [], 'label' => 'Highlight'],
+                ['tag' => 'abbr', 'class' => null, 'attributes' => ['title'], 'label' => 'abbr'],
             ]],
             $admin->getConfig(),
         );
+    }
+
+    /**
+     * @return iterable<string, array{array<string, mixed>, string}>
+     */
+    public static function invalidElements(): iterable
+    {
+        yield 'generic tag without class' => [['tag' => 'span'], 'set a class'];
+        yield 'dangerous tag' => [['tag' => 'script'], 'cannot be allowed'];
+        yield 'event handler' => [['tag' => 'mark', 'attributes' => ['onclick']], 'not allowed'];
+        yield 'style' => [['tag' => 'mark', 'attributes' => ['style']], 'not allowed'];
+        yield 'bad name' => [['tag' => 'Mark<'], 'not a valid element name'];
+    }
+
+    /**
+     * @param array<string, mixed> $element
+     */
+    #[\PHPUnit\Framework\Attributes\DataProvider('invalidElements')]
+    public function testRejectsUnsafeElements(array $element, string $message): void
+    {
+        $this->expectException(\Symfony\Component\Config\Definition\Exception\InvalidConfigurationException::class);
+        $this->expectExceptionMessage($message);
+
+        $this->container(['sanitize' => true, 'elements' => [$element]], null);
+    }
+
+    public function testAClassClaimsAGenericTagAndTwoElementsMayShareOne(): void
+    {
+        $container = $this->container(['sanitize' => true, 'elements' => [['tag' => 'span', 'class' => 'lead'], ['tag' => 'mark', 'class' => 'yellow'], ['tag' => 'mark', 'class' => 'green']]], null);
+
+        $admin = $container->get('primavista_sulu.admin');
+        self::assertInstanceOf(PrimavistaAdmin::class, $admin);
+        self::assertCount(3, $admin->getConfig()['elements'] ?? []);
     }
 
     public function testNoAdminConfigWithoutElements(): void

@@ -18,7 +18,7 @@ final class PrimavistaAdmin extends Admin
     public const CONFIG_KEY = 'primavista';
 
     /**
-     * @param array<string, ElementConfig> $elements
+     * @param list<ElementConfig> $elements
      */
     public function __construct(private readonly array $elements)
     {
@@ -32,8 +32,13 @@ final class PrimavistaAdmin extends Admin
     public function getConfig(): ?array
     {
         $elements = [];
-        foreach ($this->elements as $tag => $element) {
-            $elements[] = ['tag' => $tag, 'attributes' => $element['attributes'], 'label' => $element['label'] ?? $tag];
+        foreach ($this->elements as $element) {
+            $elements[] = [
+                'tag' => $element['tag'],
+                'class' => $element['class'],
+                'attributes' => $element['attributes'],
+                'label' => $element['label'] ?? $element['tag'],
+            ];
         }
 
         return [] === $elements ? null : ['elements' => $elements];

@@ -18,16 +18,18 @@ An inline element such as `<mark>` needs no JavaScript in a Sulu project:
 # config/packages/primavista_sulu.yaml
 primavista_sulu:
     elements:
-        mark: ~
-        abbr:
-            attributes: [title]
+        - { tag: mark }
+        - { tag: abbr, attributes: [title] }
+        - { tag: span, class: lead }
 ```
 
-The sanitizer allows the element and the admin gets a toolbar button. See the Sulu bundle page for the details.
+The sanitizer allows the element and the admin gets a toolbar button. Common tags such as `span` need a class. Attributes are kept, but the button does not set them yet. See the Sulu bundle page for the details.
 
 ## Level 2: helpers
 
 Three helpers cover the common cases. Each creates the Lexical node, the import and export, paste handling and the schema entry.
+
+A helper claims its element by tag, plus `className` or `requires` (attributes the element must have). Common tags such as `span`, `div` or `a` need one of the two, otherwise the helper throws. Other elements of the tag, such as `<span lang>`, stay untouched. Two helpers may share a tag when their classes differ.
 
 ```ts
 import { blockElement, inlineElement, voidElement } from '@primavista/core';
@@ -36,7 +38,7 @@ export const highlight = inlineElement({ name: 'highlight', tag: 'mark', toolbar
 export const note = blockElement({ name: 'note', tag: 'aside', toolbar: { label: 'Note' } });
 export const newsletter = voidElement({
   name: 'newsletter',
-  tag: 'div',
+  tag: 'div', // claims only divs with data-widget, the keys of `defaults`
   defaults: { 'data-widget': 'newsletter' },
   toolbar: { label: 'Newsletter' },
 });
@@ -67,4 +69,4 @@ Do not add `lexical` to your `dependencies`. `@primavista/core/lexical` hands ou
 
 `context.editor` and everything under `@primavista/core/lexical` follow Lexical, not Primavista. They have no stability promise. Declare the markup your plugin writes in `schema`, so paste cleanup and sanitizers know it.
 
-In Jest, add `lexical|@lexical|@primavista` to `transformIgnorePatterns`, because the packages ship ESM only.
+In Jest, add `lexical|@lexical|@primavista` to `transformIgnorePatterns`, because Lexical ships ES modules and Jest does not transform `node_modules` by default.

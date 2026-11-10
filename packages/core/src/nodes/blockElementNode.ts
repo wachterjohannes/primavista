@@ -13,6 +13,7 @@ import {
   type SerializedElementNode,
   type Spread,
 } from 'lexical';
+import { elementMatches, type ElementMatch } from './match';
 
 export type SerializedBlockElementNode = Spread<{ attributes: Record<string, string> }, SerializedElementNode>;
 
@@ -22,6 +23,8 @@ export interface BlockElementSpec {
   tag: string;
   attributes: ReadonlyArray<string>;
   fixed: Readonly<Record<string, string>>;
+  /** Which elements of the tag this node claims. */
+  match: ElementMatch;
 }
 
 export interface BlockElementNode extends ElementNode {
@@ -59,7 +62,7 @@ export function createBlockElementNode(spec: BlockElementSpec): {
     }
 
     static override importDOM(): DOMConversionMap | null {
-      return { [spec.tag]: () => ({ conversion: convert, priority: 1 }) };
+      return { [spec.tag]: (element: HTMLElement) => (elementMatches(element, spec.match) ? { conversion: convert, priority: 1 } : null) };
     }
 
     constructor(attributes: Record<string, string> = {}, key?: NodeKey) {

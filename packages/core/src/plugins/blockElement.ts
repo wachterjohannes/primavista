@@ -11,6 +11,7 @@ import {
   type LexicalNode,
 } from 'lexical';
 import { createBlockElementNode, type BlockElementNode } from '../nodes/blockElementNode';
+import { assertSpecificMatch } from '../nodes/match';
 import type { PrimavistaPlugin } from '../types';
 
 export interface BlockElementOptions {
@@ -20,8 +21,10 @@ export interface BlockElementOptions {
   tag: string;
   /** Attributes kept when HTML is loaded or pasted and written back. */
   attributes?: ReadonlyArray<string>;
-  /** Class written on every element. */
+  /** Class written on every element and required when loading or pasting. A common tag such as `div` needs it or `requires`. */
   className?: string;
+  /** Attributes a loaded or pasted element must have to count. */
+  requires?: ReadonlyArray<string>;
   /** The toolbar button that wraps the selected blocks or unwraps them. `false` registers the element without a button. */
   toolbar?: { label: string; icon?: string; group?: string } | false;
 }
@@ -35,11 +38,14 @@ export interface BlockElementOptions {
  */
 export function blockElement(options: BlockElementOptions): PrimavistaPlugin {
   const attributes = options.attributes ?? [];
+  const match = { tag: options.tag, className: options.className, requires: options.requires };
+  assertSpecificMatch('blockElement', options.name, match);
   const { Node, $create, $is } = createBlockElementNode({
     name: options.name,
     tag: options.tag,
     attributes,
     fixed: options.className ? { class: options.className } : {},
+    match,
   });
 
   const isBlock = (node: LexicalNode): boolean => $isElementNode(node) && !node.isInline();
@@ -55,7 +61,17 @@ export function blockElement(options: BlockElementOptions): PrimavistaPlugin {
   const plugin: PrimavistaPlugin = {
     name: options.name,
     nodes: [Node],
-    schema: { elements: [{ tag: options.tag, attributes, kind: 'block' }] },
+    schema: {
+      elements: [
+        {
+          tag: options.tag,
+          attributes: [...attributes, ...(options.requires ?? [])],
+          kind: 'block',
+          ...(options.className ? { className: options.className } : {}),
+          ...(options.requires ? { requires: options.requires } : {}),
+        },
+      ],
+    },
     register: ({ editor }) =>
       mergeRegister(
         editor.registerNodeTransform(Node, (node) => {

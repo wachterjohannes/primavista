@@ -11,6 +11,7 @@ import {
   createInlineElementNode,
   type InlineElementNode,
 } from '../nodes/inlineElementNode';
+import { assertSpecificMatch } from '../nodes/match';
 import type { PrimavistaPlugin } from '../types';
 
 export interface InlineElementOptions {
@@ -20,8 +21,10 @@ export interface InlineElementOptions {
   tag: string;
   /** Attributes kept when HTML is loaded or pasted and written back, for example `['title']`. */
   attributes?: ReadonlyArray<string>;
-  /** Class written on every element. Paste cleanup does not need it, the element is matched by tag. */
+  /** Class written on every element. Loaded and pasted elements need it too, so `span` and `mark.yellow` stay apart from other content. */
   className?: string;
+  /** Attributes a loaded or pasted element must have to count. */
+  requires?: ReadonlyArray<string>;
   /** The toolbar button that wraps or unwraps the selection. `false` registers the element without a button. */
   toolbar?: { label: string; icon?: string; group?: string } | false;
 }
@@ -34,11 +37,14 @@ export interface InlineElementOptions {
  */
 export function inlineElement(options: InlineElementOptions): PrimavistaPlugin {
   const attributes = options.attributes ?? [];
+  const match = { tag: options.tag, className: options.className, requires: options.requires };
+  assertSpecificMatch('inlineElement', options.name, match);
   const { Node, $create, $is } = createInlineElementNode({
     name: options.name,
     tag: options.tag,
     attributes,
     fixed: options.className ? { class: options.className } : {},
+    match,
   });
 
   const $ownerOf = (node: LexicalNode): InlineElementNode | null => {
@@ -123,7 +129,7 @@ export function inlineElement(options: InlineElementOptions): PrimavistaPlugin {
   const plugin: PrimavistaPlugin = {
     name: options.name,
     nodes: [Node],
-    schema: { elements: [{ tag: options.tag, attributes }] },
+    schema: { elements: [{ tag: options.tag, attributes: [...attributes, ...(options.requires ?? [])], ...(options.className ? { className: options.className } : {}), ...(options.requires ? { requires: options.requires } : {}) }] },
     register: ({ editor }) =>
       mergeRegister(
         editor.registerNodeTransform(Node, (node) => {

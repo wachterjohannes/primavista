@@ -60,4 +60,28 @@ describe('inlineElement', () => {
   it('cleans pasted HTML with the elements option', () => {
     expect(cleanPastedHtml('<p><mark class="x">a</mark></p>', { elements: [{ tag: 'mark' }] })).toBe('<p><mark style="display: inline;">a</mark></p>');
   });
+
+describe('matching', () => {
+  it('refuses to claim a generic tag without a class or attribute', () => {
+    expect(() => inlineElement({ name: 'x', tag: 'span' })).toThrow(/other content uses too/);
+  });
+
+  it('leaves other spans alone and keeps their lang', () => {
+    const lead = inlineElement({ name: 'lead', tag: 'span', className: 'lead', toolbar: false });
+    const editor = setup([...defaultPlugins(), lead]);
+    editor.setHtml('<p><span class="lead">a</span> <span lang="fr">b</span> <span class="other">c</span></p>');
+    expect(editor.getHtml()).toBe('<p><span class="lead">a</span> b c</p>');
+  });
+
+  it('tells two helpers with the same tag apart', () => {
+    const yellow = inlineElement({ name: 'yellow', tag: 'mark', className: 'yellow', toolbar: false });
+    const green = inlineElement({ name: 'green', tag: 'mark', className: 'green', toolbar: false });
+    const editor = setup([...defaultPlugins(), yellow, green]);
+    const html = '<p><mark class="yellow">a</mark> <mark class="green">b</mark></p>';
+    editor.setHtml(html);
+    expect(editor.getHtml()).toBe(html);
+    paste(editor, { 'text/html': '<p><mark class="green">c</mark><mark class="yellow">d</mark></p>', 'text/plain': 'cd' });
+    expect(editor.getHtml()).toBe('<p><mark class="yellow">a</mark> <mark class="green">bc</mark><mark class="yellow">d</mark></p>');
+  });
+});
 });
