@@ -21,16 +21,28 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - name: Move Lexical to the latest release
-        run: pnpm up --latest --filter @primavista/core lexical '@lexical/*'
+        run: pnpm up -r --latest lexical '@lexical/*'
       - run: pnpm build
       - run: pnpm typecheck
       - run: pnpm test
+      - run: pnpm exec playwright install --with-deps chromium
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+      - run: composer install --no-interaction --working-dir=demo
+      - run: pnpm e2e
       - name: Report the failure
         if: failure()
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           version=$(node -p "require('./packages/core/package.json').dependencies.lexical")
-          gh issue create \
-            --title "Lexical canary failed on $version" \
-            --body "The weekly run against the latest Lexical failed: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
+          url="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
+          open=$(gh issue list --label lexical-canary --state open --json number --jq '.[0].number')
+          if [ -n "$open" ]; then
+            gh issue comment "$open" --body "Still failing on $version: $url"
+          else
+            gh label create lexical-canary --color BFD4F2 --force
+            gh issue create --label lexical-canary --title "Lexical canary failed on $version" \
+              --body "The weekly run against the latest Lexical failed: $url"
+          fi
