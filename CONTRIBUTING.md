@@ -35,7 +35,11 @@ pnpm e2e
 
 - A change to the emitted HTML needs a round-trip test in `packages/core/test/html.test.ts`. A new element or attribute also goes into `PrimavistaSanitizerConfig` in `libs/html-sanitizer` and its test, otherwise the server drops it.
 - A new toolbar item needs a unit test and, if it touches the DOM in a way jsdom cannot cover, a Playwright test.
-- Keep the plugin interface stable. Host systems build on it.
+- Primavista's own API follows semver: `createEditor`, `PrimavistaPlugin`, the helpers, the schema, the toolbar and balloon API and `@primavista/core/testing`. Host systems build on it.
+- The Lexical pass-through is the exception. `@primavista/core/lexical` and `PluginContext.editor` follow Lexical and carry no stability promise.
+- A Lexical minor update is a Primavista minor release, never a patch. Update Lexical in its own pull request.
+- A release that updates Lexical gets an entry in `UPGRADE.md` that says what authors of raw Lexical extensions have to change. "Nothing" is a valid entry.
+- Remove API in two steps. Deprecate it with a console warning for one minor release, then remove it.
 - Files in the repository are written in English.
 
 ## Releasing

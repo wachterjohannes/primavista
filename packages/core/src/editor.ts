@@ -161,15 +161,10 @@ export function createEditor(container: HTMLElement, options: EditorOptions = {}
 
   const allowed = collectAllowed(plugins);
   const pluginCleanups: Array<() => void> = [];
-  for (const plugin of plugins) {
-    const cleanup = plugin.register?.({ editor: lexical, translate, container: element, contentElement, toolbar, balloon, allowed, schema });
-    if (cleanup) pluginCleanups.push(cleanup);
-  }
-  toolbar.refresh();
 
   let destroyed = false;
 
-  return {
+  const api: PrimavistaEditor = {
     lexical,
     element,
     contentElement,
@@ -221,6 +216,14 @@ export function createEditor(container: HTMLElement, options: EditorOptions = {}
       for (const set of Object.values(listeners)) set.clear();
     },
   };
+
+  for (const plugin of plugins) {
+    const cleanup = plugin.register?.({ editor: lexical, primavista: api, translate, container: element, contentElement, toolbar, balloon, allowed, schema });
+    if (cleanup) pluginCleanups.push(cleanup);
+  }
+  toolbar.refresh();
+
+  return api;
 }
 
 function assertUniquePluginNames(plugins: ReadonlyArray<PrimavistaPlugin>): void {

@@ -24,8 +24,8 @@ export interface CleanPastedHtmlOptions {
   links?: boolean;
   /**
    * Keep the editor's internal link element with `href`, `provider`, `target`,
-   * `title` and the validation attribute. `InternalLinkNode.tagName` and
-   * `InternalLinkNode.validationAttribute` in the editor.
+   * `title` and the validation attribute. The `internalLinks()` plugin of the
+   * editor decides the tag and the attribute name.
    */
   internalLink?: { tag: string; validationAttribute: string };
   /** Keep tables. Otherwise every cell becomes a paragraph. */

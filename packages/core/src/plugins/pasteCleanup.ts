@@ -6,7 +6,7 @@ import { HeadingNode, QuoteNode } from '@lexical/rich-text';
 import { TableNode } from '@lexical/table';
 import { $getSelection, COMMAND_PRIORITY_LOW, PASTE_COMMAND, PASTE_TAG, type PasteCommandType } from 'lexical';
 import { HorizontalRuleNode } from '../nodes/HorizontalRuleNode';
-import { InternalLinkNode } from '../nodes/InternalLinkNode';
+import { internalLinkClassOf } from '../nodes/InternalLinkNode';
 import { LanguageNode } from '../nodes/LanguageNode';
 import { cleanPastedHtml, type CleanPastedHtmlOptions } from '../paste';
 import type { PrimavistaPlugin } from '../types';
@@ -36,8 +36,9 @@ export function pasteCleanup(): PrimavistaPlugin {
         horizontalRule: editor.hasNodes([HorizontalRuleNode]),
         elements: pluginSchema.elements,
       };
-      if (editor.hasNodes([InternalLinkNode])) {
-        schema.internalLink = { tag: InternalLinkNode.tagName, validationAttribute: InternalLinkNode.validationAttribute };
+      const InternalLink = internalLinkClassOf(editor);
+      if (InternalLink) {
+        schema.internalLink = { tag: InternalLink.tagName, validationAttribute: InternalLink.validationAttribute };
       }
       // Runs before the rich text handler (COMMAND_PRIORITY_EDITOR) and does
       // what it does, with the cleaned HTML in place of the original.

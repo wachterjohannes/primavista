@@ -7,6 +7,7 @@ import {
   type EditorConfig,
   type LexicalEditor,
   type LexicalNode,
+  type Klass,
   type NodeKey,
   type Spread,
 } from 'lexical';
@@ -38,9 +39,10 @@ const ATTRIBUTE_TITLE = 'title';
  * `<internal-link href="id?query#anchor" provider="page" target="_self" title="…" validation-state="…">text</internal-link>`
  *
  * The href holds the resource id plus optional query and anchor. The tag name
- * and the validation attribute are static fields, which the plugin sets
- * before the editor is created. `@primavista/sulu` sets them to Sulu's
- * `<sulu-link>` format.
+ * and the validation attribute are static fields of the class. The
+ * `internalLinks()` plugin registers its own subclass with its values through
+ * `createInternalLinkNodeClass`, so two editors with different formats on one
+ * page do not share them. `@primavista/sulu` uses Sulu's `<sulu-link>` format.
  */
 export class InternalLinkNode extends LinkNode {
   /** Custom element name in the exported HTML. */
@@ -56,7 +58,7 @@ export class InternalLinkNode extends LinkNode {
   }
 
   static override clone(node: InternalLinkNode): InternalLinkNode {
-    return new InternalLinkNode(
+    return new this(
       node.__url,
       {
         provider: node.__provider,
@@ -69,18 +71,23 @@ export class InternalLinkNode extends LinkNode {
   }
 
   static override importJSON(serialized: SerializedInternalLinkNode): InternalLinkNode {
-    return $createInternalLinkNode(serialized.url, {
-      provider: serialized.provider,
-      target: serialized.target ?? null,
-      title: serialized.title ?? null,
-      validationState: serialized.validationState ?? null,
-    }).updateFromJSON(serialized);
+    return $createInternalLinkNode(
+      serialized.url,
+      {
+        provider: serialized.provider,
+        target: serialized.target ?? null,
+        title: serialized.title ?? null,
+        validationState: serialized.validationState ?? null,
+      },
+      this,
+    ).updateFromJSON(serialized);
   }
 
   static override importDOM(): DOMConversionMap | null {
+    const klass = this;
     return {
-      [InternalLinkNode.tagName]: () => ({
-        conversion: $convertInternalLinkElement,
+      [klass.tagName]: () => ({
+        conversion: (element) => $convertInternalLinkElement(element, klass),
         priority: 2,
       }),
     };
@@ -139,12 +146,13 @@ export class InternalLinkNode extends LinkNode {
   }
 
   override exportDOM(_editor: LexicalEditor): DOMExportOutput {
-    const element = document.createElement(InternalLinkNode.tagName);
+    const klass = this.constructor as typeof InternalLinkNode;
+    const element = document.createElement(klass.tagName);
     element.setAttribute(ATTRIBUTE_HREF, this.__url);
     element.setAttribute(ATTRIBUTE_PROVIDER, this.__provider);
     if (this.__target) element.setAttribute(ATTRIBUTE_TARGET, this.__target);
     if (this.__title) element.setAttribute(ATTRIBUTE_TITLE, this.__title);
-    if (this.__validationState) element.setAttribute(InternalLinkNode.validationAttribute, this.__validationState);
+    if (this.__validationState) element.setAttribute(klass.validationAttribute, this.__validationState);
     return { element };
   }
 
@@ -186,20 +194,59 @@ export class InternalLinkNode extends LinkNode {
   }
 }
 
-function $convertInternalLinkElement(element: HTMLElement): DOMConversionOutput {
+function $convertInternalLinkElement(element: HTMLElement, klass: typeof InternalLinkNode): DOMConversionOutput {
   const href = element.getAttribute(ATTRIBUTE_HREF);
   if (!href) return { node: null };
-  const node = $createInternalLinkNode(href, {
-    provider: element.getAttribute(ATTRIBUTE_PROVIDER) ?? '',
-    target: element.getAttribute(ATTRIBUTE_TARGET),
-    title: element.getAttribute(ATTRIBUTE_TITLE),
-    validationState: element.getAttribute(InternalLinkNode.validationAttribute),
-  });
+  const node = $createInternalLinkNode(
+    href,
+    {
+      provider: element.getAttribute(ATTRIBUTE_PROVIDER) ?? '',
+      target: element.getAttribute(ATTRIBUTE_TARGET),
+      title: element.getAttribute(ATTRIBUTE_TITLE),
+      validationState: element.getAttribute(klass.validationAttribute),
+    },
+    klass,
+  );
   return { node };
 }
 
-export function $createInternalLinkNode(href: string, attributes: InternalLinkAttributes): InternalLinkNode {
-  return new InternalLinkNode(href, attributes);
+/**
+ * Creates an internal link. Pass the class of the editor when it came from
+ * `createInternalLinkNodeClass`, otherwise the node has the default format.
+ */
+export function $createInternalLinkNode(
+  href: string,
+  attributes: InternalLinkAttributes,
+  klass: Klass<InternalLinkNode> = InternalLinkNode,
+): InternalLinkNode {
+  return new klass(href, attributes);
+}
+
+/** A subclass with its own element name and validation attribute, one per `internalLinks()` call. */
+export function createInternalLinkNodeClass(options: { tag?: string | undefined; validationAttribute?: string | undefined }): typeof InternalLinkNode {
+  // Lexical wants getType, clone and importJSON overridden in every subclass.
+  return class extends InternalLinkNode {
+    static override tagName = options.tag ?? InternalLinkNode.tagName;
+    static override validationAttribute = options.validationAttribute ?? InternalLinkNode.validationAttribute;
+
+    static override getType(): string {
+      return InternalLinkNode.getType();
+    }
+
+    static override clone(node: InternalLinkNode): InternalLinkNode {
+      return super.clone(node);
+    }
+
+    static override importJSON(serialized: SerializedInternalLinkNode): InternalLinkNode {
+      return super.importJSON(serialized);
+    }
+  };
+}
+
+/** The internal link class an editor registered, or null without the plugin. */
+export function internalLinkClassOf(editor: LexicalEditor): typeof InternalLinkNode | null {
+  const registered = editor._nodes.get(InternalLinkNode.getType());
+  return registered ? (registered.klass as typeof InternalLinkNode) : null;
 }
 
 export function $isInternalLinkNode(node: LexicalNode | null | undefined): node is InternalLinkNode {

@@ -11,7 +11,7 @@ import {
   $wrapSelectionInLink,
   registerLinkBalloon,
 } from '../linkUtils';
-import { $createInternalLinkNode, $isInternalLinkNode, InternalLinkNode } from '../nodes/InternalLinkNode';
+import { $createInternalLinkNode, $isInternalLinkNode, createInternalLinkNodeClass } from '../nodes/InternalLinkNode';
 import type { PluginContext, PrimavistaPlugin, ToolbarApi, Translate } from '../types';
 
 export interface InternalLinkProvider {
@@ -70,8 +70,7 @@ export interface InternalLinksOptions {
  * provider. The host resolves the ids when it renders the page.
  */
 export function internalLinks(options: InternalLinksOptions): PrimavistaPlugin {
-  if (options.tag) InternalLinkNode.tagName = options.tag;
-  if (options.validationAttribute) InternalLinkNode.validationAttribute = options.validationAttribute;
+  const InternalLink = createInternalLinkNodeClass({ tag: options.tag, validationAttribute: options.validationAttribute });
   let context: PluginContext | null = null;
 
   const open = (toolbar: ToolbarApi, mode: 'create' | 'edit', provider: string): void => {
@@ -116,11 +115,11 @@ export function internalLinks(options: InternalLinksOptions): PrimavistaPlugin {
             link.setValidationState(null);
             continue;
           }
-          const internal = $createInternalLinkNode(href, {
-            provider: state.provider,
-            target: values.target ?? null,
-            title: values.title ?? null,
-          });
+          const internal = $createInternalLinkNode(
+            href,
+            { provider: state.provider, target: values.target ?? null, title: values.title ?? null },
+            InternalLink,
+          );
           link.replace(internal, true);
         }
       });
@@ -164,7 +163,7 @@ export function internalLinks(options: InternalLinksOptions): PrimavistaPlugin {
 
   return {
     name: 'internal-links',
-    nodes: [LinkNode, InternalLinkNode],
+    nodes: [LinkNode, InternalLink],
     theme: { internalLink: 'pv-internal-link' },
     register(ctx) {
       context = ctx;

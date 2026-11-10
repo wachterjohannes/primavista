@@ -15,7 +15,7 @@ import {
 } from 'lexical';
 import { $isTableCellNode, $isTableNode, $isTableRowNode, TableCellNode, TableNode, TableRowNode } from '@lexical/table';
 import { $isCodeNode, CodeNode } from '@lexical/code-core';
-import { InternalLinkNode } from './nodes/InternalLinkNode';
+import { internalLinkClassOf } from './nodes/InternalLinkNode';
 import type { HtmlOptions } from './types';
 
 /** Update tag used by `setHtml`, so listeners can tell programmatic loads from user edits. */
@@ -188,7 +188,7 @@ function cleanExportedDom(container: HTMLElement, themeClassNames: ReadonlySet<s
 export function $insertHtml(editor: LexicalEditor, html: string, inlineTags: ReadonlyArray<string> = []): void {
   const dom = new DOMParser().parseFromString(html.trim(), 'text/html');
   normalizeLegacyTags(dom);
-  markCustomInlineElements(dom, inlineTags);
+  markCustomInlineElements(dom, withLinkTag(editor, inlineTags));
   const nodes = $generateNodesFromDOM(editor, dom);
   const selection = $getSelection();
   if ($isRangeSelection(selection)) {
@@ -207,7 +207,7 @@ export function $loadHtml(editor: LexicalEditor, html: string, inlineTags: Reado
     const dom = new DOMParser().parseFromString(trimmed, 'text/html');
     normalizeLegacyTags(dom);
     unwrapCodeInPre(dom);
-    markCustomInlineElements(dom, inlineTags);
+    markCustomInlineElements(dom, withLinkTag(editor, inlineTags));
     liftCellAlignment(dom);
     const nodes = $generateNodesFromDOM(editor, dom);
     root.append(...wrapInlineNodesInParagraphs(nodes));
@@ -237,6 +237,12 @@ function unwrapCodeInPre(dom: Document): void {
   }
 }
 
+/** The element name of the editor's internal links joins the inline tags the plugins declare. */
+function withLinkTag(editor: LexicalEditor, inlineTags: ReadonlyArray<string>): ReadonlyArray<string> {
+  const tag = internalLinkClassOf(editor)?.tagName;
+  return tag ? [tag, ...inlineTags] : inlineTags;
+}
+
 /**
  * The importer treats unknown elements as blocks and drops the whitespace
  * around them. Custom link elements and the inline elements plugins declare
@@ -244,7 +250,8 @@ function unwrapCodeInPre(dom: Document): void {
  * importer reads first.
  */
 function markCustomInlineElements(dom: Document, inlineTags: ReadonlyArray<string>): void {
-  const selector = [InternalLinkNode.tagName, ...inlineTags].join(',');
+  if (inlineTags.length === 0) return;
+  const selector = inlineTags.join(',');
   for (const element of Array.from(dom.body.querySelectorAll<HTMLElement>(selector))) {
     element.style.display = 'inline';
   }
