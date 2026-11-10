@@ -140,7 +140,7 @@ const highlight = inlineElement({ name: 'highlight', tag: 'mark', toolbar: { lab
 const abbr = inlineElement({ name: 'abbr', tag: 'abbr', attributes: ['title'], toolbar: false });
 ```
 
-`attributes` lists what is kept when HTML is loaded or pasted, `className` writes a class on every element, `toolbar: false` registers the element without a button. A plugin declares the markup it writes in `schema`, and `getSchema(plugins)` returns the merged list as JSON for a server-side sanitizer. Paste cleanup keeps exactly these elements. `examples/inline-helper` is a complete extension.
+`attributes` lists what is kept when HTML is loaded or pasted. The button itself sets no attribute values, so `abbr` with `title` keeps the titles of existing content but cannot create them yet. `className` is written on every element and also required when loading or pasting, `requires` lists attributes an element must have. Common tags such as `span` or `div` need one of the two, otherwise the helper throws, so `<span lang>` and other content stay untouched. Two helpers may share a tag when their classes differ. `toolbar: false` registers the element without a button. A plugin declares the markup it writes in `schema`, and `getSchema(plugins)` returns the merged list as JSON for a server-side sanitizer. Paste cleanup keeps exactly these elements. `examples/inline-helper` is a complete extension.
 
 ### Blocks and placeholders without Lexical
 

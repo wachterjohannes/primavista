@@ -13,6 +13,7 @@ import {
   type SerializedElementNode,
   type Spread,
 } from 'lexical';
+import { elementMatches, type ElementMatch } from './match';
 
 export type SerializedInlineElementNode = Spread<{ attributes: Record<string, string> }, SerializedElementNode>;
 
@@ -24,6 +25,8 @@ export interface InlineElementSpec {
   attributes: ReadonlyArray<string>;
   /** Attributes written on every element, for example `class`. */
   fixed: Readonly<Record<string, string>>;
+  /** Which elements of the tag this node claims. */
+  match: ElementMatch;
 }
 
 export interface InlineElementNode extends ElementNode {
@@ -67,7 +70,7 @@ export function createInlineElementNode(spec: InlineElementSpec): {
 
     static override importDOM(): DOMConversionMap | null {
       return {
-        [spec.tag]: () => ({ conversion: convert, priority: 1 }),
+        [spec.tag]: (element: HTMLElement) => (elementMatches(element, spec.match) ? { conversion: convert, priority: 1 } : null),
       };
     }
 
