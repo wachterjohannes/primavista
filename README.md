@@ -129,6 +129,19 @@ export const highlight: PrimavistaPlugin = {
 
 A plugin declares what it offers in `allows` (`headings`, `lists`, `formats`, `alignments`), and every plugin gets the merged result as `context.allowed`. `autoformat` and paste cleanup follow it, so a replaced `headings({ levels: ['h2', 'h3'] })` also limits the typed shortcuts. Spreading a plugin keeps the declaration.
 
+### Inline elements without Lexical
+
+`inlineElement()` covers the common case of an inline element with a toolbar button, such as `<mark>` or `<abbr title>`. It creates the Lexical node, the import and export, paste handling and the schema entry. The extension has no Lexical code, so a Lexical update does not affect it.
+
+```ts
+import { inlineElement } from '@primavista/core';
+
+const highlight = inlineElement({ name: 'highlight', tag: 'mark', toolbar: { label: 'Highlight' } });
+const abbr = inlineElement({ name: 'abbr', tag: 'abbr', attributes: ['title'], toolbar: false });
+```
+
+`attributes` lists what is kept when HTML is loaded or pasted, `className` writes a class on every element, `toolbar: false` registers the element without a button. A plugin declares the markup it writes in `schema`, and `getSchema(plugins)` returns the merged list as JSON for a server-side sanitizer. Paste cleanup keeps exactly these elements. `examples/inline-helper` is a complete extension.
+
 ### Block quote, code block, horizontal rule
 
 Three opt-in block plugins write the markup CKEditor's BlockQuote, CodeBlock and HorizontalLine plugins produce: `blockquote()` wraps whole blocks (`<blockquote><p>…</p></blockquote>`, Enter adds a paragraph inside, Enter on an empty last paragraph leaves the quote), `codeBlock()` stores `<pre><code>…</code></pre>` without highlighting or language, `horizontalRule()` inserts `<hr>`, which click selects and Backspace removes. `autoformat` picks up `> ` and ``` ``` ``` when the plugins are registered, paste cleanup keeps the elements only then.

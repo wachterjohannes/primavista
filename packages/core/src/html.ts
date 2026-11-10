@@ -179,7 +179,7 @@ function cleanExportedDom(container: HTMLElement, themeClassNames: ReadonlySet<s
 }
 
 /** Must run inside `editor.update()`. Replaces the whole document. */
-export function $loadHtml(editor: LexicalEditor, html: string): void {
+export function $loadHtml(editor: LexicalEditor, html: string, inlineTags: ReadonlyArray<string> = []): void {
   const root = $getRoot();
   root.clear();
   const trimmed = html.trim();
@@ -187,7 +187,7 @@ export function $loadHtml(editor: LexicalEditor, html: string): void {
     const dom = new DOMParser().parseFromString(trimmed, 'text/html');
     normalizeLegacyTags(dom);
     unwrapCodeInPre(dom);
-    markCustomInlineElements(dom);
+    markCustomInlineElements(dom, inlineTags);
     liftCellAlignment(dom);
     const nodes = $generateNodesFromDOM(editor, dom);
     root.append(...wrapInlineNodesInParagraphs(nodes));
@@ -219,11 +219,13 @@ function unwrapCodeInPre(dom: Document): void {
 
 /**
  * The importer treats unknown elements as blocks and drops the whitespace
- * around them. Custom link elements are inline, so they get an inline display
- * hint that the importer reads first.
+ * around them. Custom link elements and the inline elements plugins declare
+ * in their schema are inline, so they get an inline display hint that the
+ * importer reads first.
  */
-function markCustomInlineElements(dom: Document): void {
-  for (const element of Array.from(dom.body.querySelectorAll<HTMLElement>(InternalLinkNode.tagName))) {
+function markCustomInlineElements(dom: Document, inlineTags: ReadonlyArray<string>): void {
+  const selector = [InternalLinkNode.tagName, ...inlineTags].join(',');
+  for (const element of Array.from(dom.body.querySelectorAll<HTMLElement>(selector))) {
     element.style.display = 'inline';
   }
 }

@@ -2,6 +2,7 @@ import { FORMAT_TAGS } from './html';
 import type { Alignment } from './plugins/alignment';
 import { DEFAULT_FORMATS, type InlineFormat } from './plugins/formatting';
 import type { ListTag } from './plugins/lists';
+import type { SchemaElement } from './types';
 
 /**
  * What survives `cleanPastedHtml`. The defaults match `defaultPlugins()`:
@@ -39,6 +40,8 @@ export interface CleanPastedHtmlOptions {
   codeBlock?: boolean;
   /** Keep `<hr>`. Otherwise it is dropped. */
   horizontalRule?: boolean;
+  /** Inline elements from the plugins' `schema`, kept with their listed attributes. */
+  elements?: ReadonlyArray<SchemaElement>;
 }
 
 interface Schema {
@@ -53,6 +56,7 @@ interface Schema {
   blockquote: boolean;
   codeBlock: boolean;
   horizontalRule: boolean;
+  elements: ReadonlyMap<string, ReadonlyArray<string>>;
 }
 
 interface Context {
@@ -159,6 +163,7 @@ export function cleanPastedHtml(html: string, options: CleanPastedHtmlOptions = 
       blockquote: options.blockquote ?? false,
       codeBlock: options.codeBlock ?? false,
       horizontalRule: options.horizontalRule ?? false,
+      elements: new Map((options.elements ?? []).map((element) => [element.tag, element.attributes ?? []])),
     },
     defaultLang: normalizeLang(doc.documentElement.getAttribute('lang')) ?? normalizeLang(doc.body.getAttribute('lang')),
   };
@@ -206,6 +211,7 @@ function walk(ctx: Context, node: Node, frame: Frame, state: State): void {
   else if (tag === 'td' || tag === 'th') cell(ctx, element, tag, frame, next);
   else if (tag === 'a') link(ctx, element, frame, next);
   else if (ctx.schema.internalLink && tag === ctx.schema.internalLink.tag) internalLink(ctx, element, frame, next);
+  else if (ctx.schema.elements.has(tag)) schemaElement(ctx, element, tag, frame, next);
   else if (CONTAINER_TAGS.has(tag)) container(ctx, element, frame, next);
   // Everything else is a wrapper: span, font, b, i, o:p, tbody and unknown elements.
   else walkChildren(ctx, element, frame, next);
@@ -542,6 +548,21 @@ function internalLink(ctx: Context, element: HTMLElement, frame: Frame, state: S
     const value = element.getAttribute(name)?.trim();
     if (value) created.setAttribute(name, value);
   }
+  target.appendChild(created);
+  walkChildren(ctx, element, frameFor('text', created, frame), state);
+}
+
+/** An inline element a plugin declared in its schema. Only the listed attributes survive. */
+function schemaElement(ctx: Context, element: HTMLElement, tag: string, frame: Frame, state: State): void {
+  const target = inlineTarget(ctx, frame, state);
+  if (!target) return;
+  const created = ctx.doc.createElement(tag);
+  for (const name of ctx.schema.elements.get(tag) ?? []) {
+    const value = element.getAttribute(name)?.trim();
+    if (value) created.setAttribute(name, value);
+  }
+  // Same reason as for internal links: Lexical treats unknown elements as blocks.
+  created.style.display = 'inline';
   target.appendChild(created);
   walkChildren(ctx, element, frameFor('text', created, frame), state);
 }

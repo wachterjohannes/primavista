@@ -13,6 +13,7 @@ import { createBalloon } from './balloon';
 import { $isDocumentEmpty, $loadHtml, $serializeToHtml, createExportMap, SET_HTML_TAG } from './html';
 import { defaultPlugins } from './plugins';
 import { collectAllowed } from './plugins/allowed';
+import { collectSchema } from './plugins/schema';
 import { collectThemeClassNames, defaultTheme, mergeThemes } from './theme';
 import { createToolbar } from './toolbar';
 import { assertSameLexical } from './lexicalGuard';
@@ -35,6 +36,8 @@ export function createEditor(container: HTMLElement, options: EditorOptions = {}
   const themeClassNames = collectThemeClassNames(theme);
   const nodes = dedupeNodes(plugins.flatMap((p) => p.nodes ?? []));
   assertSameLexical(plugins);
+  const schema = collectSchema(plugins);
+  const inlineTags = schema.elements.map((element) => element.tag);
 
   const lexical = createLexicalEditor({
     namespace: options.namespace ?? 'primavista',
@@ -94,7 +97,7 @@ export function createEditor(container: HTMLElement, options: EditorOptions = {}
   let lastHtml = '';
 
   const setHtml = (html: string): void => {
-    lexical.update(() => $loadHtml(lexical, html), { discrete: true, tag: [SET_HTML_TAG, HISTORIC_TAG] });
+    lexical.update(() => $loadHtml(lexical, html, inlineTags), { discrete: true, tag: [SET_HTML_TAG, HISTORIC_TAG] });
     lastHtml = serialize();
     updatePlaceholder();
   };
@@ -156,7 +159,7 @@ export function createEditor(container: HTMLElement, options: EditorOptions = {}
   const allowed = collectAllowed(plugins);
   const pluginCleanups: Array<() => void> = [];
   for (const plugin of plugins) {
-    const cleanup = plugin.register?.({ editor: lexical, translate, container: element, contentElement, toolbar, balloon, allowed });
+    const cleanup = plugin.register?.({ editor: lexical, translate, container: element, contentElement, toolbar, balloon, allowed, schema });
     if (cleanup) pluginCleanups.push(cleanup);
   }
   toolbar.refresh();
