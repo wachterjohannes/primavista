@@ -32,6 +32,7 @@ export interface InlineElementSpec {
 export interface InlineElementNode extends ElementNode {
   __attributes: Record<string, string>;
   getAttributes(): Record<string, string>;
+  setAttributes(attributes: Record<string, string>): this;
 }
 
 export interface InlineElementNodeClass extends Klass<InlineElementNode> {
@@ -111,6 +112,12 @@ export function createInlineElementNode(spec: InlineElementSpec): {
 
     getAttributes(): Record<string, string> {
       return this.getLatest().__attributes;
+    }
+
+    setAttributes(attributes: Record<string, string>): this {
+      const writable = this.getWritable();
+      writable.__attributes = attributes;
+      return writable;
     }
 
     override isInline(): true {

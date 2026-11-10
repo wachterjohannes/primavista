@@ -52,6 +52,8 @@
     "sulu_admin.primavista.link.update": "Update link",
     "sulu_admin.primavista.link.remove": "Remove link",
     "sulu_admin.primavista.link.edit": "Edit link",
+    "sulu_admin.primavista.inlineElement.apply": "Apply",
+    "sulu_admin.primavista.inlineElement.remove": "Remove",
     "sulu_admin.primavista.link.cancel": "Cancel",
     "sulu_admin.text_editor": "Text editor",
     "sulu_admin.primavista.toolbar.language": "Language",

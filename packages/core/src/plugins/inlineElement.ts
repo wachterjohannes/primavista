@@ -7,12 +7,10 @@ import {
   type LexicalNode,
   type RangeSelection,
 } from 'lexical';
-import {
-  createInlineElementNode,
-  type InlineElementNode,
-} from '../nodes/inlineElementNode';
+import { icons } from '../icons';
+import { createInlineElementNode, type InlineElementNode } from '../nodes/inlineElementNode';
 import { assertSpecificMatch } from '../nodes/match';
-import type { PrimavistaPlugin } from '../types';
+import type { PluginContext, PrimavistaPlugin, ToolbarApi, Translate } from '../types';
 
 export interface InlineElementOptions {
   /** Unique name of the plugin, also the toolbar item id and the Lexical node type suffix. */
@@ -34,6 +32,8 @@ export interface InlineElementOptions {
  * toolbar button that wraps the selected text or removes the wrapper. The
  * Lexical node, import, export, paste handling and the schema entry for
  * sanitizers come with it, an extension needs no Lexical code for this.
+ * With `attributes` the button opens a small form to enter their values, and
+ * on a selection inside an existing element it edits or removes that element.
  */
 export function inlineElement(options: InlineElementOptions): PrimavistaPlugin {
   const attributes = options.attributes ?? [];
@@ -95,7 +95,7 @@ export function inlineElement(options: InlineElementOptions): PrimavistaPlugin {
     return $isRangeSelection(selection) && $ownerOf(selection.anchor.getNode()) !== null;
   };
 
-  const $toggle = (): void => {
+  const $toggle = (attributes: Record<string, string> = {}): void => {
     const selection = $getSelection();
     if (!$isRangeSelection(selection)) return;
 
@@ -113,7 +113,7 @@ export function inlineElement(options: InlineElementOptions): PrimavistaPlugin {
       if (unwrapping && existing) {
         $unwrap($isolate(existing, textNode));
       } else if (!existing) {
-        const created = $create();
+        const created = $create(attributes);
         textNode.insertBefore(created);
         created.append(textNode);
         touched.push(created);
@@ -126,21 +126,78 @@ export function inlineElement(options: InlineElementOptions): PrimavistaPlugin {
   };
 
   const toolbar = options.toolbar;
+  let pluginContext: PluginContext | null = null;
   const plugin: PrimavistaPlugin = {
     name: options.name,
     nodes: [Node],
     schema: { elements: [{ tag: options.tag, attributes: [...attributes, ...(options.requires ?? [])], ...(options.className ? { className: options.className } : {}), ...(options.requires ? { requires: options.requires } : {}) }] },
-    register: ({ editor }) =>
-      mergeRegister(
-        editor.registerNodeTransform(Node, (node) => {
+    register: (context) => {
+      pluginContext = context;
+      return mergeRegister(
+        context.editor.registerNodeTransform(Node, (node) => {
           if (node.getChildrenSize() === 0) {
             node.remove();
             return;
           }
           $mergeWithPrevious(node);
         }),
-      ),
+      );
+    },
   };
+
+  const openForm = (toolbar: ToolbarApi): void => {
+    if (!pluginContext) return;
+    const { editor, translate } = pluginContext;
+    const state = editor.read(() => {
+      const selection = $getSelection();
+      if (!$isRangeSelection(selection)) return null;
+      const owner = $ownerOf(selection.anchor.getNode());
+      if (!owner && selection.isCollapsed()) return null;
+      return { values: owner ? { ...owner.getAttributes() } : {}, exists: owner !== null };
+    });
+    if (!state) return;
+
+    const finish = (): void => {
+      toolbar.closePanel();
+      editor.focus();
+    };
+    const apply = (values: Record<string, string>): void => {
+      const clean = Object.fromEntries(Object.entries(values).filter(([, value]) => value !== ''));
+      editor.update(() => {
+        const selection = $getSelection();
+        if (!$isRangeSelection(selection)) return;
+        const owner = $ownerOf(selection.anchor.getNode());
+        if (owner) {
+          owner.setAttributes(clean);
+          return;
+        }
+        // An element without any value says nothing, so nothing is wrapped.
+        if (Object.keys(clean).length > 0) $toggle(clean);
+      });
+      finish();
+    };
+    const remove = (): void => {
+      editor.update(() => {
+        const selection = $getSelection();
+        const owner = $isRangeSelection(selection) ? $ownerOf(selection.anchor.getNode()) : null;
+        if (owner) $unwrap(owner);
+      });
+      finish();
+    };
+    toolbar.openPanel((panel) =>
+      renderForm(panel, {
+        fields: attributes,
+        values: state.values,
+        exists: state.exists,
+        name: options.name,
+        translate,
+        apply,
+        remove,
+        cancel: finish,
+      }),
+    );
+  };
+
   if (toolbar !== false) {
     plugin.toolbar = [
       {
@@ -154,14 +211,79 @@ export function inlineElement(options: InlineElementOptions): PrimavistaPlugin {
           if (!$isRangeSelection(selection)) return true;
           return selection.isCollapsed() && !$isActive();
         },
-        onClick: (editor) => {
-          editor.update($toggle);
+        onClick: (editor, { toolbar: toolbarApi }) => {
+          if (attributes.length > 0) {
+            openForm(toolbarApi);
+            return;
+          }
+          editor.update(() => $toggle());
           editor.focus();
         },
       },
     ];
   }
   return plugin;
+}
+
+interface FormState {
+  fields: ReadonlyArray<string>;
+  values: Record<string, string>;
+  exists: boolean;
+  name: string;
+  translate: Translate;
+  apply: (values: Record<string, string>) => void;
+  remove: () => void;
+  cancel: () => void;
+}
+
+/** One text field per attribute, the same panel the link plugins use. */
+function renderForm(panel: HTMLElement, state: FormState): void {
+  const form = document.createElement('form');
+  form.className = 'pv-link-form';
+
+  const inputs = state.fields.map((field) => {
+    const input = document.createElement('input');
+    input.type = 'text';
+    input.className = 'pv-input';
+    input.name = field;
+    const label = state.translate(`inlineElement.${state.name}.${field}`, field);
+    input.placeholder = label;
+    input.setAttribute('aria-label', label);
+    input.value = state.values[field] ?? '';
+    form.appendChild(input);
+    return input;
+  });
+
+  const button = (type: 'submit' | 'button', icon: string, title: string, primary = false): HTMLButtonElement => {
+    const el = document.createElement('button');
+    el.type = type;
+    el.className = primary ? 'pv-button pv-button--primary' : 'pv-button';
+    el.innerHTML = icon;
+    el.title = title;
+    el.setAttribute('aria-label', title);
+    form.appendChild(el);
+    return el;
+  };
+  button('submit', icons.check, state.translate('inlineElement.apply', state.exists ? 'Update' : 'Apply'), true);
+  if (state.exists) {
+    button('button', icons.unlink, state.translate('inlineElement.remove', 'Remove')).addEventListener('click', state.remove);
+  }
+  button('button', icons.close, state.translate('link.cancel', 'Cancel')).addEventListener('click', state.cancel);
+
+  form.addEventListener('submit', (event) => {
+    event.preventDefault();
+    state.apply(Object.fromEntries(inputs.map((input) => [input.name, input.value.trim()])));
+  });
+  form.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape') {
+      event.preventDefault();
+      state.cancel();
+    }
+  });
+
+  panel.appendChild(form);
+  inputs[0]?.focus();
+  inputs[0]?.select();
 }
 
 function $reselect(selection: RangeSelection, nodes: LexicalNode[]): void {

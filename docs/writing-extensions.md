@@ -23,7 +23,7 @@ primavista_sulu:
         - { tag: span, class: lead }
 ```
 
-The sanitizer allows the element and the admin gets a toolbar button. Common tags such as `span` need a class. Attributes are kept, but the button does not set them yet. See the Sulu bundle page for the details.
+The sanitizer allows the element and the admin gets a toolbar button. Common tags such as `span` need a class. With attributes the button opens a small form to enter their values. See the Sulu bundle page for the details.
 
 ## Level 2: helpers
 
