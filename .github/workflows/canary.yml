@@ -1,0 +1,36 @@
+name: Lexical canary
+
+on:
+  schedule:
+    - cron: '0 6 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  canary:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Move Lexical to the latest release
+        run: pnpm up --latest --filter @primavista/core lexical '@lexical/*'
+      - run: pnpm build
+      - run: pnpm typecheck
+      - run: pnpm test
+      - name: Report the failure
+        if: failure()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          version=$(node -p "require('./packages/core/package.json').dependencies.lexical")
+          gh issue create \
+            --title "Lexical canary failed on $version" \
+            --body "The weekly run against the latest Lexical failed: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"

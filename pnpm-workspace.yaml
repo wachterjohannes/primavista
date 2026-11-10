@@ -3,3 +3,4 @@ packages:
   - bundles/ux-bundle/assets
   - demo
   - pages
+  - examples/*
