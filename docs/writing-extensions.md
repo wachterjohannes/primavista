@@ -40,7 +40,7 @@ An extension never installs Lexical and does not bundle the core. It names the c
 }
 ```
 
-Raise the lower bound to the first release that has the helpers you use. While Primavista is below 1.0 a caret range such as `^0.1.0` excludes `0.2.0`, which is why the range above spells out the upper bound. Until the packages are on npm, install them as tarballs, see the Sulu integration page. The examples in `examples/` follow this setup.
+Raise the lower bound to the first release that has the helpers you use. While Primavista is below 1.0 a caret range such as `^0.1.0` excludes `0.2.0`, which is why the range above spells out the upper bound. TypeScript projects need `moduleResolution` `bundler`, `node16` or `nodenext`, the same as Lexical itself. Until the packages are on npm, install them as tarballs, see the Sulu integration page. The examples in `examples/` follow this setup.
 
 ## Level 2: helpers
 

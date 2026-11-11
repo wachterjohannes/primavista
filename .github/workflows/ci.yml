@@ -21,6 +21,8 @@ jobs:
       - run: pnpm size
       - run: pnpm typecheck
       - run: pnpm test
+      - name: Packed packages work in an empty project
+        run: pnpm verify:packages
       - name: Built controller is committed
         run: git diff --exit-code -- bundles/ux-bundle/assets/dist
 
