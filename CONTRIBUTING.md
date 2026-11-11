@@ -37,6 +37,7 @@ pnpm e2e
 ## Ground rules
 
 - A change to the emitted HTML needs a round-trip test in `packages/core/test/html.test.ts`. A new element or attribute also goes into `PrimavistaSanitizerConfig` in `libs/html-sanitizer` and its test, otherwise the server drops it.
+- The editor's output for typical Sulu content lives in `bundles/sulu-bundle/tests/Fixtures/editor-output.json`. `packages/sulu/test/editorOutput.test.ts` checks it and the PHP sanitizer test reads it. When a change moves the output on purpose, regenerate it with `UPDATE_FIXTURES=1 pnpm --filter @primavista/sulu test` and say so in the PR.
 - A new toolbar item needs a unit test and, if it touches the DOM in a way jsdom cannot cover, a Playwright test.
 - Primavista's own API follows semver: `createEditor`, `PrimavistaPlugin`, the helpers, the schema, the toolbar and balloon API and `@primavista/core/testing`. Host systems build on it.
 - The Lexical pass-through is the exception. `@primavista/core/lexical` and `PluginContext.editor` follow Lexical and carry no stability promise.

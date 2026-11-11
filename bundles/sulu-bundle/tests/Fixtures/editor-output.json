@@ -1,0 +1,74 @@
+[
+  {
+    "name": "headings",
+    "html": "<h2>Two</h2><h3>Three</h3><h4>Four</h4><h5>Five</h5><h6>Six</h6>"
+  },
+  {
+    "name": "inline formats",
+    "html": "<p><strong>b</strong> <em>i</em> <u>u</u> <s>s</s> <code>c</code> H<sub>2</sub>O E=mc<sup>2</sup></p>"
+  },
+  {
+    "name": "CKEditor italic and bold",
+    "html": "<p><em>italic</em> <strong>bold</strong></p>"
+  },
+  {
+    "name": "nested formats",
+    "html": "<p><strong><em>both</em></strong> and <u><s>these</s></u></p>"
+  },
+  {
+    "name": "lists",
+    "html": "<ul><li>One</li><li>Two<ul><li>Nested</li></ul></li></ul><ol><li>First</li><li>Second</li></ol>"
+  },
+  {
+    "name": "external link",
+    "html": "<p>See <a href=\"https://sulu.io\" target=\"_blank\" title=\"Sulu\">Sulu</a>.</p>"
+  },
+  {
+    "name": "sulu link",
+    "html": "<p><sulu-link href=\"abc-123?x=1#top\" provider=\"page\" target=\"_self\" title=\"Home\">Home</sulu-link></p>"
+  },
+  {
+    "name": "sulu link with validation state",
+    "html": "<p><sulu-link href=\"abc\" provider=\"media\" sulu-validation-state=\"unpublished\">File</sulu-link></p>"
+  },
+  {
+    "name": "alignment",
+    "html": "<p style=\"text-align: center;\">c</p><p style=\"text-align: right;\">r</p><p style=\"text-align: justify;\">j</p>"
+  },
+  {
+    "name": "table",
+    "html": "<figure class=\"table\"><table><thead><tr><th>H</th><th>H</th><th></th></tr></thead><tbody><tr><td>a</td><td colspan=\"2\">b</td></tr></tbody></table></figure>"
+  },
+  {
+    "name": "table with empty cells",
+    "html": "<figure class=\"table\"><table><tbody><tr><td></td><td>x</td></tr></tbody></table></figure>"
+  },
+  {
+    "name": "empty paragraphs",
+    "html": "<p>a</p><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p>b</p>"
+  },
+  {
+    "name": "whitespace",
+    "html": "<p>leading and inner</p><p>trailing</p>"
+  },
+  {
+    "name": "line breaks",
+    "html": "<p>one<br>two<br><br>three</p>"
+  },
+  {
+    "name": "entities",
+    "html": "<p>a &amp; b &lt; c &gt; d \"e\"</p>"
+  },
+  {
+    "name": "unicode",
+    "html": "<p>Größe, café, 日本語, 😀</p>"
+  },
+  {
+    "name": "long text",
+    "html": "<p>word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word</p>"
+  },
+  {
+    "name": "mixed document",
+    "html": "<h2>Title</h2><p>Intro with <strong>bold</strong> and a <a href=\"https://example.org\">link</a>.</p><ul><li>Point</li></ul><p style=\"text-align: center;\">End</p>"
+  }
+]
