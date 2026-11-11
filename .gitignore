@@ -28,3 +28,4 @@ e2e/output/
 bundles/sulu-bundle/vendor/
 bundles/sulu-bundle/composer.lock
 bundles/sulu-bundle/assets/admin/node_modules/
+dist-page/
