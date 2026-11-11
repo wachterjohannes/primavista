@@ -198,6 +198,23 @@ export function suluPlugins(options: SuluPluginsOptions): PrimavistaPlugin[] {
 }
 
 /**
+ * The elements the plugins write that the server would strip on save. A
+ * plugin declares its markup in `schema`, the server allows tags through the
+ * text editor config and `primavista_sulu`. Elements outside of that lose
+ * their markup without a message, so the adapter warns with this list.
+ */
+export function unallowedElements(plugins: ReadonlyArray<PrimavistaPlugin>, allowedTags: Iterable<string>): string[] {
+  const allowed = new Set(allowedTags);
+  const tags = new Set<string>();
+  for (const plugin of plugins) {
+    for (const element of plugin.schema?.elements ?? []) {
+      if (!allowed.has(element.tag)) tags.add(element.tag);
+    }
+  }
+  return [...tags];
+}
+
+/**
  * Options that make the editor read and write HTML exactly like Sulu's
  * CKEditor 5 setup did: tables wrapped in `<figure class="table">` with a
  * `<thead>`, empty paragraphs as `&nbsp;`, and the Sulu theme from

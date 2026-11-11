@@ -18,6 +18,12 @@ type PluginFactory = (context: PluginContext) => ?Object;
 
 class PrimavistaPluginRegistry {
     factories: Array<PluginFactory> = [];
+    // Tags the server allows on top of the text editor config: primavista_sulu.tags and primavista_sulu.elements.
+    serverTags: Set<string> = new Set();
+
+    allowServerTags(tags: Array<string>) {
+        tags.forEach((tag) => this.serverTags.add(tag));
+    }
 
     add(factory: PluginFactory) {
         this.factories.push(factory);
@@ -25,6 +31,7 @@ class PrimavistaPluginRegistry {
 
     clear() {
         this.factories = [];
+        this.serverTags = new Set();
     }
 
     create(context: PluginContext): Array<Object> {

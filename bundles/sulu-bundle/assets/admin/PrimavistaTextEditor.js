@@ -27,6 +27,8 @@ import {
     suluPreset,
     suluTranslationKey,
     suluValueToHtml,
+    SULU_DEFAULT_CONFIG,
+    unallowedElements,
 } from '@primavista/sulu';
 import '@primavista/core/primavista.css';
 import '@primavista/sulu/sulu.css';
@@ -49,6 +51,9 @@ type TextEditorConfig = {
 type Props = {...TextEditorProps, config?: TextEditorConfig};
 
 const DEFAULT_TARGET = SULU_DEFAULT_TARGET;
+
+// One console warning per element, every editor on the page would repeat it otherwise.
+const warnedElements: Set<string> = new Set();
 
 @observer
 class PrimavistaTextEditor extends React.Component<Props> {
@@ -166,10 +171,39 @@ class PrimavistaTextEditor extends React.Component<Props> {
         return names.length ? names : undefined;
     }
 
+    // Sulu strips what the config does not allow when the value is saved, so
+    // an element a project plugin writes needs a tag in the config or in
+    // primavista_sulu. Returns the elements that have none.
+    warnAboutUnallowedElements(plugins: Array<Object>): Array<string> {
+        const allowed = [
+            ...(this.config.tags || SULU_DEFAULT_CONFIG.tags),
+            ...primavistaPluginRegistry.serverTags,
+        ];
+
+        return unallowedElements(plugins, allowed).filter((tag) => {
+            if (warnedElements.has(tag)) {
+                return false;
+            }
+            warnedElements.add(tag);
+
+            return true;
+        });
+    }
+
     createPlugins(): Array<Object> {
         const providers = linkTypeRegistry.getKeys()
             .filter((key) => key !== 'external')
             .map((key) => ({key, label: linkTypeRegistry.getTitle(key)}));
+
+        const projectPlugins = primavistaPluginRegistry.create({config: this.config, options: this.props.options || {}});
+        const warned = this.warnAboutUnallowedElements(projectPlugins);
+        if (warned.length > 0) {
+            // eslint-disable-next-line no-console
+            console.warn(
+                'Primavista: the plugins write <' + warned.join('>, <') + '>, which the server removes on save. '
+                + 'Allow the tags in primavista_sulu.tags, primavista_sulu.elements or the text editor config.'
+            );
+        }
 
         const plugins = suluPlugins({
             config: this.config,
@@ -179,7 +213,7 @@ class PrimavistaTextEditor extends React.Component<Props> {
             openExternalLinkDialog: this.handleOpenExternalDialog,
             describeInternalLink: ({provider, href}) => `${linkTypeRegistry.getTitle(provider)}: ${href}`,
             autoformat: this.autoformat,
-            plugins: primavistaPluginRegistry.create({config: this.config, options: this.props.options || {}}),
+            plugins: projectPlugins,
         });
         if (this.wordCountOptions) {
             plugins.push(wordCount(this.wordCountOptions));
