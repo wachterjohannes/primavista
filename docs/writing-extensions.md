@@ -105,4 +105,23 @@ Do not add `lexical` to your `dependencies`. `@primavista/core/lexical` hands ou
 
 `context.editor` and everything under `@primavista/core/lexical` follow Lexical, not Primavista. They have no stability promise. Declare the markup your plugin writes in `schema`, so paste cleanup and sanitizers know it.
 
+The guard cannot see a plugin that has no nodes and only imports `$getSelection` from a second copy of Lexical. Two checks close that gap in your project:
+
+```js
+// eslint.config.js: Lexical comes from the core, never from its own package
+{
+  rules: {
+    'no-restricted-imports': ['error', {
+      patterns: [{ group: ['lexical', '@lexical/*'], message: 'Import from @primavista/core/lexical instead.' }],
+    }],
+  },
+}
+```
+
+```json
+{ "scripts": { "check:lexical": "primavista-check-lexical" } }
+```
+
+`primavista-check-lexical` ships with `@primavista/core`. It runs `npm ls lexical` and fails when more than one version is installed.
+
 In Jest, add `lexical|@lexical|@primavista` to `transformIgnorePatterns`, because Lexical ships ES modules and Jest does not transform `node_modules` by default.

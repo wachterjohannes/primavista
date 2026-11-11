@@ -74,6 +74,14 @@ const walk = (node) => {
 walk(tree);
 check(versions.size === 1, `one version of lexical is installed (${[...versions].join(', ')})`);
 
+// 4b. The check a project can run says the same.
+try {
+  run('npx', ['primavista-check-lexical'], consumer, { quiet: true });
+  check(true, 'primavista-check-lexical passes');
+} catch (error) {
+  check(false, `primavista-check-lexical fails: ${String(error.stderr ?? error.stdout ?? error.message).split('\n')[0]}`);
+}
+
 // 5. Types resolve under every module resolution a project may use.
 writeFileSync(
   join(consumer, 'types.ts'),
