@@ -1,0 +1,26 @@
+# Lexical updates arrive as their own pull request, the way the project wants them.
+# Only lexical and @lexical/* are watched here, everything else is updated by hand.
+# A bump touches package.json and the lockfile. The version in the docs snippets
+# and in the README badge still needs a manual change, `pnpm check:versions` fails
+# the pull request until it is done.
+version: 2
+updates:
+  - package-ecosystem: npm
+    directories:
+      - /
+      - /packages/*
+      - /bundles/ux-bundle/assets
+      - /demo
+      - /pages
+      - /examples/*
+    schedule:
+      interval: weekly
+    allow:
+      - dependency-name: lexical
+      - dependency-name: '@lexical/*'
+    groups:
+      lexical:
+        patterns:
+          - lexical
+          - '@lexical/*'
+    open-pull-requests-limit: 2
