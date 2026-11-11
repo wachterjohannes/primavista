@@ -45,6 +45,7 @@ export type {
   PluginContext,
   PluginSchema,
   SchemaElement,
+  SelectionInfo,
   PrimavistaEditor,
   PrimavistaPlugin,
   ToolbarApi,

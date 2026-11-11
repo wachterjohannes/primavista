@@ -75,21 +75,20 @@ expectRoundTrip([...defaultPlugins(), highlight], '<p>a <mark>b</mark></p>');
 
 ### How far level 2 goes
 
-`examples/editorial-kit` is the largest extension that needs no Lexical. It has two colours of `<mark>`, `<abbr title>` with a form, `<kbd>`, a note box, a newsletter placeholder with a preview, a menu of snippets, a menu of special characters, a text case menu that rewrites the selection, a tooltip for abbreviations and a reading time line. All of it uses only these parts of the API:
+`examples/editorial-kit` is the largest extension that needs no Lexical. It has two colours of `<mark>`, `<abbr title>` with a form, `<kbd>`, a note box, a newsletter placeholder with a preview, a menu of snippets, a menu of special characters, a text case menu that rewrites the selection, a button with its own pressed state, a tooltip for abbreviations, a reading time line and a status line that follows the selection. All of it uses only these parts of the API:
 
 | Part | What it gives you |
 | --- | --- |
 | `inlineElement`, `blockElement`, `voidElement` | elements with import, export, paste and toolbar button |
 | toolbar `menu` and `button` items | your own actions, `onSelect` and `onClick` need no editor argument |
-| `context.primavista` | `insertText`, `insertHtml`, `getSelectedText`, `toggleFormat`, `on('change')`, `getHtml` |
+| `context.primavista` | `insertText`, `insertHtml`, `getSelectedText`, `toggleFormat`, `getSelection`, `on('change')`, `on('selectionchange')`, `getHtml` |
 | `context.balloon`, `context.toolbar.openPanel` | floating panels and form rows |
 | `context.contentElement`, `context.container` | plain DOM events and extra elements, removed in the cleanup |
 
 What it cannot do, and what to reach for instead:
 
 - **Format-preserving rewrites.** `getSelectedText` and `insertText` work on plain text, so a text case change drops bold and links inside the selection. Keeping them needs the nodes, level 3.
-- **A custom pressed state.** `isActive` and `getValue` of a toolbar item run inside `editor.read()` and read the selection with Lexical's `$` functions. The helpers set the pressed state for their own elements. For anything else there is no level 2 way.
-- **Reacting to the selection.** The editor has `change`, `focus` and `blur` events, but no selection event, so a plugin cannot follow the caret without Lexical.
+- **Anything the selection info does not carry.** `getSelection()` returns the collapsed state, the text, the inline formats, the top-level block and the elements around the start of the selection with their attributes. A toolbar item uses it in `isActive`, `isDisabled` and `getValue`, and `on('selectionchange')` follows it. Questions about the structure beyond that, such as the position inside a list or a table cell, need Lexical.
 - **Your own element inside the text that is not one of the three shapes.** An inline element with attributes the user edits in place, a table-like block or a nested structure needs a node class, level 3.
 - **A format that overlaps a built-in tag.** Claim a tag such as `kbd` with a helper and the helper wins, but formats inside it still apply.
 

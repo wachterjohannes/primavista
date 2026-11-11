@@ -206,8 +206,27 @@ export interface EditorOptions {
   translate?: Translate;
 }
 
+/**
+ * What is selected, in terms of HTML. Plugins use it for their own toolbar
+ * state and status lines without Lexical.
+ */
+export interface SelectionInfo {
+  /** No text is selected, only a caret. */
+  collapsed: boolean;
+  /** The selected text, empty for a caret. */
+  text: string;
+  /** Inline formats the selection has. */
+  formats: ReadonlyArray<'bold' | 'italic' | 'underline' | 'strikethrough' | 'subscript' | 'superscript' | 'code'>;
+  /** The tag of the top-level block around the selection, for example `p`, `h2` or `ul`. */
+  block: string | null;
+  /** The elements around the start of the selection as the editor writes them, innermost first. Includes helper elements such as `mark` or `abbr`. */
+  ancestors: ReadonlyArray<{ tag: string; attributes: Readonly<Record<string, string>> }>;
+}
+
 export type EditorEventMap = {
   change: (html: string) => void;
+  /** The selection moved or changed what it covers. `null` when the editor has no selection. */
+  selectionchange: (selection: SelectionInfo | null) => void;
   focus: () => void;
   blur: () => void;
 };
@@ -233,6 +252,12 @@ export interface PrimavistaEditor {
   insertHtml(html: string): void;
   /** The plain text of the current selection, empty when nothing is selected. */
   getSelectedText(): string;
+  /**
+   * What is selected, or null without a selection. Safe to call inside
+   * `isActive`, `isDisabled` and `getValue` of a toolbar item, so a plugin can
+   * set its pressed state without Lexical.
+   */
+  getSelection(): SelectionInfo | null;
   /** Toggles an inline format on the selection, as the toolbar button does. */
   toggleFormat(format: 'bold' | 'italic' | 'underline' | 'strikethrough' | 'subscript' | 'superscript' | 'code'): void;
   focus(): void;

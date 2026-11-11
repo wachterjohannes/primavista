@@ -22,8 +22,9 @@ import { matchSelector } from './nodes/match';
 import { collectSchema } from './plugins/schema';
 import { collectThemeClassNames, defaultTheme, mergeThemes } from './theme';
 import { createToolbar } from './toolbar';
+import { $readSelection, sameSelection } from './selection';
 import { assertSameLexical } from './lexicalGuard';
-import type { EditorEventMap, EditorOptions, HtmlOptions, PrimavistaEditor, PrimavistaPlugin } from './types';
+import type { EditorEventMap, EditorOptions, HtmlOptions, PrimavistaEditor, PrimavistaPlugin, SelectionInfo } from './types';
 
 /**
  * Mounts an editor into `container`. The container stays untouched apart from
@@ -95,6 +96,7 @@ export function createEditor(container: HTMLElement, options: EditorOptions = {}
 
   const listeners: { [K in keyof EditorEventMap]: Set<EditorEventMap[K]> } = {
     change: new Set(),
+    selectionchange: new Set(),
     focus: new Set(),
     blur: new Set(),
   };
@@ -106,6 +108,7 @@ export function createEditor(container: HTMLElement, options: EditorOptions = {}
 
   const serialize = (): string => lexical.read(() => $serializeToHtml(lexical, { themeClassNames, html: htmlOptions }));
   let lastHtml = '';
+  let lastSelection: SelectionInfo | null = null;
 
   const setHtml = (html: string): void => {
     lexical.update(() => $loadHtml(lexical, html, inlineTags), { discrete: true, tag: [SET_HTML_TAG, HISTORIC_TAG] });
@@ -139,6 +142,13 @@ export function createEditor(container: HTMLElement, options: EditorOptions = {}
     registerRichText(lexical),
     lexical.registerUpdateListener(({ dirtyElements, dirtyLeaves, tags }) => {
       updatePlaceholder();
+      if (listeners.selectionchange.size > 0) {
+        const selection = lexical.read(() => $readSelection(lexical));
+        if (!sameSelection(selection, lastSelection)) {
+          lastSelection = selection;
+          emit('selectionchange', selection);
+        }
+      }
       if (tags.has(SET_HTML_TAG)) return;
       if (dirtyElements.size === 0 && dirtyLeaves.size === 0) return;
       const html = serialize();
@@ -195,6 +205,7 @@ export function createEditor(container: HTMLElement, options: EditorOptions = {}
     insertHtml: (html) => {
       lexical.update(() => $insertHtml(lexical, html, inlineTags), { discrete: true });
     },
+    getSelection: () => lexical.read(() => $readSelection(lexical)),
     getSelectedText: () =>
       lexical.read(() => {
         const selection = $getSelection();

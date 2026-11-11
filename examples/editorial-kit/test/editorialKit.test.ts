@@ -98,4 +98,31 @@ describe('editorial kit', () => {
     editor.destroy();
     expect(editor.element.querySelector('.reading-time')).toBeNull();
   });
+
+  it('shows the pressed state of its own button from getSelection', () => {
+    const editor = setup('<p>plain <strong>bold</strong> <kbd>Esc</kbd></p>');
+    const important = (): HTMLButtonElement => button(editor, 'important');
+    selectAll(editor);
+    editor.toolbar.refresh();
+    expect(important().getAttribute('aria-pressed')).not.toBe('true');
+    editor.setHtml('<p><strong>all bold</strong></p>');
+    selectAll(editor);
+    editor.toolbar.refresh();
+    expect(important().getAttribute('aria-pressed')).toBe('true');
+  });
+
+  it('disables the button inside a keyboard key', () => {
+    const editor = setup('<p><kbd>Esc</kbd></p>');
+    selectAll(editor);
+    editor.toolbar.refresh();
+    expect(button(editor, 'important').disabled).toBe(true);
+  });
+
+  it('follows the selection in the status line', () => {
+    const editor = setup('<p>one two three</p>');
+    selectAll(editor);
+    expect(editor.element.querySelector('.selection-status')?.textContent).toBe('3 words selected, in p');
+    editor.destroy();
+    expect(editor.element.querySelector('.selection-status')).toBeNull();
+  });
 });
