@@ -9,7 +9,7 @@ import {
 } from 'lexical';
 import { icons } from '../icons';
 import { createInlineElementNode, type InlineElementNode } from '../nodes/inlineElementNode';
-import { assertSpecificMatch } from '../nodes/match';
+import { assertSafeAttributes, assertSpecificMatch } from '../nodes/match';
 import type { PluginContext, PrimavistaPlugin, ToolbarApi, Translate } from '../types';
 
 export interface InlineElementOptions {
@@ -39,6 +39,7 @@ export function inlineElement(options: InlineElementOptions): PrimavistaPlugin {
   const attributes = options.attributes ?? [];
   const match = { tag: options.tag, className: options.className, requires: options.requires };
   assertSpecificMatch('inlineElement', options.name, match);
+  assertSafeAttributes('inlineElement', options.name, options.tag, [...attributes, ...(options.requires ?? [])]);
   const { Node, $create, $is } = createInlineElementNode({
     name: options.name,
     tag: options.tag,

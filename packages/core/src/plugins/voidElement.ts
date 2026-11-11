@@ -9,7 +9,7 @@ import {
   COMMAND_PRIORITY_LOW,
 } from 'lexical';
 import { createVoidElementNode } from '../nodes/voidElementNode';
-import { assertSpecificMatch } from '../nodes/match';
+import { assertSafeAttributes, assertSpecificMatch } from '../nodes/match';
 import type { PrimavistaPlugin } from '../types';
 
 export interface VoidElementOptions {
@@ -45,6 +45,7 @@ export function voidElement(options: VoidElementOptions): PrimavistaPlugin {
   const attributes = [...new Set([...(options.attributes ?? Object.keys(options.defaults ?? {})), ...requires])];
   const match = { tag: options.tag, className: options.className, requires };
   assertSpecificMatch('voidElement', options.name, match);
+  assertSafeAttributes('voidElement', options.name, options.tag, attributes);
   const { Node, $create, $is } = createVoidElementNode({
     name: options.name,
     tag: options.tag,

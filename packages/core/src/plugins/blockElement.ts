@@ -11,7 +11,7 @@ import {
   type LexicalNode,
 } from 'lexical';
 import { createBlockElementNode, type BlockElementNode } from '../nodes/blockElementNode';
-import { assertSpecificMatch } from '../nodes/match';
+import { assertSafeAttributes, assertSpecificMatch } from '../nodes/match';
 import type { PrimavistaPlugin } from '../types';
 
 export interface BlockElementOptions {
@@ -40,6 +40,7 @@ export function blockElement(options: BlockElementOptions): PrimavistaPlugin {
   const attributes = options.attributes ?? [];
   const match = { tag: options.tag, className: options.className, requires: options.requires };
   assertSpecificMatch('blockElement', options.name, match);
+  assertSafeAttributes('blockElement', options.name, options.tag, [...attributes, ...(options.requires ?? [])]);
   const { Node, $create, $is } = createBlockElementNode({
     name: options.name,
     tag: options.tag,

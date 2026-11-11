@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it } from 'vitest';
-import { cleanPastedHtml, defaultPlugins, getSchema, inlineElement, type PrimavistaEditor } from '../src';
+import { blockElement, cleanPastedHtml, defaultPlugins, getSchema, inlineElement, voidElement, type PrimavistaEditor } from '../src';
 import { button, mount, paste, selectAll } from '../src/testing';
 
 const mark = inlineElement({ name: 'mark', tag: 'mark', toolbar: { label: 'Highlight' } });
@@ -136,5 +136,13 @@ describe('attribute form', () => {
     button(editor, 'mark').click();
     expect(form(editor)).toBeNull();
     expect(editor.getHtml()).toBe('<p><mark>plain</mark></p>');
+  });
+
+  it('refuses tags and attributes that never belong in content', () => {
+    expect(() => inlineElement({ name: 'x', tag: 'script' })).toThrow(/cannot claim <script>/);
+    expect(() => inlineElement({ name: 'x', tag: 'mark', attributes: ['onclick'] })).toThrow(/cannot keep the attribute/);
+    expect(() => inlineElement({ name: 'x', tag: 'mark', attributes: ['style'] })).toThrow(/cannot keep the attribute/);
+    expect(() => blockElement({ name: 'y', tag: 'iframe' })).toThrow(/cannot claim <iframe>/);
+    expect(() => voidElement({ name: 'z', tag: 'embed' })).toThrow(/cannot claim <embed>/);
   });
 });

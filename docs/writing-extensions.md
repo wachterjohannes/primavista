@@ -25,11 +25,28 @@ primavista_sulu:
 
 The sanitizer allows the element and the admin gets a toolbar button. Common tags such as `span` need a class. With attributes the button opens a small form to enter their values. See the Sulu bundle page for the details.
 
+## Package setup
+
+An extension never installs Lexical and does not bundle the core. It names the core as a peer dependency, so the project decides the version and there is one copy:
+
+```json
+{
+  "peerDependencies": {
+    "@primavista/core": ">=0.1.0 <1.0.0"
+  },
+  "devDependencies": {
+    "@primavista/core": "^0.1.0"
+  }
+}
+```
+
+Raise the lower bound to the first release that has the helpers you use. While Primavista is below 1.0 a caret range such as `^0.1.0` excludes `0.2.0`, which is why the range above spells out the upper bound. Until the packages are on npm, install them as tarballs, see the Sulu integration page. The examples in `examples/` follow this setup.
+
 ## Level 2: helpers
 
 Three helpers cover the common cases. Each creates the Lexical node, the import and export, paste handling and the schema entry.
 
-A helper claims its element by tag, plus `className` or `requires` (attributes the element must have). Common tags such as `span`, `div` or `a` need one of the two, otherwise the helper throws. Other elements of the tag, such as `<span lang>`, stay untouched. Two helpers may share a tag when their classes differ.
+A helper claims its element by tag, plus `className` or `requires` (attributes the element must have). Common tags such as `span`, `div` or `a` need one of the two, otherwise the helper throws. Other elements of the tag, such as `<span lang>`, stay untouched. Two helpers may share a tag when their classes differ. Tags such as `script`, `iframe` or `svg` and the attributes `style`, `class`, `srcdoc` and `on*` are refused, the same rule as in the Sulu configuration.
 
 ```ts
 import { blockElement, inlineElement, voidElement } from '@primavista/core';
@@ -65,7 +82,7 @@ import { $getSelection, $isRangeSelection } from '@primavista/core/lexical';
 import { $findMatchingParent } from '@primavista/core/lexical/utils';
 ```
 
-Do not add `lexical` to your `dependencies`. `@primavista/core/lexical` hands out the copy the editor uses. A second copy breaks `instanceof` checks and node registration. `createEditor` throws a clear error when a plugin brings node classes from another copy.
+Do not add `lexical` to your `dependencies`. `@primavista/core/lexical` hands out the copy the editor uses. A second copy breaks `instanceof` checks and node registration. `createEditor` throws a clear error when a plugin brings node classes from another copy. It cannot see a plugin without nodes of its own, so a plugin that only imports `$getSelection` from a second copy of `lexical` fails later with Lexical's own, less clear error. Importing everything through `@primavista/core/lexical` avoids that.
 
 `context.editor` and everything under `@primavista/core/lexical` follow Lexical, not Primavista. They have no stability promise. Declare the markup your plugin writes in `schema`, so paste cleanup and sanitizers know it.
 
