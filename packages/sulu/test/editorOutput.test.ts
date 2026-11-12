@@ -50,9 +50,27 @@ function write(html: string): string {
   return out;
 }
 
+function discardedBy(html: string): string[] {
+  const container = document.createElement('div');
+  document.body.appendChild(container);
+  const editor = createEditor(container, {
+    ...suluPreset(),
+    plugins: suluPlugins({ config: SULU_DEFAULT_CONFIG, providers: [{ key: 'page', label: 'Page' }, { key: 'media', label: 'Media' }] }),
+    initialHtml: html,
+  });
+  const discarded = editor.getDiscarded().map(({ tag, className }) => tag + (className ? `.${className}` : ''));
+  editor.destroy();
+  container.remove();
+  return discarded;
+}
+
 const outputs = Object.entries(INPUTS).map(([name, html]) => ({ name, html: write(html) }));
 
 describe('editor output for Sulu content', () => {
+  it.each(Object.entries(INPUTS))('reports nothing as discarded for typical Sulu content: %s', (_name, html) => {
+    expect(discardedBy(html)).toEqual([]);
+  });
+
   it.each(outputs)('is stable when the editor reads its own output: $name', ({ html }) => {
     expect(write(html)).toBe(html);
   });

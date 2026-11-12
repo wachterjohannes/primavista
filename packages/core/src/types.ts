@@ -202,6 +202,16 @@ export interface EditorOptions {
   ariaLabelledBy?: string;
   ariaDescribedBy?: string;
   onError?: (error: Error) => void;
+  /**
+   * A plugin threw while registering. The editor keeps running without it and
+   * its content still loads. Defaults to `console.error`.
+   */
+  onPluginError?: (pluginName: string, error: Error) => void;
+  /**
+   * Called when loaded HTML holds elements the editor cannot write back, at
+   * creation and on every `setHtml`. Saving would remove them.
+   */
+  onDiscard?: (discarded: ReadonlyArray<DiscardedElement>) => void;
   /** Translates toolbar labels and form strings. Defaults to the English fallback. */
   translate?: Translate;
 }
@@ -223,6 +233,13 @@ export interface SelectionInfo {
   ancestors: ReadonlyArray<{ tag: string; attributes: Readonly<Record<string, string>> }>;
 }
 
+/** An element the loaded HTML had and the editor cannot write back, with how many were lost. */
+export interface DiscardedElement {
+  tag: string;
+  className?: string;
+  count: number;
+}
+
 export type EditorEventMap = {
   change: (html: string) => void;
   /** The selection moved or changed what it covers. `null` when the editor has no selection. */
@@ -239,6 +256,10 @@ export interface PrimavistaEditor {
   readonly toolbar: ToolbarApi;
   readonly balloon: BalloonApi;
   getHtml(): string;
+  /** Elements of the last loaded HTML that the editor cannot write back. Empty when nothing would be lost. */
+  getDiscarded(): ReadonlyArray<DiscardedElement>;
+  /** Names of plugins that threw while registering. */
+  readonly failedPlugins: ReadonlyArray<string>;
   /** Replaces the document. Does not emit `change` and is not undoable. */
   setHtml(html: string): void;
   isEmpty(): boolean;
