@@ -85,3 +85,56 @@ describe('matching', () => {
   });
 });
 });
+
+describe('attribute form', () => {
+  const abbrWithButton = inlineElement({ name: 'abbr', tag: 'abbr', attributes: ['title'], toolbar: { label: 'Abbreviation' } });
+
+  const form = (editor: PrimavistaEditor): HTMLFormElement | null => editor.element.querySelector('form.pv-link-form');
+  const submit = (editor: PrimavistaEditor, value: string): void => {
+    const input = form(editor)?.querySelector('input');
+    if (!input) throw new Error('no attribute form');
+    input.value = value;
+    form(editor)?.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+  };
+
+  it('asks for the title and wraps the selection with it', () => {
+    const editor = setup([...defaultPlugins(), abbrWithButton]);
+    editor.setHtml('<p>HTML</p>');
+    selectAll(editor);
+    button(editor, 'abbr').click();
+    submit(editor, 'Hypertext Markup Language');
+    expect(editor.getHtml()).toBe('<p><abbr title="Hypertext Markup Language">HTML</abbr></p>');
+    expect(form(editor)).toBeNull();
+  });
+
+  it('wraps nothing when the title stays empty', () => {
+    const editor = setup([...defaultPlugins(), abbrWithButton]);
+    editor.setHtml('<p>HTML</p>');
+    selectAll(editor);
+    button(editor, 'abbr').click();
+    submit(editor, '  ');
+    expect(editor.getHtml()).toBe('<p>HTML</p>');
+  });
+
+  it('edits and removes an existing element', () => {
+    const editor = setup([...defaultPlugins(), abbrWithButton]);
+    editor.setHtml('<p><abbr title="Old">HTML</abbr></p>');
+    selectAll(editor);
+    button(editor, 'abbr').click();
+    expect(form(editor)?.querySelector('input')?.value).toBe('Old');
+    submit(editor, 'New');
+    expect(editor.getHtml()).toBe('<p><abbr title="New">HTML</abbr></p>');
+    button(editor, 'abbr').click();
+    form(editor)?.querySelector<HTMLButtonElement>('button[type="button"]')?.click();
+    expect(editor.getHtml()).toBe('<p>HTML</p>');
+  });
+
+  it('keeps the one-click toggle for elements without attributes', () => {
+    const editor = setup();
+    editor.setHtml('<p>plain</p>');
+    selectAll(editor);
+    button(editor, 'mark').click();
+    expect(form(editor)).toBeNull();
+    expect(editor.getHtml()).toBe('<p><mark>plain</mark></p>');
+  });
+});

@@ -17,7 +17,7 @@ const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
  * as soon as a package has a second entry point.
  */
 const BUDGETS = [
-  { file: 'bundles/ux-bundle/assets/dist/controller.js', raw: 485, gzip: 151 },
+  { file: 'bundles/ux-bundle/assets/dist/controller.js', raw: 495, gzip: 151 },
   { file: 'bundles/ux-bundle/assets/dist/primavista.css', raw: 11.5, gzip: 3.1 },
   { file: 'packages/core/dist/index.js', raw: 150, gzip: 34, chunks: true },
   { file: 'packages/react/dist/index.js', raw: 3.1, gzip: 1.05 },

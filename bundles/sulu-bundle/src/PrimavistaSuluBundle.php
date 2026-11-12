@@ -65,7 +65,7 @@ final class PrimavistaSuluBundle extends AbstractBundle
                                 ->info('Class written on every element and required when content loads, so other elements of the tag stay untouched.')
                             ->end()
                             ->arrayNode('attributes')
-                                ->info('Attributes the element may carry, for example title. They are kept, the toolbar button does not set them yet.')
+                                ->info('Attributes the element may carry, for example title. The toolbar button asks for their values.')
                                 ->scalarPrototype()->end()
                             ->end()
                             ->scalarNode('label')
