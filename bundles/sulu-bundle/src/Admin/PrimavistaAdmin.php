@@ -7,8 +7,9 @@ namespace Primavista\SuluBundle\Admin;
 use Sulu\Bundle\AdminBundle\Admin\Admin;
 
 /**
- * Hands the `primavista_sulu.elements` config to the admin JavaScript, which
- * builds one inline element plugin per entry. Sulu sends it under the key
+ * Hands `primavista_sulu.elements` and `primavista_sulu.tags` to the admin
+ * JavaScript. It builds one inline element plugin per element and warns when a
+ * plugin writes an element the server does not allow. Sulu sends it under the key
  * `primavista` with the rest of the admin config.
  *
  * @phpstan-import-type ElementConfig from \Primavista\SuluBundle\HtmlSanitizer\TextEditorSanitizers
@@ -19,8 +20,9 @@ final class PrimavistaAdmin extends Admin
 
     /**
      * @param list<ElementConfig> $elements
+     * @param list<string>        $tags     `primavista_sulu.tags`, the tags the server allows for plugins the admin JavaScript adds
      */
-    public function __construct(private readonly array $elements)
+    public function __construct(private readonly array $elements, private readonly array $tags = [])
     {
     }
 
@@ -41,6 +43,6 @@ final class PrimavistaAdmin extends Admin
             ];
         }
 
-        return [] === $elements ? null : ['elements' => $elements];
+        return [] === $elements && [] === $this->tags ? null : ['elements' => $elements, 'tags' => $this->tags];
     }
 }

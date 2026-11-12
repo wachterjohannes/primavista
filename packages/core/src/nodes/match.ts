@@ -13,7 +13,7 @@ export interface ElementMatch {
 }
 
 /** Tags that stand for something else in most content. A helper needs a class or an attribute to claim one. */
-const GENERIC_TAGS = new Set([
+export const GENERIC_TAGS = new Set([
   'span', 'div', 'p', 'a', 'li', 'ul', 'ol', 'table', 'thead', 'tbody', 'tr', 'td', 'th',
   'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'section', 'article', 'blockquote', 'pre', 'code', 'hr', 'br',
   'strong', 'b', 'em', 'i', 'u', 's', 'strike', 'sub', 'sup', 'font', 'body', 'html',
@@ -24,7 +24,7 @@ const GENERIC_TAGS = new Set([
  * `primavista_sulu.elements` in the Sulu bundle (`FORBIDDEN_TAGS` in
  * `PrimavistaSuluBundle.php`), keep both in step.
  */
-const FORBIDDEN_TAGS = new Set([
+export const FORBIDDEN_TAGS = new Set([
   'script', 'style', 'iframe', 'object', 'embed', 'link', 'meta', 'base', 'form', 'input', 'button', 'textarea', 'select', 'svg', 'math', 'template',
 ]);
 

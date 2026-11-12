@@ -93,10 +93,10 @@ final class PrimavistaSuluBundle extends AbstractBundle
             ->alias(TextEditorSanitizers::class, 'primavista_sulu.text_editor_sanitizers')
             ->alias(TextEditorSanitizersInterface::class, 'primavista_sulu.text_editor_sanitizers');
 
-        if ($config['elements'] !== [] && class_exists(Admin::class)) {
+        if (($config['elements'] !== [] || $config['tags'] !== []) && class_exists(Admin::class)) {
             $container->services()
                 ->set('primavista_sulu.admin', PrimavistaAdmin::class)
-                    ->args([$config['elements']])
+                    ->args([$config['elements'], $config['tags']])
                     ->tag('sulu.admin');
         }
 
@@ -117,7 +117,7 @@ final class PrimavistaSuluBundle extends AbstractBundle
     private const FORBIDDEN_TAGS = ['script', 'style', 'iframe', 'object', 'embed', 'link', 'meta', 'base', 'form', 'input', 'button', 'textarea', 'select', 'svg', 'math', 'template'];
 
     /** Elements that stand for other content, a class tells the project's elements apart. */
-    private const GENERIC_TAGS = ['span', 'div', 'p', 'a', 'li', 'ul', 'ol', 'table', 'thead', 'tbody', 'tr', 'td', 'th', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'section', 'article', 'blockquote', 'pre', 'code', 'hr', 'br', 'strong', 'b', 'em', 'i', 'u', 's', 'sub', 'sup', 'font'];
+    private const GENERIC_TAGS = ['span', 'div', 'p', 'a', 'li', 'ul', 'ol', 'table', 'thead', 'tbody', 'tr', 'td', 'th', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'section', 'article', 'blockquote', 'pre', 'code', 'hr', 'br', 'strong', 'b', 'em', 'i', 'u', 's', 'strike', 'sub', 'sup', 'font', 'body', 'html'];
 
     /**
      * @param array{tag: string, class: string|null, attributes: list<string>, label: string|null} $element

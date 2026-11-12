@@ -76,7 +76,7 @@ final class BundleTest extends TestCase
             ['elements' => [
                 ['tag' => 'mark', 'class' => null, 'attributes' => [], 'label' => 'Highlight'],
                 ['tag' => 'abbr', 'class' => null, 'attributes' => ['title'], 'label' => 'abbr'],
-            ]],
+            ], 'tags' => []],
             $admin->getConfig(),
         );
     }
@@ -112,6 +112,15 @@ final class BundleTest extends TestCase
         $admin = $container->get('primavista_sulu.admin');
         self::assertInstanceOf(PrimavistaAdmin::class, $admin);
         self::assertCount(3, $admin->getConfig()['elements'] ?? []);
+    }
+
+    public function testTheAdminAlsoGetsTheServerTags(): void
+    {
+        $container = $this->container(['sanitize' => true, 'tags' => ['blockquote', 'hr']], null);
+
+        $admin = $container->get('primavista_sulu.admin');
+        self::assertInstanceOf(PrimavistaAdmin::class, $admin);
+        self::assertSame(['elements' => [], 'tags' => ['blockquote', 'hr']], $admin->getConfig());
     }
 
     public function testNoAdminConfigWithoutElements(): void

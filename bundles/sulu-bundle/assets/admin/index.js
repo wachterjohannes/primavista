@@ -46,11 +46,17 @@ initializer.addUpdateConfigHook('sulu_admin', (config: Object, initialized: bool
 initializer.addUpdateConfigHook('primavista', (config: ?Object, initialized: boolean) => {
     // Sulu calls the hook with undefined when no Admin class sends this key,
     // which is every project without primavista_sulu.elements.
-    if (initialized || !config || !Array.isArray(config.elements)) {
+    if (initialized || !config) {
         return;
     }
 
-    config.elements.forEach(({tag, class: className, attributes, label}: {
+    // The adapter warns about plugin elements the server would strip.
+    primavistaPluginRegistry.allowServerTags([
+        ...(Array.isArray(config.tags) ? config.tags : []),
+        ...(Array.isArray(config.elements) ? config.elements.map(({tag}) => tag) : []),
+    ]);
+
+    (Array.isArray(config.elements) ? config.elements : []).forEach(({tag, class: className, attributes, label}: {
         tag: string,
         class: ?string,
         attributes: Array<string>,

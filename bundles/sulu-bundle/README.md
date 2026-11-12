@@ -85,7 +85,7 @@ primavistaPluginRegistry.add(() => blockquote());
 primavistaPluginRegistry.add(() => horizontalRule());
 ```
 
-The factory receives `{config, options}` of the property. The server has to allow the markup too, or the next save strips it:
+The factory receives `{config, options}` of the property. The server has to allow the markup too, or the next save strips it. The adapter logs a console warning when a plugin declares an element in its `schema` that neither the text editor config nor `primavista_sulu` allows:
 
 ```yaml
 # config/packages/primavista_sulu.yaml

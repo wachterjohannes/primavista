@@ -10,6 +10,7 @@ import {
   suluConfigFromLegacyOptions,
   suluLinks,
   suluPlugins,
+  unallowedElements,
   suluPreset,
   suluTranslationKey,
   suluValueToHtml,
@@ -235,5 +236,18 @@ describe('enter mode and value mapping', () => {
 
   it('prefixes translation keys', () => {
     expect(suluTranslationKey('toolbar.bold')).toBe('sulu_admin.primavista.toolbar.bold');
+  });
+});
+
+describe('unallowedElements', () => {
+  const mark = { name: 'mark', schema: { elements: [{ tag: 'mark' }] } };
+  const aside = { name: 'aside', schema: { elements: [{ tag: 'aside' }, { tag: 'mark' }] } };
+
+  it('lists the elements the server does not allow, once', () => {
+    expect(unallowedElements([mark, aside], ['strong', 'aside'])).toEqual(['mark']);
+  });
+
+  it('is empty when every element is allowed or a plugin declares none', () => {
+    expect(unallowedElements([mark, { name: 'plain' }], ['mark'])).toEqual([]);
   });
 });
