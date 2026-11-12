@@ -189,6 +189,8 @@ export const defaultTheme: EditorThemeClasses;
 // @public
 export interface DiscardedElement {
     // (undocumented)
+    attributes?: string[];
+    // (undocumented)
     className?: string;
     // (undocumented)
     count: number;

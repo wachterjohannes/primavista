@@ -16,20 +16,28 @@ const isOurNode = (node: Klass<LexicalNode>): boolean =>
   node.prototype instanceof TextNode ||
   node.prototype instanceof DecoratorNode;
 
+/** The error for a plugin whose node classes come from a second copy of Lexical, or null. */
+export function foreignLexicalError(plugin: PrimavistaPlugin): Error | null {
+  for (const node of plugin.nodes ?? []) {
+    if (isOurNode(node)) continue;
+    return new Error(
+      `Primavista: plugin "${plugin.name}" registers the node class "${node.name}" from a different copy of Lexical ` +
+        `than @primavista/core uses (${LEXICAL_VERSION}). ` +
+        `Import Lexical from "@primavista/core/lexical" and remove "lexical" from the extension's dependencies.`,
+    );
+  }
+  return null;
+}
+
 /**
  * A node class from a second copy of Lexical does not extend our
  * base classes. Lexical itself fails later and far from the cause, so fail
- * here and say what to change.
+ * here and say what to change. `createEditor` does not throw for this, it
+ * skips the plugin and reports it through `onPluginError`.
  */
 export function assertSameLexical(plugins: ReadonlyArray<PrimavistaPlugin>): void {
   for (const plugin of plugins) {
-    for (const node of plugin.nodes ?? []) {
-      if (isOurNode(node)) continue;
-      throw new Error(
-        `Primavista: plugin "${plugin.name}" registers the node class "${node.name}" from a different copy of Lexical ` +
-          `than @primavista/core uses (${LEXICAL_VERSION}). ` +
-          `Import Lexical from "@primavista/core/lexical" and remove "lexical" from the extension's dependencies.`,
-      );
-    }
+    const error = foreignLexicalError(plugin);
+    if (error) throw error;
   }
 }

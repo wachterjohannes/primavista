@@ -36,7 +36,17 @@ class PrimavistaPluginRegistry {
     }
 
     create(context: PluginContext): Array<Object> {
-        return this.factories.map((factory) => factory(context)).filter((plugin) => plugin);
+        // A helper throws when it refuses its options. That must not stop the field from rendering.
+        return this.factories.map((factory) => {
+            try {
+                return factory(context);
+            } catch (error) {
+                // eslint-disable-next-line no-console
+                console.error('Primavista: a plugin factory threw and its plugin was skipped.', error);
+
+                return undefined;
+            }
+        }).filter((plugin) => plugin);
     }
 }
 

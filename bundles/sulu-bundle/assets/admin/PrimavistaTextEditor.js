@@ -27,6 +27,8 @@ import {
     suluPreset,
     suluTranslationKey,
     suluValueToHtml,
+    describeDiscarded,
+    serverRemoves,
     SULU_DEFAULT_CONFIG,
     unallowedElements,
 } from '@primavista/sulu';
@@ -69,6 +71,9 @@ class PrimavistaTextEditor extends React.Component<Props> {
 
     // Elements of the loaded value the editor cannot write back. Saving would remove them.
     @observable discarded: Array<string> = [];
+    // The part of it the server removes on save whatever the field lock says.
+    @observable removedByServer: Array<string> = [];
+    @observable locked: boolean = false;
 
     // External link overlay state.
     @observable externalOpen: boolean = false;
@@ -242,13 +247,24 @@ class PrimavistaTextEditor extends React.Component<Props> {
         return this.param('on_discard') !== 'warn';
     }
 
-    @action handleDiscard = (discarded: $ReadOnlyArray<{tag: string, className?: string, count: number}>) => {
-        this.discarded = discarded.map(({tag, className}) => tag + (className ? '.' + className : ''));
+    @action handleDiscard = (discarded: $ReadOnlyArray<{tag: string, className?: string, count: number, attributes?: Array<string>}>) => {
+        // Sulu sanitizes every editor value when the document is saved, also one of a locked field.
+        // The lock only protects what the server allows.
+        const removed = serverRemoves(discarded, {
+            tags: [...(this.config.tags || SULU_DEFAULT_CONFIG.tags), ...primavistaPluginRegistry.serverTags],
+            attributes: this.config.attributes || SULU_DEFAULT_CONFIG.attributes,
+        });
+        this.discarded = discarded.map(describeDiscarded);
+        this.removedByServer = removed.map(describeDiscarded);
+        this.locked = this.lockOnDiscard && removed.length < discarded.length;
         if (this.discarded.length > 0) {
             // eslint-disable-next-line no-console
             console.warn(
                 'Primavista: the value has <' + this.discarded.join('>, <') + '> and no loaded plugin keeps it. '
-                + (this.lockOnDiscard ? 'The field is read only so the stored value is not changed.' : 'Saving removes it.')
+                + (this.locked ? 'The field is read only. ' : '')
+                + (this.removedByServer.length > 0
+                    ? 'Saving removes <' + this.removedByServer.join('>, <') + '> because the server does not allow it.'
+                    : 'The stored value is not changed.')
             );
         }
     };
@@ -400,7 +416,7 @@ class PrimavistaTextEditor extends React.Component<Props> {
             <Fragment>
                 <Editor
                     aria-label={translate('sulu_admin.text_editor')}
-                    disabled={disabled || (this.lockOnDiscard && this.discarded.length > 0)}
+                    disabled={disabled || this.locked}
                     onBlur={onBlur}
                     onChange={this.handleChange}
                     onDiscard={this.handleDiscard}
@@ -412,9 +428,14 @@ class PrimavistaTextEditor extends React.Component<Props> {
                     value={this.toEditorValue(value)}
                     {...suluPreset()}
                 />
-                {this.lockOnDiscard && this.discarded.length > 0 && (
+                {this.locked && (
                     <p className="pv-discard-notice" role="alert">
                         {translate('sulu_admin.primavista.discarded')} {this.discarded.join(', ')}
+                    </p>
+                )}
+                {this.removedByServer.length > 0 && (
+                    <p className="pv-discard-notice" role="alert">
+                        {translate('sulu_admin.primavista.discarded_removed')} {this.removedByServer.join(', ')}
                     </p>
                 )}
                 {linkTypeRegistry.getKeys().filter((key) => key !== 'external').map((key) => {

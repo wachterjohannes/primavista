@@ -5,6 +5,7 @@
 ```ts
 
 import { AutoformatOptions } from '@primavista/core';
+import { DiscardedElement } from '@primavista/core';
 import { EditorOptions } from '@primavista/core';
 import { HeadingsOptions } from '@primavista/core';
 import { InternalLinkDialogState } from '@primavista/core';
@@ -12,6 +13,9 @@ import { InternalLinksOptions } from '@primavista/core';
 import { Language } from '@primavista/core';
 import { LinkDialogState } from '@primavista/core';
 import { PrimavistaPlugin } from '@primavista/core';
+
+// @public
+export function describeDiscarded(input: DiscardedElement): string;
 
 // @public
 export function htmlToSuluValue(html: string, enterMode?: SuluEnterMode): string | undefined;
@@ -23,6 +27,12 @@ export function offersElement(context: {
         tags?: ReadonlyArray<string>;
     } | null;
 }, tag: string): boolean;
+
+// @public
+export function serverRemoves(discarded: ReadonlyArray<DiscardedElement>, allowed: {
+    tags: ReadonlyArray<string>;
+    attributes: ReadonlyArray<string>;
+}): DiscardedElement[];
 
 // @public
 export function stripParagraphs(html: string): string;

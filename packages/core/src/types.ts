@@ -203,8 +203,13 @@ export interface EditorOptions {
   ariaDescribedBy?: string;
   onError?: (error: Error) => void;
   /**
-   * A plugin threw while registering. The editor keeps running without it and
-   * its content still loads. Defaults to `console.error`.
+   * A plugin was skipped: it threw while registering, or it brings node
+   * classes from a second copy of Lexical. The editor keeps running without it
+   * and its content still loads. Defaults to `console.error`.
+   *
+   * A plugin that throws in `register` after it added a listener keeps that
+   * listener, because no cleanup comes back. Register everything that can
+   * throw first.
    */
   onPluginError?: (pluginName: string, error: Error) => void;
   /**
@@ -235,11 +240,16 @@ export interface SelectionInfo {
   ancestors: ReadonlyArray<{ tag: string; attributes: Readonly<Record<string, string>> }>;
 }
 
-/** An element the loaded HTML had and the editor cannot write back, with how many were lost. */
+/**
+ * Something the loaded HTML had and the editor cannot write back. Without
+ * `attributes` the whole element goes, `count` of them. With `attributes` the
+ * element stays and these attributes are removed from it.
+ */
 export interface DiscardedElement {
   tag: string;
   className?: string;
   count: number;
+  attributes?: string[];
 }
 
 export type EditorEventMap = {
