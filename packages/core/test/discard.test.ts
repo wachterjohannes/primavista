@@ -39,6 +39,14 @@ describe('markup the editor cannot write back', () => {
     expect(editor.getDiscarded()).toEqual([]);
   });
 
+  it('reports the same list once, also when the same value is set again', () => {
+    const onDiscard = vi.fn();
+    const { editor } = mount({ plugins: defaultPlugins(), initialHtml: html, onDiscard });
+    editor.setHtml(html);
+    editor.setHtml(html);
+    expect(onDiscard).toHaveBeenCalledTimes(1);
+  });
+
   it('does not fire a change when it loads', () => {
     const { editor } = mount({ plugins: defaultPlugins(), initialHtml: html });
     const onChange = vi.fn();
