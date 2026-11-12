@@ -4,14 +4,17 @@
  * way ckeditorPluginRegistry added CKEditor plugins. Sulu 3.0 has no text
  * editor config to name a tag in, so this is the place for blockquote(),
  * codeBlock(), horizontalRule() or a custom plugin. The server must allow
- * their markup too: primavista_sulu.tags in the bundle config.
+ * their markup too: primavista_sulu.tags in the bundle config. Plain inline
+ * elements such as mark or abbr need no JavaScript, declare them in
+ * primavista_sulu.elements.
  *
  *     import {primavistaPluginRegistry} from 'sulu-primavista-bundle';
  *     import {blockquote} from '@primavista/core';
  *     primavistaPluginRegistry.add(() => blockquote());
  */
 type PluginContext = {config: Object, options: Object};
-type PluginFactory = (context: PluginContext) => Object;
+// A factory returns undefined to skip its plugin, for example when the text editor config does not list its tag.
+type PluginFactory = (context: PluginContext) => ?Object;
 
 class PrimavistaPluginRegistry {
     factories: Array<PluginFactory> = [];
@@ -25,7 +28,7 @@ class PrimavistaPluginRegistry {
     }
 
     create(context: PluginContext): Array<Object> {
-        return this.factories.map((factory) => factory(context));
+        return this.factories.map((factory) => factory(context)).filter((plugin) => plugin);
     }
 }
 

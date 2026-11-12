@@ -126,4 +126,33 @@ final class TextEditorSanitizersTest extends TestCase
 
         return $result;
     }
+
+    private const ELEMENTS = [
+        ['tag' => 'mark', 'class' => null, 'attributes' => [], 'label' => null],
+        ['tag' => 'abbr', 'class' => null, 'attributes' => ['title'], 'label' => null],
+    ];
+
+    public function testDeclaredElementsAreAllowedWithTheirAttributes(): void
+    {
+        $sanitizers = new TextEditorSanitizers([], [], self::ELEMENTS);
+
+        self::assertSame(
+            '<p>a <mark>b</mark> <abbr title="T">c</abbr></p>',
+            $sanitizers->get(null)->sanitize('<p>a <mark class="x">b</mark> <abbr title="T" onclick="x()">c</abbr></p>'),
+        );
+    }
+
+    public function testElementsAreOffWithoutADeclaration(): void
+    {
+        self::assertSame('<p>a b</p>', (new TextEditorSanitizers())->get(null)->sanitize('<p>a <mark>b</mark></p>'));
+    }
+
+    public function testSulu31ConfigAllowsAnElementOnlyWhenItListsTheTag(): void
+    {
+        $configs = self::CONFIGS + ['marked' => ['enterMode' => 'p', 'tags' => ['strong', 'mark'], 'attributes' => []]];
+        $sanitizers = new TextEditorSanitizers($configs, [], self::ELEMENTS);
+
+        self::assertSame('<p>a <mark>b</mark></p>', $sanitizers->get('marked')->sanitize('<p>a <mark>b</mark></p>'));
+        self::assertSame('<p>a b</p>', $sanitizers->get('mini')->sanitize('<p>a <mark>b</mark></p>'));
+    }
 }
