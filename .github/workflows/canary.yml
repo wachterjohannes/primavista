@@ -2,16 +2,22 @@ name: Lexical canary
 
 on:
   schedule:
-    - cron: '0 6 * * 1'
+    - cron: '0 6 * * *'
   workflow_dispatch:
 
 permissions:
   contents: read
   issues: write
 
+# Two Lexical tags: `latest` is what users get next, `nightly` shows a break
+# before it is released. WebKit runs here and not in the normal CI yet.
 jobs:
   canary:
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        tag: [latest, nightly]
     steps:
       - uses: actions/checkout@v7
       - uses: pnpm/action-setup@v6
@@ -20,30 +26,97 @@ jobs:
           node-version: 22
           cache: pnpm
       - run: pnpm install --frozen-lockfile
-      - name: Move Lexical to the latest release
-        run: pnpm up -r --latest lexical '@lexical/*'
+      - name: Move Lexical to the ${{ matrix.tag }} tag
+        run: pnpm up -r lexical@${{ matrix.tag }} '@lexical/*@${{ matrix.tag }}'
       - run: pnpm build
       - run: pnpm typecheck
       - run: pnpm test
       - run: pnpm verify:packages
-      - run: pnpm exec playwright install --with-deps chromium firefox
+      - run: pnpm exec playwright install --with-deps chromium firefox webkit
       - uses: shivammathur/setup-php@v2
         with:
           php-version: '8.4'
       - run: composer install --no-interaction --working-dir=demo
       - run: pnpm e2e
+      - name: WebKit
+        run: pnpm e2e --project=webkit
+        env:
+          PV_WEBKIT: '1'
       - name: Report the failure
         if: failure()
         env:
           GH_TOKEN: ${{ github.token }}
+          TAG: ${{ matrix.tag }}
         run: |
           version=$(node -p "require('./packages/core/package.json').dependencies.lexical")
           url="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
-          open=$(gh issue list --label lexical-canary --state open --json number --jq '.[0].number')
+          label="lexical-canary-$TAG"
+          open=$(gh issue list --label "$label" --state open --json number --jq '.[0].number')
           if [ -n "$open" ]; then
             gh issue comment "$open" --body "Still failing on $version: $url"
           else
-            gh label create lexical-canary --color BFD4F2 --force
-            gh issue create --label lexical-canary --title "Lexical canary failed on $version" \
-              --body "The weekly run against the latest Lexical failed: $url"
+            gh label create "$label" --color BFD4F2 --force
+            gh issue create --label "$label" --title "Lexical $TAG canary failed on $version" \
+              --body "The canary run against the $TAG tag of Lexical failed: $url"
+          fi
+
+  # The real Sulu admin on the newest Lexical and the newest Sulu.
+  sulu:
+    runs-on: ubuntu-latest
+    services:
+      mysql:
+        image: mysql:8.4
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: sulu
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -proot"
+          --health-interval=5s
+          --health-timeout=5s
+          --health-retries=20
+    strategy:
+      fail-fast: false
+      matrix:
+        sulu: ['3.0.x-dev', '3.1.x-dev']
+    steps:
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: pnpm
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: intl, gd, pdo_mysql, zip, xml, mbstring, curl
+          tools: composer
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm up -r lexical@latest '@lexical/*@latest'
+      - run: pnpm build
+      - name: Sulu project with Primavista as the text editor
+        run: e2e-sulu/setup.sh
+        env:
+          SULU_VERSION: ${{ matrix.sulu }}
+          DATABASE_URL: mysql://root:root@127.0.0.1:3306/sulu?serverVersion=8.4&charset=utf8mb4
+      - run: pnpm exec playwright install --with-deps chromium
+      - run: pnpm e2e:sulu
+        env:
+          CI: '1'
+      - name: Report the failure
+        if: failure()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SULU: ${{ matrix.sulu }}
+        run: |
+          url="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
+          label="sulu-canary"
+          open=$(gh issue list --label "$label" --state open --search "$SULU in:title" --json number --jq '.[0].number')
+          if [ -n "$open" ]; then
+            gh issue comment "$open" --body "Still failing: $url"
+          else
+            gh label create "$label" --color BFD4F2 --force
+            gh issue create --label "$label" --title "Sulu canary failed on $SULU" \
+              --body "The Sulu admin run on $SULU with the newest Lexical failed: $url"
           fi

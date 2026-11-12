@@ -20,6 +20,8 @@ export default defineConfig({
   projects: [
     { name: 'chromium', use: { ...devices['Desktop Chrome'] } },
     { name: 'firefox', use: { ...devices['Desktop Firefox'] }, testMatch: /kit\.spec\.ts/ },
+    // Not part of the normal CI yet, see the WebKit issue. The canary turns it on.
+    ...(process.env['PV_WEBKIT'] ? [{ name: 'webkit', use: { ...devices['Desktop Safari'] }, testMatch: /kit\.spec\.ts/ }] : []),
   ],
   webServer: [
     {

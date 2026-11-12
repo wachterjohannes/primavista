@@ -85,10 +85,16 @@ jobs:
           --health-interval=5s
           --health-timeout=5s
           --health-retries=20
+    # 3.1 is an alpha: it shows breakage early and does not block the merge.
+    continue-on-error: ${{ matrix.experimental }}
     strategy:
       fail-fast: false
       matrix:
         sulu: ['3.0.*']
+        experimental: [false]
+        include:
+          - sulu: 3.1.x-dev
+            experimental: true
     steps:
       - uses: actions/checkout@v7
       - uses: pnpm/action-setup@v6
