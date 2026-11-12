@@ -22,6 +22,8 @@ pnpm e2e
 
 `pnpm e2e` starts the demo with PHP's built-in server and runs Playwright against it. The demo specs run in Chromium. `e2e/kit.spec.ts` runs the editorial kit in Chromium and Firefox, with real selection, menus and a real copy and paste. `pnpm e2e:install` installs both browsers.
 
+`pnpm e2e:sulu` runs the real Sulu admin. `e2e-sulu/setup.sh` builds a Sulu project in `.sulu-app` (skeleton, the bundle, the packed npm packages, Sulu's own webpack build) and needs `pnpm build` first and a MySQL database in `DATABASE_URL`. The specs log in, type, save and reload. CI runs it as the `sulu` job against Sulu 3.0.
+
 ## Where things live
 
 - `packages/core`: the editor. Every feature is a plugin in `src/plugins`. HTML import and export live in `src/html.ts`.

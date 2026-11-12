@@ -63,8 +63,8 @@ initializer.addUpdateConfigHook('primavista', (config: ?Object, initialized: boo
         label: string,
     }) => {
         const name = className ? tag + '-' + className : tag;
-        primavistaPluginRegistry.add(({config: textEditorConfig}) => {
-            if (textEditorConfig && Array.isArray(textEditorConfig.tags) && !textEditorConfig.tags.includes(tag)) {
+        primavistaPluginRegistry.add(({config: textEditorConfig, hasConfig}) => {
+            if (hasConfig && textEditorConfig && Array.isArray(textEditorConfig.tags) && !textEditorConfig.tags.includes(tag)) {
                 return undefined;
             }
 

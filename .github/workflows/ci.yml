@@ -68,3 +68,52 @@ jobs:
         with:
           name: playwright-report
           path: test-results
+
+  sulu:
+    runs-on: ubuntu-latest
+    needs: [javascript, php]
+    services:
+      mysql:
+        image: mysql:8.4
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: sulu
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -proot"
+          --health-interval=5s
+          --health-timeout=5s
+          --health-retries=20
+    strategy:
+      fail-fast: false
+      matrix:
+        sulu: ['3.0.*']
+    steps:
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: pnpm
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: intl, gd, pdo_mysql, zip, xml, mbstring, curl
+          tools: composer
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm build
+      - name: Sulu project with Primavista as the text editor
+        run: e2e-sulu/setup.sh
+        env:
+          SULU_VERSION: ${{ matrix.sulu }}
+          DATABASE_URL: mysql://root:root@127.0.0.1:3306/sulu?serverVersion=8.4&charset=utf8mb4
+      - run: pnpm exec playwright install --with-deps chromium
+      - run: pnpm e2e:sulu
+        env:
+          CI: '1'
+      - uses: actions/upload-artifact@v7
+        if: failure()
+        with:
+          name: sulu-${{ strategy.job-index }}-report
+          path: test-results
