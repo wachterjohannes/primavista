@@ -7,7 +7,7 @@
 #
 #   DATABASE_URL="mysql://root:root@127.0.0.1:3306/sulu?serverVersion=8.4&charset=utf8mb4" e2e-sulu/setup.sh
 #
-# SULU_VERSION (default 3.0.*) picks the skeleton, SULU_APP (default .sulu-app)
+# SULU_VERSION (default 3.0.*, also 3.1.x-dev) picks the skeleton, SULU_APP (default .sulu-app)
 # the folder.
 set -euo pipefail
 
@@ -17,7 +17,9 @@ SULU_VERSION="${SULU_VERSION:-3.0.*}"
 : "${DATABASE_URL:?Set DATABASE_URL to a MySQL database Sulu may create}"
 
 rm -rf "$APP"
-composer create-project "sulu/skeleton:$SULU_VERSION" "$APP" --no-interaction --no-scripts --prefer-dist
+STABILITY=()
+case "$SULU_VERSION" in *dev*) STABILITY=(--stability=dev) ;; esac
+composer create-project "sulu/skeleton:$SULU_VERSION" "$APP" "${STABILITY[@]}" --no-interaction --no-scripts --prefer-dist
 
 cd "$APP"
 cat > .env.local <<ENV

@@ -22,7 +22,9 @@ pnpm e2e
 
 `pnpm e2e` starts the demo with PHP's built-in server and runs Playwright against it. The demo specs run in Chromium. `e2e/kit.spec.ts` runs the editorial kit in Chromium and Firefox, with real selection, menus and a real copy and paste. `pnpm e2e:install` installs both browsers.
 
-`pnpm e2e:sulu` runs the real Sulu admin. `e2e-sulu/setup.sh` builds a Sulu project in `.sulu-app` (skeleton, the bundle, the packed npm packages, Sulu's own webpack build) and needs `pnpm build` first and a MySQL database in `DATABASE_URL`. The specs log in, type, save and reload. CI runs it as the `sulu` job against Sulu 3.0.
+`pnpm e2e:sulu` runs the real Sulu admin. `e2e-sulu/setup.sh` builds a Sulu project in `.sulu-app` (skeleton, the bundle, the packed npm packages, Sulu's own webpack build) and needs `pnpm build` first and a MySQL database in `DATABASE_URL`. The specs log in, type, save and reload. CI runs it as the `sulu` job against Sulu 3.0. Sulu 3.1 (`3.1.x-dev`) runs next to it and does not block a merge while it is an alpha.
+
+The canary runs every day. It moves Lexical to the `latest` and to the `nightly` tag and runs the whole suite with Chromium and Firefox, WebKit (`PV_WEBKIT=1 pnpm e2e --project=webkit`) and the Sulu admin on 3.0 and 3.1. A failure opens an issue labelled `lexical-canary-<tag>` or `sulu-canary`.
 
 ## Where things live
 
