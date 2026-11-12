@@ -9,6 +9,7 @@
  * through Sulu's public registries and stores.
  */
 import {inlineElement} from '@primavista/core';
+import {offersElement} from '@primavista/sulu';
 import {fieldRegistry, textEditorRegistry} from 'sulu-admin-bundle/containers';
 import {initializer} from 'sulu-admin-bundle/services';
 import PrimavistaTextEditor from './PrimavistaTextEditor';
@@ -64,7 +65,7 @@ initializer.addUpdateConfigHook('primavista', (config: ?Object, initialized: boo
     }) => {
         const name = className ? tag + '-' + className : tag;
         primavistaPluginRegistry.add(({config: textEditorConfig, hasConfig}) => {
-            if (hasConfig && textEditorConfig && Array.isArray(textEditorConfig.tags) && !textEditorConfig.tags.includes(tag)) {
+            if (!offersElement({hasConfig, config: textEditorConfig}, tag)) {
                 return undefined;
             }
 

@@ -1,4 +1,5 @@
 {
+    "sulu_admin.primavista.discarded": "This content has elements the editor cannot keep, so the field is read only:",
     "sulu_admin.primavista.toolbar.label": "Formatting",
     "sulu_admin.primavista.toolbar.undo": "Undo",
     "sulu_admin.primavista.toolbar.redo": "Redo",

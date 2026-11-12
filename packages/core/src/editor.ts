@@ -116,8 +116,9 @@ export function createEditor(container: HTMLElement, options: EditorOptions = {}
     lexical.update(() => $loadHtml(lexical, html, inlineTags), { discrete: true, tag: [SET_HTML_TAG, HISTORIC_TAG] });
     lastHtml = serialize();
     updatePlaceholder();
+    const hadDiscarded = discarded.length > 0;
     discarded = findDiscarded(html, lastHtml);
-    if (discarded.length > 0) options.onDiscard?.(discarded);
+    if (discarded.length > 0 || hadDiscarded) options.onDiscard?.(discarded);
   };
 
   const updatePlaceholder = (): void => {

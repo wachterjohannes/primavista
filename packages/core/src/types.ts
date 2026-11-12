@@ -209,7 +209,8 @@ export interface EditorOptions {
   onPluginError?: (pluginName: string, error: Error) => void;
   /**
    * Called when loaded HTML holds elements the editor cannot write back, at
-   * creation and on every `setHtml`. Saving would remove them.
+   * creation and on every `setHtml`. Saving would remove them. Called with an
+   * empty list when a later `setHtml` loads content that loses nothing.
    */
   onDiscard?: (discarded: ReadonlyArray<DiscardedElement>) => void;
   /** Translates toolbar labels and form strings. Defaults to the English fallback. */

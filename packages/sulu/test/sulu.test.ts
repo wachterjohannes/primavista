@@ -3,6 +3,7 @@ import { createEditor, type InternalLinkDialogState, type PrimavistaEditor } fro
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import {
   htmlToSuluValue,
+  offersElement,
   stripParagraphs,
   SULU_DEFAULT_CONFIG,
   SULU_DEFAULT_FORMATS,
@@ -249,5 +250,20 @@ describe('unallowedElements', () => {
 
   it('is empty when every element is allowed or a plugin declares none', () => {
     expect(unallowedElements([mark, { name: 'plain' }], ['mark'])).toEqual([]);
+  });
+});
+
+describe('offersElement', () => {
+  it('offers every element without a text editor config, as in Sulu 3.0', () => {
+    expect(offersElement({ hasConfig: false, config: { tags: ['p', 'strong'] } }, 'mark')).toBe(true);
+  });
+
+  it('follows the tag list of a real config, as in Sulu 3.1', () => {
+    expect(offersElement({ hasConfig: true, config: { tags: ['p', 'mark'] } }, 'mark')).toBe(true);
+    expect(offersElement({ hasConfig: true, config: { tags: ['p'] } }, 'mark')).toBe(false);
+  });
+
+  it('offers the element when a config lists no tags', () => {
+    expect(offersElement({ hasConfig: true, config: {} }, 'mark')).toBe(true);
   });
 });

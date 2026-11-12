@@ -67,6 +67,9 @@ class PrimavistaTextEditor extends React.Component<Props> {
     defaultText: ?string = undefined;
     internalDialog: ?Object = undefined;
 
+    // Elements of the loaded value the editor cannot write back. Saving would remove them.
+    @observable discarded: Array<string> = [];
+
     // External link overlay state.
     @observable externalOpen: boolean = false;
     @observable url: ?string = undefined;
@@ -233,6 +236,28 @@ class PrimavistaTextEditor extends React.Component<Props> {
         return suluValueToHtml(value, this.enterMode);
     }
 
+    // `on_discard` param: "readonly" (default) locks the field so the stored value stays
+    // untouched, "warn" only logs.
+    get lockOnDiscard(): boolean {
+        return this.param('on_discard') !== 'warn';
+    }
+
+    @action handleDiscard = (discarded: $ReadOnlyArray<{tag: string, className?: string, count: number}>) => {
+        this.discarded = discarded.map(({tag, className}) => tag + (className ? '.' + className : ''));
+        if (this.discarded.length > 0) {
+            // eslint-disable-next-line no-console
+            console.warn(
+                'Primavista: the value has <' + this.discarded.join('>, <') + '> and no loaded plugin keeps it. '
+                + (this.lockOnDiscard ? 'The field is read only so the stored value is not changed.' : 'Saving removes it.')
+            );
+        }
+    };
+
+    handlePluginError = (name: string, error: Error) => {
+        // eslint-disable-next-line no-console
+        console.error('Primavista: the plugin "' + name + '" failed to register and was skipped.', error);
+    };
+
     handleChange = (html: string) => {
         const {onChange} = this.props;
         onChange(htmlToSuluValue(html, this.enterMode));
@@ -375,9 +400,11 @@ class PrimavistaTextEditor extends React.Component<Props> {
             <Fragment>
                 <Editor
                     aria-label={translate('sulu_admin.text_editor')}
-                    disabled={disabled}
+                    disabled={disabled || (this.lockOnDiscard && this.discarded.length > 0)}
                     onBlur={onBlur}
                     onChange={this.handleChange}
+                    onDiscard={this.handleDiscard}
+                    onPluginError={this.handlePluginError}
                     onFocus={this.handleFocus}
                     onReady={this.handleReady}
                     plugins={this.plugins}
@@ -385,6 +412,11 @@ class PrimavistaTextEditor extends React.Component<Props> {
                     value={this.toEditorValue(value)}
                     {...suluPreset()}
                 />
+                {this.lockOnDiscard && this.discarded.length > 0 && (
+                    <p className="pv-discard-notice" role="alert">
+                        {translate('sulu_admin.primavista.discarded')} {this.discarded.join(', ')}
+                    </p>
+                )}
                 {linkTypeRegistry.getKeys().filter((key) => key !== 'external').map((key) => {
                     const LinkOverlay = linkTypeRegistry.getOverlay(key);
 
