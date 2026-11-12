@@ -1,3 +1,4 @@
+import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import * as clipboard from '../src/lexical/clipboard';
 import * as codeCore from '../src/lexical/code-core';
@@ -17,6 +18,9 @@ import * as utils from '../src/lexical/utils';
  * removes or renames an export changes the file, and its diff is the list for
  * the entry in UPGRADE.md: the names that disappeared are what raw Lexical
  * extensions have to replace. Regenerate with `vitest -u` on purpose.
+ *
+ * The canary sets LEXICAL_CANARY=1. There only a removed name fails, because a
+ * new name in the nightly is no break and would open an issue every day.
  */
 const SUBPATHS: Record<string, Record<string, unknown>> = {
   'lexical': lexical,
@@ -33,11 +37,24 @@ const SUBPATHS: Record<string, Record<string, unknown>> = {
   'lexical/utils': utils,
 };
 
+const SNAPSHOT = './__snapshots__/lexical-exports.txt';
+
+function render(): string {
+  return Object.entries(SUBPATHS)
+    .map(([path, mod]) => `## @primavista/core/${path}\n${Object.keys(mod).sort().join('\n')}\n`)
+    .join('\n');
+}
+
 describe('Lexical subpaths', () => {
-  it('hand out these names', async () => {
-    const text = Object.entries(SUBPATHS)
-      .map(([path, mod]) => `## @primavista/core/${path}\n${Object.keys(mod).sort().join('\n')}\n`)
-      .join('\n');
-    await expect(text).toMatchFileSnapshot('./__snapshots__/lexical-exports.txt');
+  it.skipIf(process.env['LEXICAL_CANARY'] === '1')('hand out these names', async () => {
+    await expect(render()).toMatchFileSnapshot(SNAPSHOT);
+  });
+
+  it.runIf(process.env['LEXICAL_CANARY'] === '1')('still hand out every name of the snapshot', () => {
+    const now = new Set(render().split('\n'));
+    const removed = readFileSync(new URL(SNAPSHOT, import.meta.url), 'utf8')
+      .split('\n')
+      .filter((line) => line !== '' && !now.has(line));
+    expect(removed, 'names that Lexical removed or renamed').toEqual([]);
   });
 });

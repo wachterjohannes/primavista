@@ -31,6 +31,8 @@ jobs:
       - run: pnpm build
       - run: pnpm typecheck
       - run: pnpm test
+        env:
+          LEXICAL_CANARY: '1'
       - run: pnpm verify:packages
       - run: pnpm exec playwright install --with-deps chromium firefox webkit
       - uses: shivammathur/setup-php@v2
