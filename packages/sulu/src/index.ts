@@ -198,6 +198,18 @@ export function suluPlugins(options: SuluPluginsOptions): PrimavistaPlugin[] {
 }
 
 /**
+ * Whether a project element shows up in the toolbar. Sulu 3.1 passes a text
+ * editor config and an element needs its tag in it. Sulu 3.0 has no such
+ * config, the adapter then builds the default one, whose tag list says
+ * nothing about the project, so every element is offered.
+ */
+export function offersElement(context: { hasConfig: boolean; config?: { tags?: ReadonlyArray<string> } | null }, tag: string): boolean {
+  if (!context.hasConfig) return true;
+  const tags = context.config?.tags;
+  return !Array.isArray(tags) || tags.includes(tag);
+}
+
+/**
  * The elements the plugins write that the server would strip on save. A
  * plugin declares its markup in `schema`, the server allows tags through the
  * text editor config and `primavista_sulu`. Elements outside of that lose

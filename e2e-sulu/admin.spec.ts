@@ -118,3 +118,23 @@ test('the server removes markup the project did not allow', async ({ page }) => 
   expect(stored).not.toContain('<script');
   expect(stored).not.toContain('onclick');
 });
+
+test('a value the editor cannot keep locks the field and stays untouched', async ({ page }) => {
+  const id = await homepageId(page.request);
+  const html = '<p>plain <mark>stays</mark></p>';
+  const response = await page.request.put(`/admin/api/pages/${id}?webspace=${WEBSPACE}&locale=${LOCALE}&action=publish`, {
+    data: { template: 'homepage', title: 'Website', url: '/', article: html },
+  });
+  expect(response.ok()).toBe(true);
+  const before = await storedArticle(page.request, id);
+  expect(before).toContain('<mark>stays</mark>');
+
+  await page.goto(`/admin/#/webspaces/${WEBSPACE}/pages/${LOCALE}/${id}/content`);
+  await expect(page.locator('.pv-discard-notice')).toBeVisible();
+  await expect(page.locator('.pv-discard-notice')).toContainText('mark');
+  await expect(page.locator('.pv-editor .pv-content')).toHaveAttribute('contenteditable', 'false');
+  // The adapter warned once, that is the expected message, not an error.
+  expect(errors.filter((message) => message.includes('no loaded plugin keeps it'))).toHaveLength(1);
+  errors = [];
+  expect(await storedArticle(page.request, id)).toBe(before);
+});

@@ -24,7 +24,8 @@ import { collectThemeClassNames, defaultTheme, mergeThemes } from './theme';
 import { createToolbar } from './toolbar';
 import { $readSelection, sameSelection } from './selection';
 import { assertSameLexical } from './lexicalGuard';
-import type { EditorEventMap, EditorOptions, HtmlOptions, PrimavistaEditor, PrimavistaPlugin, SelectionInfo } from './types';
+import { findDiscarded } from './discard';
+import type { DiscardedElement, EditorEventMap, EditorOptions, HtmlOptions, PrimavistaEditor, PrimavistaPlugin, SelectionInfo } from './types';
 
 /**
  * Mounts an editor into `container`. The container stays untouched apart from
@@ -110,10 +111,15 @@ export function createEditor(container: HTMLElement, options: EditorOptions = {}
   let lastHtml = '';
   let lastSelection: SelectionInfo | null = null;
 
+  let discarded: DiscardedElement[] = [];
   const setHtml = (html: string): void => {
     lexical.update(() => $loadHtml(lexical, html, inlineTags), { discrete: true, tag: [SET_HTML_TAG, HISTORIC_TAG] });
     lastHtml = serialize();
     updatePlaceholder();
+    const before = JSON.stringify(discarded);
+    discarded = findDiscarded(html, lastHtml);
+    // Only when the list changed, a form that sets the same value again must not repeat the report.
+    if (JSON.stringify(discarded) !== before) options.onDiscard?.(discarded);
   };
 
   const updatePlaceholder = (): void => {
@@ -179,6 +185,7 @@ export function createEditor(container: HTMLElement, options: EditorOptions = {}
 
   const allowed = collectAllowed(plugins);
   const pluginCleanups: Array<() => void> = [];
+  const failedPlugins: string[] = [];
 
   let destroyed = false;
 
@@ -189,6 +196,8 @@ export function createEditor(container: HTMLElement, options: EditorOptions = {}
     toolbar,
     balloon,
     getHtml: () => serialize(),
+    getDiscarded: () => discarded,
+    failedPlugins,
     setHtml,
     isEmpty: () => lexical.read(() => $isDocumentEmpty()),
     insertText: (text) => {
@@ -239,8 +248,15 @@ export function createEditor(container: HTMLElement, options: EditorOptions = {}
   };
 
   for (const plugin of plugins) {
-    const cleanup = plugin.register?.({ editor: lexical, primavista: api, translate, container: element, contentElement, toolbar, balloon, allowed, schema });
-    if (cleanup) pluginCleanups.push(cleanup);
+    try {
+      const cleanup = plugin.register?.({ editor: lexical, primavista: api, translate, container: element, contentElement, toolbar, balloon, allowed, schema });
+      if (cleanup) pluginCleanups.push(cleanup);
+    } catch (error) {
+      // One broken extension must not take the editor and its content down.
+      failedPlugins.push(plugin.name);
+      const reported = error instanceof Error ? error : new Error(String(error));
+      (options.onPluginError ?? ((name, cause) => console.error(`Primavista: plugin "${name}" failed to register and was skipped.`, cause)))(plugin.name, reported);
+    }
   }
   toolbar.refresh();
 

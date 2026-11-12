@@ -1,4 +1,5 @@
 {
+    "sulu_admin.primavista.discarded": "Dieser Inhalt hat Elemente, die der Editor nicht behalten kann. Das Feld ist schreibgeschützt:",
     "sulu_admin.primavista.toolbar.label": "Formatierung",
     "sulu_admin.primavista.toolbar.undo": "Rückgängig",
     "sulu_admin.primavista.toolbar.redo": "Wiederholen",

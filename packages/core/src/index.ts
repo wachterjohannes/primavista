@@ -39,6 +39,7 @@ export type {
   Translate,
   ToolbarMenu,
   ToolbarMenuOption,
+  DiscardedElement,
   EditorEventMap,
   EditorOptions,
   PluginAllows,

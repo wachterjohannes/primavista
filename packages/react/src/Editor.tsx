@@ -1,6 +1,7 @@
 import {
   createEditor,
   type EditorOptions,
+  type DiscardedElement,
   type PrimavistaEditor,
   type HtmlOptions,
   type PrimavistaPlugin,
@@ -33,6 +34,10 @@ export interface EditorProps {
   'aria-describedby'?: string;
   /** Called with the editor instance right after mount. */
   onReady?: (editor: PrimavistaEditor) => void;
+  /** Elements the loaded value holds and the editor cannot write back. See `EditorOptions.onDiscard`. */
+  onDiscard?: (discarded: ReadonlyArray<DiscardedElement>) => void;
+  /** A plugin threw while registering and was skipped. */
+  onPluginError?: (pluginName: string, error: Error) => void;
   /** Translates toolbar and form strings. Read once on mount. */
   translate?: Translate;
   /** Visual theme name, for example `sulu`. Read once on mount. */
@@ -65,6 +70,8 @@ export const Editor = forwardRef<EditorHandle, EditorProps>(function Editor(prop
     className,
     id,
     onReady,
+    onDiscard,
+    onPluginError,
     translate,
     theme,
     html,
@@ -73,8 +80,8 @@ export const Editor = forwardRef<EditorHandle, EditorProps>(function Editor(prop
   const hostRef = useRef<HTMLDivElement>(null);
   const editorRef = useRef<PrimavistaEditor | null>(null);
   const lastHtmlRef = useRef<string>(value ?? defaultValue ?? '');
-  const callbacksRef = useRef({ onChange, onBlur, onFocus });
-  callbacksRef.current = { onChange, onBlur, onFocus };
+  const callbacksRef = useRef({ onChange, onBlur, onFocus, onDiscard });
+  callbacksRef.current = { onChange, onBlur, onFocus, onDiscard };
 
   useLayoutEffect(() => {
     const host = hostRef.current;
@@ -82,7 +89,9 @@ export const Editor = forwardRef<EditorHandle, EditorProps>(function Editor(prop
     const options: EditorOptions = {
       initialHtml: lastHtmlRef.current,
       editable: !disabled,
+      onDiscard: (discarded) => callbacksRef.current.onDiscard?.(discarded),
     };
+    if (onPluginError) options.onPluginError = onPluginError;
     if (plugins) options.plugins = plugins;
     if (placeholder !== undefined) options.placeholder = placeholder;
     if (translate) options.translate = translate;

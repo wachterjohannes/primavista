@@ -78,3 +78,12 @@
   background: #ffffff;
   color: #6e6e6e;
 }
+
+.pv-discard-notice {
+  margin: 8px 0 0;
+  padding: 8px 12px;
+  border-left: 3px solid #e1a100;
+  background: #fff6dc;
+  color: #4a3700;
+  font-size: 13px;
+}
