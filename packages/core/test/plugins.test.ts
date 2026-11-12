@@ -272,3 +272,22 @@ describe('typing helpers', () => {
     expect(createEditor).toBeTypeOf('function');
   });
 });
+
+describe('internal links with different formats', () => {
+  it('keep their own element name and validation attribute per editor', () => {
+    const make = (tag: string, validationAttribute: string) =>
+      mount({ plugins: [history(), formatting(), links(), internalLinks({ providers, tag, validationAttribute })] });
+    const a = make('sulu-link', 'sulu-validation-state');
+    const b = make('page-link', 'state');
+    const html = (tag: string, attribute: string): string =>
+      `<p><${tag} href="abc" provider="page" ${attribute}="removed">x</${tag}></p>`;
+    a.editor.setHtml(html('sulu-link', 'sulu-validation-state'));
+    b.editor.setHtml(html('page-link', 'state'));
+    expect(a.editor.getHtml()).toBe(html('sulu-link', 'sulu-validation-state'));
+    expect(b.editor.getHtml()).toBe(html('page-link', 'state'));
+    for (const { editor, container } of [a, b]) {
+      editor.destroy();
+      container.remove();
+    }
+  });
+});

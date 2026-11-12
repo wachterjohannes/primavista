@@ -98,6 +98,8 @@ export type Translate = (key: string, fallback: string) => string;
 
 export interface PluginContext {
   editor: LexicalEditor;
+  /** The Primavista editor, with `insertText`, `insertHtml`, `getSelectedText` and `toggleFormat`, so plugins need no `editor.update()` for the common actions. */
+  primavista: PrimavistaEditor;
   translate: Translate;
   /** The outer editor element (`.pv-editor`). */
   container: HTMLElement;

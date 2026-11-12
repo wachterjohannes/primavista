@@ -23,6 +23,8 @@ const DOCS = [
   { src: 'bundles/sulu-bundle/README.md', slug: 'sulu-bundle', title: 'Sulu bundle', group: 'Sulu' },
   { src: 'docs/sulu-integration.md', slug: 'sulu-integration', title: 'Replacing CKEditor in Sulu', group: 'Sulu' },
   { src: 'docs/sulu-requirements.md', slug: 'sulu-requirements', title: 'What Sulu uses from CKEditor', group: 'Sulu' },
+  { src: 'docs/writing-extensions.md', slug: 'writing-extensions', title: 'Writing an extension', group: 'Packages' },
+  { src: 'UPGRADE.md', slug: 'upgrade', title: 'Upgrade notes', group: 'Packages' },
   { src: 'DECISIONS.md', slug: 'decisions', title: 'Decisions', group: 'Background' },
   { src: 'RESEARCH.md', slug: 'research', title: 'Research', group: 'Background' },
   { src: 'IDEA.md', slug: 'idea', title: 'The idea', group: 'Background' },
