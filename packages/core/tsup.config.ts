@@ -1,7 +1,20 @@
-import { copyFileSync, mkdirSync, readdirSync, readFileSync } from 'node:fs';
+import { copyFileSync, existsSync, mkdirSync, readdirSync, readFileSync } from 'node:fs';
+import { createRequire } from 'node:module';
+import { dirname, join } from 'node:path';
 import { defineConfig } from 'tsup';
 
-const lexicalVersion = JSON.parse(readFileSync('package.json', 'utf8')).dependencies.lexical.replace(/^[^\d]*/, '');
+// The installed version, not the range in package.json: ^0.53.0 with 0.53.2 installed is 0.53.2.
+function installedLexicalVersion(): string {
+  // `lexical/package.json` is not in the exports of the package, so walk up from its entry file.
+  let directory = dirname(createRequire(import.meta.url).resolve('lexical'));
+  while (!existsSync(join(directory, 'package.json')) || JSON.parse(readFileSync(join(directory, 'package.json'), 'utf8')).name !== 'lexical') {
+    const parent = dirname(directory);
+    if (parent === directory) throw new Error('Cannot find the installed lexical package');
+    directory = parent;
+  }
+  return JSON.parse(readFileSync(join(directory, 'package.json'), 'utf8')).version;
+}
+const lexicalVersion = installedLexicalVersion();
 
 export default defineConfig({
   define: { __LEXICAL_VERSION__: JSON.stringify(lexicalVersion) },

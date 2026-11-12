@@ -18,6 +18,8 @@ pnpm e2e:install
 pnpm e2e
 ```
 
+`pnpm api` compares the public types with the reports in `api/`. They are the contract with extension authors. When you change a signature on purpose, run `pnpm api:update` and commit the diff of `api/`.
+
 `pnpm verify:packages` packs the packages, installs them into an empty folder with npm and checks that every entry loads as ESM and CommonJS, that there is one copy of Lexical, that the types resolve and that the editorial kit passes its tests against the tarballs. It needs network access.
 
 `pnpm e2e` starts the demo with PHP's built-in server and runs Playwright against it. The demo specs run in Chromium. `e2e/kit.spec.ts` runs the editorial kit in Chromium and Firefox, with real selection, menus and a real copy and paste. `pnpm e2e:install` installs both browsers.

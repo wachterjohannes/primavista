@@ -19,6 +19,8 @@ jobs:
       - run: pnpm check:versions
       - run: pnpm build
       - run: pnpm size
+      - name: Public types match api/
+        run: pnpm api
       - run: pnpm typecheck
       - run: pnpm test
       - name: Packed packages work in an empty project

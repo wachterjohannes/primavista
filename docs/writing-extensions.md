@@ -103,6 +103,8 @@ import { $findMatchingParent } from '@primavista/core/lexical/utils';
 
 Do not add `lexical` to your `dependencies`. `@primavista/core/lexical` hands out the copy the editor uses. A second copy breaks `instanceof` checks and node registration. `createEditor` throws a clear error when a plugin brings node classes from another copy. It cannot see a plugin without nodes of its own, so a plugin that only imports `$getSelection` from a second copy of `lexical` fails later with Lexical's own, less clear error. Importing everything through `@primavista/core/lexical` avoids that.
 
+Mixing module formats makes a second copy as well. The package ships ESM and CommonJS builds, each with its own Lexical. A project that loads the core as ESM and an extension as CommonJS gets two instances, although each format is fine on its own. Load the core and every extension the same way, in a bundler project that means one format for all of them.
+
 `context.editor` and everything under `@primavista/core/lexical` follow Lexical, not Primavista. They have no stability promise. Declare the markup your plugin writes in `schema`, so paste cleanup and sanitizers know it.
 
 The guard cannot see a plugin that has no nodes and only imports `$getSelection` from a second copy of Lexical. Two checks close that gap in your project:
