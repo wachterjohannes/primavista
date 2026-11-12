@@ -107,7 +107,7 @@ primavista_sulu:
         - { tag: span, class: lead }
 ```
 
-`class` is written on every element and required when content loads, so other elements of the tag stay untouched. Common tags such as `span`, `div` or `a` need a class, the config is rejected otherwise. Event handlers, `style` and `class` are not allowed as attributes, and tags such as `script` or `iframe` are refused. The sanitizer allows `class` on the tag as a whole, since it cannot tell the elements apart by value.
+`class` is written on every element and required when content loads, so other elements of the tag stay untouched. Common tags such as `span`, `div` or `a` need a class, the config is rejected otherwise. Event handlers, `style` and `class` are not allowed as attributes, and tags such as `script` or `iframe` are refused. The sanitizer allows `class` on the tag as a whole, since it cannot tell the elements apart by value. With `{ tag: span, class: lead }` every class on every `<span>` survives saving, not only `lead`. That is no script risk, but it is wider than the editor writes.
 
 `attributes` are kept when content loads, pastes or saves. With attributes the toolbar button opens a small form with one field per attribute and edits or removes an existing element when the cursor sits inside it. Label the fields with `sulu_admin.primavista.inlineElement.<tag>.<attribute>`, or `<tag>-<class>` as the name when a class is set.
 

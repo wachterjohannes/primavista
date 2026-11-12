@@ -9,10 +9,11 @@
     "test": "vitest run",
     "typecheck": "tsc --noEmit -p tsconfig.json"
   },
-  "dependencies": {
-    "@primavista/core": "workspace:*"
+  "peerDependencies": {
+    "@primavista/core": ">=0.1.0 <1.0.0"
   },
   "devDependencies": {
+    "@primavista/core": "workspace:*",
     "jsdom": "^31.0.0",
     "typescript": "^6.0.3",
     "vitest": "^5.1.0"

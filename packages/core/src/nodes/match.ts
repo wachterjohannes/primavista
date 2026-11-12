@@ -19,8 +19,32 @@ const GENERIC_TAGS = new Set([
   'strong', 'b', 'em', 'i', 'u', 's', 'strike', 'sub', 'sup', 'font', 'body', 'html',
 ]);
 
-/** Throws when a generic tag has no class or attribute to tell the helper's elements apart. */
+/**
+ * Elements that never belong in editor content. The same list guards
+ * `primavista_sulu.elements` in the Sulu bundle (`FORBIDDEN_TAGS` in
+ * `PrimavistaSuluBundle.php`), keep both in step.
+ */
+const FORBIDDEN_TAGS = new Set([
+  'script', 'style', 'iframe', 'object', 'embed', 'link', 'meta', 'base', 'form', 'input', 'button', 'textarea', 'select', 'svg', 'math', 'template',
+]);
+
+/** Attributes a helper may keep. Event handlers, `style`, `class` and `srcdoc` never. */
+export function assertSafeAttributes(helper: string, name: string, tag: string, attributes: ReadonlyArray<string>): void {
+  for (const attribute of attributes) {
+    if (!/^[a-z][a-z0-9-]*$/.test(attribute) || attribute.startsWith('on') || ['style', 'class', 'srcdoc'].includes(attribute)) {
+      throw new Error(
+        `Primavista: ${helper}("${name}") cannot keep the attribute "${attribute}" of <${tag}>. ` +
+          `Event handlers, style, class and srcdoc are never kept, class has its own option.`,
+      );
+    }
+  }
+}
+
+/** Throws for tags that cannot be allowed, and for generic tags without a class or attribute to tell the helper's elements apart. */
 export function assertSpecificMatch(helper: string, name: string, match: ElementMatch): void {
+  if (FORBIDDEN_TAGS.has(match.tag) || !/^[a-z][a-z0-9-]*$/.test(match.tag)) {
+    throw new Error(`Primavista: ${helper}("${name}") cannot claim <${match.tag}>, it cannot be allowed in editor content.`);
+  }
   if (!GENERIC_TAGS.has(match.tag)) return;
   if (match.className || (match.requires?.length ?? 0) > 0) return;
   throw new Error(
