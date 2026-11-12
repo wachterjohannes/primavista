@@ -12,7 +12,8 @@
  *     import {blockquote} from '@primavista/core';
  *     primavistaPluginRegistry.add(() => blockquote());
  */
-type PluginContext = {config: Object, options: Object};
+// hasConfig is false in Sulu 3.0, which has no text editor config: config is then the default and its tags list says nothing.
+type PluginContext = {config: Object, hasConfig: boolean, options: Object};
 // A factory returns undefined to skip its plugin, for example when the text editor config does not list its tag.
 type PluginFactory = (context: PluginContext) => ?Object;
 

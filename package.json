@@ -17,6 +17,7 @@
     "check:versions": "node scripts/check-versions.mjs",
     "verify:packages": "node scripts/verify-packages.mjs",
     "e2e": "playwright test",
+    "e2e:sulu": "playwright test -c playwright.sulu.config.ts",
     "e2e:install": "playwright install chromium firefox",
     "build:pages": "pnpm --filter @primavista/pages build",
     "screencast:sulu": "node e2e/sulu-screencast.mjs"

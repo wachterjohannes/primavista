@@ -195,7 +195,11 @@ class PrimavistaTextEditor extends React.Component<Props> {
             .filter((key) => key !== 'external')
             .map((key) => ({key, label: linkTypeRegistry.getTitle(key)}));
 
-        const projectPlugins = primavistaPluginRegistry.create({config: this.config, options: this.props.options || {}});
+        const projectPlugins = primavistaPluginRegistry.create({
+            config: this.config,
+            hasConfig: Boolean(this.props.config),
+            options: this.props.options || {},
+        });
         const warned = this.warnAboutUnallowedElements(projectPlugins);
         if (warned.length > 0) {
             // eslint-disable-next-line no-console
