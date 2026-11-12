@@ -116,9 +116,10 @@ export function createEditor(container: HTMLElement, options: EditorOptions = {}
     lexical.update(() => $loadHtml(lexical, html, inlineTags), { discrete: true, tag: [SET_HTML_TAG, HISTORIC_TAG] });
     lastHtml = serialize();
     updatePlaceholder();
-    const hadDiscarded = discarded.length > 0;
+    const before = JSON.stringify(discarded);
     discarded = findDiscarded(html, lastHtml);
-    if (discarded.length > 0 || hadDiscarded) options.onDiscard?.(discarded);
+    // Only when the list changed, a form that sets the same value again must not repeat the report.
+    if (JSON.stringify(discarded) !== before) options.onDiscard?.(discarded);
   };
 
   const updatePlaceholder = (): void => {
