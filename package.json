@@ -6,7 +6,7 @@
     "node": ">=20"
   },
   "scripts": {
-    "build": "pnpm -r --filter './packages/*' --filter './bundles/ux-bundle/assets' --filter ./demo run build",
+    "build": "pnpm -r --filter './packages/*' --filter './bundles/ux-bundle/assets' --filter ./demo --filter ./examples/editorial-kit run build",
     "test": "pnpm -r run test",
     "typecheck": "pnpm -r run typecheck",
     "lint": "pnpm -r run lint",
@@ -17,7 +17,7 @@
     "check:versions": "node scripts/check-versions.mjs",
     "verify:packages": "node scripts/verify-packages.mjs",
     "e2e": "playwright test",
-    "e2e:install": "playwright install chromium",
+    "e2e:install": "playwright install chromium firefox",
     "build:pages": "pnpm --filter @primavista/pages build",
     "screencast:sulu": "node e2e/sulu-screencast.mjs"
   },

@@ -7,7 +7,8 @@
   "type": "module",
   "scripts": {
     "test": "vitest run",
-    "typecheck": "tsc --noEmit -p tsconfig.json"
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "build": "tsup --config tsup.page.config.ts"
   },
   "peerDependencies": {
     "@primavista/core": ">=0.1.0 <1.0.0"
@@ -15,6 +16,7 @@
   "devDependencies": {
     "@primavista/core": "workspace:*",
     "jsdom": "^31.0.0",
+    "tsup": "^9.0.0",
     "typescript": "^6.0.3",
     "vitest": "^5.1.0"
   }

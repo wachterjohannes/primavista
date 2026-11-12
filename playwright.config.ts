@@ -1,6 +1,7 @@
 import { defineConfig, devices } from '@playwright/test';
 
 const port = 8799;
+const kitPort = 8798;
 
 export default defineConfig({
   testDir: './e2e',
@@ -14,11 +15,24 @@ export default defineConfig({
     trace: 'retain-on-failure',
     screenshot: 'only-on-failure',
   },
-  projects: [{ name: 'chromium', use: { ...devices['Desktop Chrome'] } }],
-  webServer: {
-    command: `php -d error_reporting=E_ALL -d display_errors=0 -S 127.0.0.1:${port} -t demo/public demo/public/router.php`,
-    url: `http://127.0.0.1:${port}/`,
-    reuseExistingServer: !process.env['CI'],
-    timeout: 60_000,
-  },
+  // The demo specs run in Chromium. The editorial kit runs in Chromium and Firefox,
+  // the helpers and paste handling are where browsers differ. See the issue about other browsers.
+  projects: [
+    { name: 'chromium', use: { ...devices['Desktop Chrome'] } },
+    { name: 'firefox', use: { ...devices['Desktop Firefox'] }, testMatch: /kit\.spec\.ts/ },
+  ],
+  webServer: [
+    {
+      command: `php -d error_reporting=E_ALL -d display_errors=0 -S 127.0.0.1:${port} -t demo/public demo/public/router.php`,
+      url: `http://127.0.0.1:${port}/`,
+      reuseExistingServer: !process.env['CI'],
+      timeout: 60_000,
+    },
+    {
+      command: `node e2e/serve-static.mjs examples/editorial-kit/dist-page ${kitPort}`,
+      url: `http://127.0.0.1:${kitPort}/`,
+      reuseExistingServer: !process.env['CI'],
+      timeout: 30_000,
+    },
+  ],
 });
