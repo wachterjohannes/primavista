@@ -16,6 +16,8 @@
     "size": "node scripts/size-check.mjs",
     "check:versions": "node scripts/check-versions.mjs",
     "verify:packages": "node scripts/verify-packages.mjs",
+    "api": "node scripts/api-report.mjs",
+    "api:update": "node scripts/api-report.mjs --local",
     "e2e": "playwright test",
     "e2e:sulu": "playwright test -c playwright.sulu.config.ts",
     "e2e:install": "playwright install chromium firefox",
@@ -24,6 +26,7 @@
   },
   "devDependencies": {
     "@changesets/cli": "^3.0.3",
+    "@microsoft/api-extractor": "^7.60.1",
     "@playwright/test": "^1.65.0",
     "typescript": "^6.0.3"
   },
