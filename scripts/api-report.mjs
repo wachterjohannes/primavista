@@ -32,6 +32,7 @@ for (const { name, pkg, dts } of entries) {
       mainEntryPointFilePath: join(root, pkg, dts),
       compiler: { tsconfigFilePath: join(root, pkg, 'tsconfig.json') },
       apiReport: { enabled: true, reportFileName: `${name}.api.md`, reportFolder: join(root, 'api'), reportTempFolder: join(root, 'node_modules/.cache/api-report') },
+      newlineKind: 'lf',
       docModel: { enabled: false },
       dtsRollup: { enabled: false },
       tsdocMetadata: { enabled: false },
