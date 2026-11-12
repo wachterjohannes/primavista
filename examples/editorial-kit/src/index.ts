@@ -194,6 +194,64 @@ export function readingTime(wordsPerMinute = 200): PrimavistaPlugin {
   };
 }
 
+/**
+ * A button with its own pressed state. `getSelection()` is allowed inside
+ * `isActive` and `isDisabled`, so no `$` function is needed. The button
+ * toggles bold, shows pressed while the whole selection is bold, and is off
+ * inside a keyboard key, where emphasis makes no sense.
+ */
+export function important(): PrimavistaPlugin {
+  let primavista: PrimavistaEditor | null = null;
+  return {
+    name: 'important',
+    register: (context) => {
+      primavista = context.primavista;
+    },
+    toolbar: [
+      {
+        id: 'important',
+        label: 'Important',
+        icon: '!',
+        group: 'transform',
+        isActive: () => primavista?.getSelection()?.formats.includes('bold') ?? false,
+        isDisabled: () => {
+          const selection = primavista?.getSelection();
+          return !selection || selection.ancestors.some((ancestor) => ancestor.tag === 'kbd');
+        },
+        onClick: () => primavista?.toggleFormat('bold'),
+      },
+    ],
+  };
+}
+
+/**
+ * A status line that follows the selection: how many words are selected and
+ * which block the caret is in. Uses the `selectionchange` event and nothing else.
+ */
+export function selectionStatus(): PrimavistaPlugin {
+  return {
+    name: 'selection-status',
+    register: ({ primavista, container }) => {
+      const line = document.createElement('div');
+      line.className = 'selection-status';
+      container.appendChild(line);
+      const off = primavista.on('selectionchange', (selection) => {
+        if (!selection) {
+          line.textContent = '';
+          return;
+        }
+        const words = selection.text.trim() === '' ? 0 : selection.text.trim().split(/\s+/).length;
+        const inside = selection.ancestors.map((ancestor) => ancestor.tag).join(' > ');
+        line.textContent = `${words} words selected, in ${inside || 'nothing'}`;
+      });
+      return () => {
+        off();
+        line.remove();
+      };
+    },
+  };
+}
+
 /** Everything above, in toolbar order. */
 export function editorialKit(): PrimavistaPlugin[] {
   return [
@@ -206,7 +264,9 @@ export function editorialKit(): PrimavistaPlugin[] {
     snippets(),
     specialCharacters(),
     textCase(),
+    important(),
     abbreviationTooltip(),
+    selectionStatus(),
     readingTime(),
   ];
 }

@@ -159,7 +159,7 @@ const newsletter = voidElement({
 });
 ```
 
-Both declare their element in `schema` with `kind: 'block'` or `'void'`, so paste cleanup keeps them. For actions on the content the editor has `insertText(text)`, `insertHtml(html)`, `getSelectedText()` and `toggleFormat('bold')`, all undoable. `examples/block-helper` is a complete extension.
+Both declare their element in `schema` with `kind: 'block'` or `'void'`, so paste cleanup keeps them. For actions on the content the editor has `insertText(text)`, `insertHtml(html)`, `getSelectedText()` and `toggleFormat('bold')`, all undoable. `getSelection()` returns what is selected in HTML terms (`collapsed`, `text`, `formats`, `block` and the `ancestors` with their attributes), and works inside `isActive`, `isDisabled` and `getValue` of a toolbar item, so a plugin sets its own pressed state without Lexical. The `selectionchange` event fires with the same object when the selection moves or changes what it covers. `examples/block-helper` is a complete extension.
 
 ### Block quote, code block, horizontal rule
 
