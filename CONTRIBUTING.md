@@ -9,6 +9,7 @@ pnpm install
 pnpm build
 pnpm size
 pnpm test
+pnpm verify:packages
 (cd libs/html-sanitizer && composer install && composer test && composer phpstan)
 (cd bundles/ux-bundle && composer install && composer test && composer phpstan)
 (cd bundles/sulu-bundle && composer install && composer test && composer phpstan)
@@ -16,6 +17,8 @@ pnpm test
 pnpm e2e:install
 pnpm e2e
 ```
+
+`pnpm verify:packages` packs the packages, installs them into an empty folder with npm and checks that every entry loads as ESM and CommonJS, that there is one copy of Lexical, that the types resolve and that the editorial kit passes its tests against the tarballs. It needs network access.
 
 `pnpm e2e` starts the demo with PHP's built-in server and runs Playwright against it.
 
