@@ -7,6 +7,7 @@ export default defineConfig({
   define: { __LEXICAL_VERSION__: JSON.stringify(lexicalVersion) },
   entry: {
     index: 'src/index.ts',
+    testing: 'src/testing.ts',
     'lexical/index': 'src/lexical/index.ts',
     'lexical/clipboard': 'src/lexical/clipboard.ts',
     'lexical/code-core': 'src/lexical/code-core.ts',
