@@ -1,6 +1,7 @@
 import { $getRoot } from 'lexical';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { createEditor, formatting, history, type PrimavistaEditor } from '../src';
+import { createEditor, defaultPlugins, formatting, history, type PrimavistaEditor } from '../src';
+import { assertSameLexical } from '../src/lexicalGuard';
 import { button, mount, select, selectAll, typeText } from './helpers';
 
 let active: { editor: PrimavistaEditor; container: HTMLElement } | null = null;
@@ -256,11 +257,23 @@ describe('createEditor', () => {
 });
 
 describe('lexical guard', () => {
-  it('rejects node classes from another copy of Lexical', () => {
+  it('skips a plugin with node classes from another copy of Lexical and reports it', () => {
     class ForeignNode {}
     const container = document.createElement('div');
-    expect(() =>
-      createEditor(container, { plugins: [{ name: 'foreign', nodes: [ForeignNode as never] }] }),
-    ).toThrow(/different copy of Lexical/);
+    const onPluginError = vi.fn();
+    const editor = createEditor(container, {
+      plugins: [...defaultPlugins(), { name: 'foreign', nodes: [ForeignNode as never] }],
+      initialHtml: '<p>kept</p>',
+      onPluginError,
+    });
+    expect(onPluginError).toHaveBeenCalledWith('foreign', expect.objectContaining({ message: expect.stringMatching(/different copy of Lexical/) }));
+    expect(editor.failedPlugins).toEqual(['foreign']);
+    expect(editor.getHtml()).toBe('<p>kept</p>');
+    editor.destroy();
+  });
+
+  it('assertSameLexical still throws for a direct check', () => {
+    class ForeignNode {}
+    expect(() => assertSameLexical([{ name: 'foreign', nodes: [ForeignNode as never] }])).toThrow(/different copy of Lexical/);
   });
 });

@@ -15,7 +15,7 @@ describe('markup the editor cannot write back', () => {
   it('is reported when the plugin that owns it is not loaded', () => {
     const onDiscard = vi.fn();
     const { editor } = mount({ plugins: defaultPlugins(), initialHtml: html, onDiscard });
-    expect(editor.getDiscarded().map((d) => `${d.tag}${d.className ? `.${d.className}` : ''}`).sort()).toEqual(['abbr', 'aside.note', 'mark.yellow']);
+    expect(editor.getDiscarded().map((d) => `${d.tag}${d.className ? `.${d.className}` : ''}`).sort()).toEqual(['abbr', 'aside.note', 'div', 'mark.yellow']);
     expect(onDiscard).toHaveBeenCalledTimes(1);
   });
 
@@ -29,6 +29,17 @@ describe('markup the editor cannot write back', () => {
   it('ignores normal clean-up such as b, i, bare wrappers and empty paragraphs', () => {
     const { editor } = mount({ plugins: defaultPlugins(), initialHtml: '<div><p><b>a</b> <i>b</i> <span>c</span></p><p></p><br></div>' });
     expect(editor.getDiscarded()).toEqual([]);
+  });
+
+  it.each([
+    ['<p class="lead">a</p>', { tag: 'p', className: 'lead', count: 1 }],
+    ['<h2 id="kontakt">a</h2>', { tag: 'h2', count: 1, attributes: ['id'] }],
+    ['<span lang="fr">a</span>', { tag: 'span', count: 1 }],
+    ['<span style="color: red">a</span>', { tag: 'span', count: 1 }],
+    ['<p data-id="5">a</p>', { tag: 'p', count: 1, attributes: ['data-id'] }],
+  ])('sees the loss of %s', (input, expected) => {
+    const { editor } = mount({ plugins: defaultPlugins(), initialHtml: input });
+    expect(editor.getDiscarded()).toContainEqual(expected);
   });
 
   it('is recomputed on setHtml', () => {

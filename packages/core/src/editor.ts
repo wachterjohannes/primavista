@@ -23,7 +23,7 @@ import { collectSchema } from './plugins/schema';
 import { collectThemeClassNames, defaultTheme, mergeThemes } from './theme';
 import { createToolbar } from './toolbar';
 import { $readSelection, sameSelection } from './selection';
-import { assertSameLexical } from './lexicalGuard';
+import { foreignLexicalError } from './lexicalGuard';
 import { findDiscarded } from './discard';
 import type { DiscardedElement, EditorEventMap, EditorOptions, HtmlOptions, PrimavistaEditor, PrimavistaPlugin, SelectionInfo } from './types';
 
@@ -32,8 +32,21 @@ import type { DiscardedElement, EditorEventMap, EditorOptions, HtmlOptions, Prim
  * the `.pv-editor` element that is appended to it and removed on `destroy()`.
  */
 export function createEditor(container: HTMLElement, options: EditorOptions = {}): PrimavistaEditor {
-  const plugins: ReadonlyArray<PrimavistaPlugin> = options.plugins ?? defaultPlugins();
-  assertUniquePluginNames(plugins);
+  const requested: ReadonlyArray<PrimavistaPlugin> = options.plugins ?? defaultPlugins();
+  assertUniquePluginNames(requested);
+
+  // One broken extension must not take the editor and its content down.
+  const failedPlugins: string[] = [];
+  const reportPluginError = (name: string, error: Error): void => {
+    failedPlugins.push(name);
+    (options.onPluginError ?? ((pluginName, cause) => console.error(`Primavista: plugin "${pluginName}" failed and was skipped.`, cause)))(name, error);
+  };
+  // A plugin with node classes from a second copy of Lexical would break node registration for all of them.
+  const plugins = requested.filter((plugin) => {
+    const error = foreignLexicalError(plugin);
+    if (error) reportPluginError(plugin.name, error);
+    return !error;
+  });
 
   const theme = mergeThemes(defaultTheme, ...plugins.map((p) => p.theme), options.themeClasses);
   const htmlOptions: Required<HtmlOptions> = {
@@ -43,7 +56,6 @@ export function createEditor(container: HTMLElement, options: EditorOptions = {}
   };
   const themeClassNames = collectThemeClassNames(theme);
   const nodes = dedupeNodes(plugins.flatMap((p) => p.nodes ?? []));
-  assertSameLexical(plugins);
   const schema = collectSchema(plugins);
   const inlineTags = schema.elements
     .filter((element) => element.kind === 'inline')
@@ -185,7 +197,6 @@ export function createEditor(container: HTMLElement, options: EditorOptions = {}
 
   const allowed = collectAllowed(plugins);
   const pluginCleanups: Array<() => void> = [];
-  const failedPlugins: string[] = [];
 
   let destroyed = false;
 
@@ -252,10 +263,7 @@ export function createEditor(container: HTMLElement, options: EditorOptions = {}
       const cleanup = plugin.register?.({ editor: lexical, primavista: api, translate, container: element, contentElement, toolbar, balloon, allowed, schema });
       if (cleanup) pluginCleanups.push(cleanup);
     } catch (error) {
-      // One broken extension must not take the editor and its content down.
-      failedPlugins.push(plugin.name);
-      const reported = error instanceof Error ? error : new Error(String(error));
-      (options.onPluginError ?? ((name, cause) => console.error(`Primavista: plugin "${name}" failed to register and was skipped.`, cause)))(plugin.name, reported);
+      reportPluginError(plugin.name, error instanceof Error ? error : new Error(String(error)));
     }
   }
   toolbar.refresh();

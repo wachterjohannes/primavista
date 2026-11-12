@@ -3,7 +3,9 @@ import { createEditor, type InternalLinkDialogState, type PrimavistaEditor } fro
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import {
   htmlToSuluValue,
+  describeDiscarded,
   offersElement,
+  serverRemoves,
   stripParagraphs,
   SULU_DEFAULT_CONFIG,
   SULU_DEFAULT_FORMATS,
@@ -265,5 +267,22 @@ describe('offersElement', () => {
 
   it('offers the element when a config lists no tags', () => {
     expect(offersElement({ hasConfig: true, config: {} }, 'mark')).toBe(true);
+  });
+});
+
+describe('discarded elements and the server', () => {
+  const allowed = { tags: ['p', 'mark'], attributes: ['title'] };
+
+  it('names an element and an attribute loss', () => {
+    expect(describeDiscarded({ tag: 'mark', className: 'yellow', count: 1 })).toBe('mark.yellow');
+    expect(describeDiscarded({ tag: 'h2', count: 1, attributes: ['id', 'lang'] })).toBe('h2[id lang]');
+  });
+
+  it('keeps what the server allows and removes the rest', () => {
+    const kept = { tag: 'mark', count: 1 };
+    const removedTag = { tag: 'iframe', count: 1 };
+    const removedAttribute = { tag: 'p', count: 1, attributes: ['id'] };
+    const keptAttribute = { tag: 'p', count: 1, attributes: ['title'] };
+    expect(serverRemoves([kept, removedTag, removedAttribute, keptAttribute], allowed)).toEqual([removedTag, removedAttribute]);
   });
 });

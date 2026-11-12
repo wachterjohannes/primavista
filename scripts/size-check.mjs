@@ -21,7 +21,7 @@ const BUDGETS = [
   { file: 'bundles/ux-bundle/assets/dist/primavista.css', raw: 11.5, gzip: 3.1 },
   { file: 'packages/core/dist/index.js', raw: 160, gzip: 36, chunks: true },
   { file: 'packages/react/dist/index.js', raw: 3.1, gzip: 1.05 },
-  { file: 'packages/sulu/dist/index.js', raw: 5.5, gzip: 1.9 },
+  { file: 'packages/sulu/dist/index.js', raw: 6.0, gzip: 2.1 },
   { file: 'demo/assets/build/react-island.js', raw: 660, gzip: 208 },
 ];
 

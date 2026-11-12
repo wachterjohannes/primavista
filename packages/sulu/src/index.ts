@@ -14,6 +14,7 @@ import {
   pasteCleanup,
   tables,
   type AutoformatOptions,
+  type DiscardedElement,
   type EditorOptions,
   type HeadingsOptions,
   type InlineFormat,
@@ -207,6 +208,27 @@ export function offersElement(context: { hasConfig: boolean; config?: { tags?: R
   if (!context.hasConfig) return true;
   const tags = context.config?.tags;
   return !Array.isArray(tags) || tags.includes(tag);
+}
+
+/** A readable name for a discarded element: `mark.yellow`, or `h2[id]` when only attributes go. */
+export function describeDiscarded({ tag, className, attributes }: DiscardedElement): string {
+  return attributes ? `${tag}${className ? `.${className}` : ''}[${attributes.join(' ')}]` : `${tag}${className ? `.${className}` : ''}`;
+}
+
+/**
+ * What the server removes on save from the elements the editor cannot keep.
+ * Sulu's data mapper sanitizes every editor value of a document when it is
+ * saved, also one of a locked field. A field lock therefore only protects what
+ * the server allows. The rest goes on the next save, for example markup from
+ * CKEditor days that neither the editor nor the server knows.
+ */
+export function serverRemoves(
+  discarded: ReadonlyArray<DiscardedElement>,
+  allowed: { tags: ReadonlyArray<string>; attributes: ReadonlyArray<string> },
+): DiscardedElement[] {
+  return discarded.filter((entry) =>
+    entry.attributes ? entry.attributes.some((name) => !allowed.attributes.includes(name)) : !allowed.tags.includes(entry.tag),
+  );
 }
 
 /**
