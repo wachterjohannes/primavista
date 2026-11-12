@@ -107,6 +107,28 @@ export interface PluginContext {
   balloon: BalloonApi;
   /** What the structural plugins of this editor declared in `allows`, merged. */
   allowed: PluginAllows;
+  /** The markup the plugins of this editor declared in `schema`, merged. */
+  schema: Required<PluginSchema>;
+}
+
+/** An element a plugin writes, beyond what the built-in plugins cover. Inline only. */
+export interface SchemaElement {
+  tag: string;
+  /** Attributes the element may carry. Paste cleanup and sanitizers keep these and drop the rest. */
+  attributes?: ReadonlyArray<string>;
+  /** Only elements with this class count. Needed to claim a common tag such as `span`. */
+  className?: string;
+  /** Only elements with all of these attributes count. */
+  requires?: ReadonlyArray<string>;
+}
+
+/**
+ * The markup a plugin writes, declared once as data. Paste cleanup keeps these
+ * elements, and `getSchema(plugins)` hands the same list to a server-side
+ * sanitizer. The helpers such as `inlineElement` fill it in.
+ */
+export interface PluginSchema {
+  elements?: ReadonlyArray<SchemaElement>;
 }
 
 /**
@@ -139,6 +161,8 @@ export interface PrimavistaPlugin {
   toolbar?: ReadonlyArray<ToolbarItem>;
   /** What this plugin offers, see `PluginAllows`. Spreading a plugin keeps it. */
   allows?: PluginAllows;
+  /** The markup this plugin writes, see `PluginSchema`. */
+  schema?: PluginSchema;
 }
 
 /** Knobs for the HTML the editor emits. Defaults match CKEditor's plain output. */

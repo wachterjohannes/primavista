@@ -43,6 +43,8 @@ export type {
   EditorOptions,
   PluginAllows,
   PluginContext,
+  PluginSchema,
+  SchemaElement,
   PrimavistaEditor,
   PrimavistaPlugin,
   ToolbarApi,

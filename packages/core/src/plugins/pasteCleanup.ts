@@ -22,7 +22,7 @@ import type { PrimavistaPlugin } from '../types';
 export function pasteCleanup(): PrimavistaPlugin {
   return {
     name: 'paste-cleanup',
-    register: ({ editor, allowed }) => {
+    register: ({ editor, allowed, schema: pluginSchema }) => {
       const schema: CleanPastedHtmlOptions = {
         formats: allowed.formats ?? [],
         headings: editor.hasNodes([HeadingNode]),
@@ -34,6 +34,7 @@ export function pasteCleanup(): PrimavistaPlugin {
         blockquote: editor.hasNodes([QuoteNode]),
         codeBlock: editor.hasNodes([CodeNode]),
         horizontalRule: editor.hasNodes([HorizontalRuleNode]),
+        elements: pluginSchema.elements,
       };
       if (editor.hasNodes([InternalLinkNode])) {
         schema.internalLink = { tag: InternalLinkNode.tagName, validationAttribute: InternalLinkNode.validationAttribute };

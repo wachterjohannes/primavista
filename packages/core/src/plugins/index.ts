@@ -18,6 +18,8 @@ export { formatting, type FormattingOptions, type InlineFormat } from './formatt
 export { headings, type HeadingsOptions } from './headings';
 export { history, type HistoryOptions } from './history';
 export { horizontalRule } from './horizontalRule';
+export { inlineElement, type InlineElementOptions } from './inlineElement';
+export { getSchema } from './schema';
 export {
   internalLinks,
   parseHref,
