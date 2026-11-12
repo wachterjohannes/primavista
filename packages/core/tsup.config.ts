@@ -40,7 +40,8 @@ export default defineConfig({
   clean: true,
   target: 'es2022',
   platform: 'browser',
-  external: [/^lexical$/, /^@lexical\//],
+  // The core itself is external for the testing entry, so both formats share one copy of it.
+  external: [/^lexical$/, /^@lexical\//, '@primavista/core'],
   onSuccess: async () => {
     copyFileSync('src/primavista.css', 'dist/primavista.css');
     mkdirSync('dist/themes', { recursive: true });
