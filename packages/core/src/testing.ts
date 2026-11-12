@@ -1,6 +1,7 @@
 import { $getRoot, $isElementNode, $isTextNode, type LexicalNode } from 'lexical';
-import { createEditor } from './editor';
-import type { EditorOptions, PrimavistaEditor, PrimavistaPlugin } from './types';
+// By package name, not './editor': the CommonJS build has no code splitting, so a relative import would
+// bundle a second copy of the core, with its own node classes, into testing.cjs.
+import { createEditor, type EditorOptions, type PrimavistaEditor, type PrimavistaPlugin } from '@primavista/core';
 
 /** Mounts an editor into a fresh element of `document.body`. Remove both after the test. */
 export function mount(options: EditorOptions = {}): { editor: PrimavistaEditor; container: HTMLElement } {
@@ -69,6 +70,9 @@ class ClipboardEvent extends Event {
 /**
  * Pastes into the end of the document, the way a browser would. `data` maps
  * clipboard types to content, for example `{ 'text/html': '<b>x</b>', 'text/plain': 'x' }`.
+ *
+ * Side effect: when the environment has none, `ClipboardEvent` and `DragEvent`
+ * stand-ins are set on `globalThis` and stay there after the test.
  */
 export function paste(editor: PrimavistaEditor, data: Record<string, string>): void {
   if (!('ClipboardEvent' in globalThis)) Object.assign(globalThis, { ClipboardEvent });

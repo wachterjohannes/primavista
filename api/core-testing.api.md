@@ -4,10 +4,10 @@
 
 ```ts
 
-import { EditorThemeClasses } from 'lexical';
-import { Klass } from 'lexical';
-import { LexicalEditor } from 'lexical';
-import { LexicalNode } from 'lexical';
+import type { EditorThemeClasses } from 'lexical';
+import type { Klass } from 'lexical';
+import type { LexicalEditor } from 'lexical';
+import type { LexicalNode } from 'lexical';
 
 // @public (undocumented)
 export function button(editor: PrimavistaEditor, id: string): HTMLButtonElement;

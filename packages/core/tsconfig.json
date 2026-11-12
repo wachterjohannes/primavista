@@ -3,7 +3,8 @@
   "compilerOptions": {
     "rootDir": "src",
     "outDir": "dist",
-    "types": []
+    "types": [],
+    "paths": { "@primavista/core": ["./src/index.ts"] }
   },
   "include": ["src"]
 }

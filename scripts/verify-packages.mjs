@@ -62,6 +62,19 @@ writeFileSync(join(consumer, 'load.mjs'), loader);
 const failures = JSON.parse(run('node', ['load.mjs'], consumer, { quiet: true }).trim().split('\n').pop());
 check(failures.length === 0, `all ${entries.length} entries of @primavista/core load as ESM and CommonJS${failures.length ? `: ${failures.join('; ')}` : ''}`);
 
+// 3b. The test kit shares the core with the main entry in both formats. A second copy
+// would carry its own node classes and ignore what internalLinks() configured.
+const kitFiles = {
+  esm: join(consumer, 'node_modules/@primavista/core/dist/testing.js'),
+  cjs: join(consumer, 'node_modules/@primavista/core/dist/testing.cjs'),
+};
+const kitUsesCore = {
+  esm: /from ['"]@primavista\/core['"]/.test(readFileSync(kitFiles.esm, 'utf8')),
+  cjs: /require\(['"]@primavista\/core['"]\)/.test(readFileSync(kitFiles.cjs, 'utf8')),
+};
+const kitOwnCore = /class InternalLinkNode|function createEditor/.test(readFileSync(kitFiles.cjs, 'utf8'));
+check(kitUsesCore.esm && kitUsesCore.cjs && !kitOwnCore, '@primavista/core/testing loads the core by name and carries no copy of it in ESM and CommonJS');
+
 // 4. One copy of Lexical.
 const tree = JSON.parse(run('npm', ['ls', 'lexical', '--all', '--json'], consumer, { quiet: true }));
 const versions = new Set();
