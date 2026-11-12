@@ -42,6 +42,7 @@ pnpm e2e
 - Primavista's own API follows semver: `createEditor`, `PrimavistaPlugin`, the helpers, the schema, the toolbar and balloon API and `@primavista/core/testing`. Host systems build on it.
 - The Lexical pass-through is the exception. `@primavista/core/lexical` and `PluginContext.editor` follow Lexical and carry no stability promise.
 - A Lexical minor update is a Primavista minor release, never a patch. Update Lexical in its own pull request.
+- A Lexical update changes `packages/core/test/__snapshots__/lexical-exports.txt`, the names every Lexical subpath hands out. The diff is the source for the `UPGRADE.md` entry.
 - A release that updates Lexical gets an entry in `UPGRADE.md` that says what authors of raw Lexical extensions have to change. "Nothing" is a valid entry.
 - Remove API in two steps. Deprecate it with a console warning for one minor release, then remove it.
 - Files in the repository are written in English.
