@@ -132,7 +132,7 @@ test('a value the editor cannot keep locks the field and stays untouched', async
   await page.goto(`/admin/#/webspaces/${WEBSPACE}/pages/${LOCALE}/${id}/content`);
   await expect(page.locator('.pv-discard-notice')).toBeVisible();
   await expect(page.locator('.pv-discard-notice')).toContainText('mark');
-  await expect(editor(page)).toHaveAttribute('contenteditable', 'false');
+  await expect(page.locator('.pv-editor .pv-content')).toHaveAttribute('contenteditable', 'false');
   // The adapter warned once, that is the expected message, not an error.
   expect(errors.filter((message) => message.includes('no loaded plugin keeps it'))).toHaveLength(1);
   errors = [];
