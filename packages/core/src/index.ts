@@ -1,4 +1,5 @@
 export { createEditor } from './editor';
+export { LEXICAL_VERSION } from './lexicalGuard';
 export * from './plugins';
 export { icons, type IconName } from './icons';
 export { defaultTheme, mergeThemes } from './theme';
@@ -54,8 +55,9 @@ export type {
 
 /*
  * Lexical re-exports for plugin authors who consume the self-contained
- * Symfony UX build and cannot import "lexical" themselves. Bundler users can
- * import from the Lexical packages directly, it is the same instance.
+ * Symfony UX build, where there is no bundler to resolve a subpath. Everyone
+ * else imports from "@primavista/core/lexical" and its siblings, which hand
+ * out the same instance.
  */
 export * as lexical from 'lexical';
 export * as lexicalLink from '@lexical/link';

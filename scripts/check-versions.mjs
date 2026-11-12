@@ -1,5 +1,7 @@
 /*
  * Fails when a Lexical version differs from the one in packages/core.
+ * Outside packages/core, Lexical may only be a devDependency (tests and type
+ * checks), so a project or extension never carries a second copy.
  * Checks every package.json, every Markdown snippet that tells a project
  * what to put into its package.json, and the Lexical badge of the README.
  * After a Lexical update, run `pnpm up -r --latest lexical '@lexical/*'`
@@ -26,14 +28,19 @@ const files = execFileSync('git', ['ls-files', '-z'], { cwd: root, encoding: 'ut
   .filter(Boolean);
 
 const problems = [];
+const corePackage = 'packages/core/package.json';
 const isLexical = (name) => name === 'lexical' || name.startsWith('@lexical/');
 
 for (const file of files.filter((f) => f.endsWith('package.json'))) {
   const json = JSON.parse(read(file));
   for (const field of ['dependencies', 'devDependencies', 'peerDependencies', 'optionalDependencies']) {
     for (const [name, range] of Object.entries(json[field] ?? {})) {
-      if (isLexical(name) && range !== expected) {
+      if (!isLexical(name)) continue;
+      if (range !== expected) {
         problems.push(`${file}: ${name} is ${range} in ${field}, expected ${expected}`);
+      }
+      if (file !== corePackage && field !== 'devDependencies') {
+        problems.push(`${file}: ${name} is in ${field}, extensions get Lexical from @primavista/core/lexical`);
       }
     }
   }

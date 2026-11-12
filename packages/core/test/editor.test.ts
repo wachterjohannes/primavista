@@ -254,3 +254,13 @@ describe('createEditor', () => {
     expect(text).toBe('Text');
   });
 });
+
+describe('lexical guard', () => {
+  it('rejects node classes from another copy of Lexical', () => {
+    class ForeignNode {}
+    const container = document.createElement('div');
+    expect(() =>
+      createEditor(container, { plugins: [{ name: 'foreign', nodes: [ForeignNode as never] }] }),
+    ).toThrow(/different copy of Lexical/);
+  });
+});
