@@ -44,6 +44,24 @@ primavista_sulu:
         - { tag: abbr, attributes: [title], label: Abbreviation }
 YAML
 
+# Sulu 3.1 has text editor configs. An element is offered only when its tag is in the config of the field,
+# the way a project allows it for any editor. Sulu 3.0 has no such config.
+case "$SULU_VERSION" in
+  3.1*)
+    cat > config/packages/primavista_text_editor.yaml <<'YAML'
+sulu_admin:
+    text_editor:
+        configs:
+            default:
+                tags:
+                    mark: true
+                    abbr: true
+                attributes:
+                    title: true
+YAML
+    ;;
+esac
+
 # npm packages as tarballs, a link to the package directories would pull in a second React.
 mkdir -p primavista
 (cd "$ROOT" && for package in core react sulu; do pnpm --filter "@primavista/$package" exec pnpm pack --pack-destination "$APP/primavista"; done)
