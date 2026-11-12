@@ -124,4 +124,10 @@ The guard cannot see a plugin that has no nodes and only imports `$getSelection`
 
 `primavista-check-lexical` ships with `@primavista/core`. It runs `npm ls lexical` and fails when more than one version is installed.
 
+### Symfony UX projects
+
+The Symfony UX controller has no bundler and ships its own copy of Lexical, so a project cannot import `@primavista/core/lexical`. A plugin gets the core in the `primavista:pre-connect` event as `detail.core`. It holds everything `@primavista/core` exports: the helpers (`inlineElement`, `blockElement`, `voidElement`), `createEditor` and the plugins.
+
+Lexical is limited to three namespaces on `detail.core`: `lexical`, `lexicalLink` and `lexicalUtils`. The other `@lexical/*` packages, such as lists or tables, are not reachable. A level 3 extension in a UX project is therefore limited to those three. Use the helpers where you can, they work the same as in a bundler project.
+
 In Jest, add `lexical|@lexical|@primavista` to `transformIgnorePatterns`, because Lexical ships ES modules and Jest does not transform `node_modules` by default.
