@@ -2,7 +2,7 @@ import type { PluginSchema, PrimavistaPlugin, SchemaElement } from '../types';
 
 /**
  * Merges the `schema` of the given plugins. Entries with the same tag, class
- * and required attributes unite their attributes.
+ * and required attributes unite their attributes and keep the first kind.
  */
 export function collectSchema(plugins: ReadonlyArray<PrimavistaPlugin>): Required<PluginSchema> {
   const byKey = new Map<string, { element: SchemaElement; attributes: Set<string> }>();
@@ -16,6 +16,7 @@ export function collectSchema(plugins: ReadonlyArray<PrimavistaPlugin>): Require
   }
   const elements: SchemaElement[] = [...byKey.values()].map(({ element, attributes }) => ({
     tag: element.tag,
+    kind: element.kind ?? 'inline',
     attributes: [...attributes],
     ...(element.className ? { className: element.className } : {}),
     ...(element.requires ? { requires: element.requires } : {}),

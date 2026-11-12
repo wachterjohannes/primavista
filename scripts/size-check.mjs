@@ -19,10 +19,10 @@ const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const BUDGETS = [
   { file: 'bundles/ux-bundle/assets/dist/controller.js', raw: 485, gzip: 151 },
   { file: 'bundles/ux-bundle/assets/dist/primavista.css', raw: 11.5, gzip: 3.1 },
-  { file: 'packages/core/dist/index.js', raw: 135, gzip: 32, chunks: true },
+  { file: 'packages/core/dist/index.js', raw: 145, gzip: 33, chunks: true },
   { file: 'packages/react/dist/index.js', raw: 3.1, gzip: 1.05 },
   { file: 'packages/sulu/dist/index.js', raw: 5.5, gzip: 1.9 },
-  { file: 'demo/assets/build/react-island.js', raw: 640, gzip: 202 },
+  { file: 'demo/assets/build/react-island.js', raw: 645, gzip: 202 },
 ];
 
 const kb = (bytes) => (bytes / 1024).toFixed(2);

@@ -1,0 +1,20 @@
+{
+  "name": "@primavista/example-block-helper",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Reference extension built with blockElement, voidElement and the editor commands. It contains no Lexical code and has no lexical dependency.",
+  "license": "MIT",
+  "type": "module",
+  "scripts": {
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit -p tsconfig.json"
+  },
+  "dependencies": {
+    "@primavista/core": "workspace:*"
+  },
+  "devDependencies": {
+    "jsdom": "^31.0.0",
+    "typescript": "^6.0.3",
+    "vitest": "^5.1.0"
+  }
+}
