@@ -73,6 +73,26 @@ expectRoundTrip([...defaultPlugins(), highlight], '<p>a <mark>b</mark></p>');
 
 `paste(editor, { 'text/html': '…' })` runs the paste cleanup, so you can check that your markup survives it. The repository has a complete extension for each level in `examples/`.
 
+### How far level 2 goes
+
+`examples/editorial-kit` is the largest extension that needs no Lexical. It has two colours of `<mark>`, `<abbr title>` with a form, `<kbd>`, a note box, a newsletter placeholder with a preview, a menu of snippets, a menu of special characters, a text case menu that rewrites the selection, a tooltip for abbreviations and a reading time line. All of it uses only these parts of the API:
+
+| Part | What it gives you |
+| --- | --- |
+| `inlineElement`, `blockElement`, `voidElement` | elements with import, export, paste and toolbar button |
+| toolbar `menu` and `button` items | your own actions, `onSelect` and `onClick` need no editor argument |
+| `context.primavista` | `insertText`, `insertHtml`, `getSelectedText`, `toggleFormat`, `on('change')`, `getHtml` |
+| `context.balloon`, `context.toolbar.openPanel` | floating panels and form rows |
+| `context.contentElement`, `context.container` | plain DOM events and extra elements, removed in the cleanup |
+
+What it cannot do, and what to reach for instead:
+
+- **Format-preserving rewrites.** `getSelectedText` and `insertText` work on plain text, so a text case change drops bold and links inside the selection. Keeping them needs the nodes, level 3.
+- **A custom pressed state.** `isActive` and `getValue` of a toolbar item run inside `editor.read()` and read the selection with Lexical's `$` functions. The helpers set the pressed state for their own elements. For anything else there is no level 2 way.
+- **Reacting to the selection.** The editor has `change`, `focus` and `blur` events, but no selection event, so a plugin cannot follow the caret without Lexical.
+- **Your own element inside the text that is not one of the three shapes.** An inline element with attributes the user edits in place, a table-like block or a nested structure needs a node class, level 3.
+- **A format that overlaps a built-in tag.** Claim a tag such as `kbd` with a helper and the helper wins, but formats inside it still apply.
+
 ## Level 3: raw Lexical
 
 Use this when no helper fits. Import Lexical through the core:

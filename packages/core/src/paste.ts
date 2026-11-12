@@ -235,7 +235,9 @@ function isDropped(element: HTMLElement, tag: string, style: Record<string, stri
 function nextState(ctx: Context, element: HTMLElement, tag: string, style: Record<string, string>, state: State): State {
   const formats = new Set(state.formats);
   // `<code>` inside `<pre>` is the code block itself, not inline code.
-  const tagFormat = state.pre && tag === 'code' ? undefined : TAG_FORMATS[tag];
+  // An element a plugin claims, such as a `kbd` helper, is not also the built-in code format.
+  const claimed = schemaSpecFor(ctx, element, tag) !== undefined;
+  const tagFormat = claimed || (state.pre && tag === 'code') ? undefined : TAG_FORMATS[tag];
   if (tagFormat) formats.add(tagFormat);
   // Google Docs wraps the whole clipboard content in `<b id="docs-internal-guid-…">`, which is not bold.
   if (element.id.startsWith('docs-internal-guid')) formats.delete('bold');

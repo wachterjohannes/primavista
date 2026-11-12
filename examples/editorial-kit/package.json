@@ -1,0 +1,21 @@
+{
+  "name": "@primavista/example-editorial-kit",
+  "version": "0.0.0",
+  "private": true,
+  "description": "The largest extension that needs no Lexical: helpers, menus, selection tools, a tooltip and a status line. Every limit it ran into is listed in docs/writing-extensions.md.",
+  "license": "MIT",
+  "type": "module",
+  "scripts": {
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit -p tsconfig.json"
+  },
+  "peerDependencies": {
+    "@primavista/core": ">=0.1.0 <1.0.0"
+  },
+  "devDependencies": {
+    "@primavista/core": "workspace:*",
+    "jsdom": "^31.0.0",
+    "typescript": "^6.0.3",
+    "vitest": "^5.1.0"
+  }
+}
